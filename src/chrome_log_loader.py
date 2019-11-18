@@ -4,7 +4,11 @@ import os
 import time
 
 import constant_converter
+import quic_session
 
+ingore_event_type_list = [
+    'QUIC_SESSION_PACKET_AUTHENTICATED'
+]
 
 def fix_trunced_file(file_path):
     filesize = os.path.getsize(file_path)
@@ -72,15 +76,36 @@ def process_chrome_log(file_path):
         for event in events:
             cw.writerow(get_event_desc(event))
 
+    #TODO clean illgate peer_address data
     #extract quic session
     with open("../data_converted/"+filename+'_quic_session.csv','wt') as f:
         cw = csv.writer(f)
-        for event in events:
+
+        i = 0
+        length = len(events)
+        print('events to process: ',length)
+        while i < length:
+            event = events[i]
             event_info_list = get_event_desc(event)
             event_type = event_info_list[2]
-            if 'QUIC' in event_type:
-                cw.writerow(get_event_desc(event))
-
+            if event_type not in ingore_event_type_list:
+                if 'QUIC' in event_type:
+                    if event_type == 'QUIC_SESSION_PACKET_RECEIVED':
+                        next_event = events[i+1]
+                        next_event_info_list = get_event_desc(next_event)
+                        next_event_type = next_event_info_list[2]
+                        if next_event_type != 'QUIC_SESSION_UNAUTHENTICATED_PACKET_HEADER_RECEIVED':
+                            raise BaseException('packet received but no QUIC_SESSION_UNAUTHENTICATED_PACKET_HEADER_RECEIVED event follows')
+                        else:
+                            combined_event_obj = quic_session.packet_received(event, next_event)
+                            combined_event_info = event_info_list[:3]
+                            combined_event_info.append(combined_event_obj.to_string())
+                            cw.writerow(combined_event_info)
+                            i += 1
+                    else:
+                        cw.writerow(get_event_desc(event))
+                print('event processed: ',i)
+            i += 1
 
 
 
