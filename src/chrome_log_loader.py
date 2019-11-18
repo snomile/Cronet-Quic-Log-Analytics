@@ -1,3 +1,4 @@
+import csv
 import json
 import os
 import time
@@ -21,6 +22,7 @@ def fix_trunced_file(file_path):
 def get_source_desc(source):
     return 'id: %s, type: %s' % (source['id'], constant_converter.get_source_type(source['type']))
 
+
 first_time = 0
 def get_event_desc(event):
     global first_time
@@ -40,35 +42,40 @@ def get_event_desc(event):
         #extract other info
         del event['time']
         del event['type']
+        other_info = json.dumps(event)
 
-        return '%s,%s,%s,%s\r\n' % (time_str,time_diff,event_type,event)
+        return [time_str,time_diff,event_type,other_info]
     except BaseException as e:
         print(event)
         print(e)
         raise e
 
-def load_chrome_log(file_path):
-    with open(file_path, 'r+') as load_f:
+def process_chrome_log(file_path):
+    #load log
+    with open(file_path, 'r') as load_f:
         load_dict = json.load(load_f)
 
     constants = load_dict['constants']
     events = load_dict['events']
     print('load',len(events),'events')
 
+    #init converter
     constant_converter.init(constants)
 
-
+    #convert and save data
     (filepath, tempfilename) = os.path.split(file_path)
     (filename, extension) = os.path.splitext(tempfilename)
-    with open("../data_converted/"+filename+'.csv', 'w') as f:
+    with open("../data_converted/"+filename+'.csv','wt') as f:
+        cw = csv.writer(f)
         for event in events:
-            f.write(get_event_desc(event))
+            cw.writerow(get_event_desc(event))
+
 
 
 if __name__ == '__main__':
-    file_path = "../data_original/quic-sa2ir_slow.json"
+    file_path = "../data_original/quic-gh2ir.json"
     #file_path = '/Volumes/Storage/临时/log.json'
 
     fix_trunced_file(file_path)
-    load_chrome_log(file_path)
+    process_chrome_log(file_path)
 
