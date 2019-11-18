@@ -2,7 +2,8 @@ import csv
 import json
 
 ingore_event_type_list = [
-    'QUIC_SESSION_PACKET_AUTHENTICATED'
+    'QUIC_SESSION_PACKET_AUTHENTICATED',
+    'UDP_BYTES_SENT'
 ]
 
 
@@ -26,6 +27,9 @@ class QuicSession:
         i = 0
         length = len(event_list)
         print('events to process: ',length)
+
+        sent_event_buffer = []
+        received_event_buffer = []
         while i < length:
             event = event_list[i]
             if event.event_type not in ingore_event_type_list and event.source_type == 'QUIC_SESSION':
@@ -36,18 +40,24 @@ class QuicSession:
                     if next_event.event_type != 'QUIC_SESSION_UNAUTHENTICATED_PACKET_HEADER_RECEIVED':
                         raise BaseException('packet received but no QUIC_SESSION_UNAUTHENTICATED_PACKET_HEADER_RECEIVED event follows')
                     else:
+                        #TODO clear the received event buffer by adding all event to previous receive packet
                         packet_received = PacketReceived(event, next_event)
                         self.add_packet(packet_received)
                         i += 1
                 elif event.event_type == 'QUIC_SESSION_PACKET_SENT':
-                    packet_sent = PacketSent(event)
+                    packet_sent = PacketSent(event,sent_event_buffer)
                     self.add_packet(packet_sent)
                 else:
-                    print('ignore quic event: ', event.get_info_list())
-
-                if i % 1000 == 0: print('event processed: ',i)
+                    if 'SENT' in event.event_type or 'SEND' in event.event_type:
+                        sent_event_buffer.append(event)
+                    elif 'RECEIVED' in event.event_type or 'READ' in event.event_type:
+                        received_event_buffer.append(event)
+                    else:
+                        print('ignore quic event: ', event.get_info_list())
+                #if i % 1000 == 0: print('event processed: ',i)
             else:
-                print('ignore NONE quic event,', event.get_info_list())
+                #print('ignore NONE quic event,', event.get_info_list())
+                pass
             i += 1
 
     def add_packet(self,packet):
@@ -91,7 +101,6 @@ class PacketReceived:
             self.time_elaps,
             self.type,
             self.packet_number,
-            self.source_id,
             self.size,
             self.peer_address,
             self.self_address,
@@ -102,7 +111,7 @@ class PacketReceived:
 
 
 class PacketSent:
-    def __init__(self, QUIC_SESSION_PACKET_SENT_event):
+    def __init__(self, QUIC_SESSION_PACKET_SENT_event,related_sent_event): #TODO including the related sent event into the packet info
         self.time_int = QUIC_SESSION_PACKET_SENT_event.time_int
         self.time_elaps = 0
         self.type = 'PacketSent'
@@ -117,7 +126,6 @@ class PacketSent:
             self.time_elaps,
             self.type,
             self.packet_number,
-            self.source_id,
             self.size,
             self.transmission_type
         ]
