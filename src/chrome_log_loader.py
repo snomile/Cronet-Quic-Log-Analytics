@@ -26,6 +26,7 @@ def get_source_desc(source):
 first_time = 0
 def get_event_desc(event):
     global first_time
+
     try:
         #extract time
         time_int = int(event['time'])
@@ -40,9 +41,10 @@ def get_event_desc(event):
         event_type = constant_converter.get_event_type(event['type'])
 
         #extract other info
-        del event['time']
-        del event['type']
-        other_info = json.dumps(event)
+        other_event = event.copy()
+        del other_event['time']
+        del other_event['type']
+        other_info = json.dumps(other_event)
 
         return [time_str,time_diff,event_type,other_info]
     except BaseException as e:
@@ -51,6 +53,10 @@ def get_event_desc(event):
         raise e
 
 def process_chrome_log(file_path):
+    #get file info
+    (filepath, tempfilename) = os.path.split(file_path)
+    (filename, extension) = os.path.splitext(tempfilename)
+
     #load log
     with open(file_path, 'r') as load_f:
         load_dict = json.load(load_f)
@@ -59,16 +65,22 @@ def process_chrome_log(file_path):
     events = load_dict['events']
     print('load',len(events),'events')
 
-    #init converter
+    #convert and save all data
     constant_converter.init(constants)
-
-    #convert and save data
-    (filepath, tempfilename) = os.path.split(file_path)
-    (filename, extension) = os.path.splitext(tempfilename)
     with open("../data_converted/"+filename+'.csv','wt') as f:
         cw = csv.writer(f)
         for event in events:
             cw.writerow(get_event_desc(event))
+
+    #extract quic session
+    with open("../data_converted/"+filename+'_quic_session.csv','wt') as f:
+        cw = csv.writer(f)
+        for event in events:
+            event_info_list = get_event_desc(event)
+            event_type = event_info_list[2]
+            if 'QUIC' in event_type:
+                cw.writerow(get_event_desc(event))
+
 
 
 
