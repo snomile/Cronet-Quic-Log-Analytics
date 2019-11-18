@@ -12,7 +12,13 @@ def init(constants_dict):
     source_type_dict = revert_key_value(constants_dict['logSourceType'])
 
 def get_event_type(type_id):
-    return event_type_dict[type_id]
+    if event_type_dict:
+        return event_type_dict[type_id]
+    else:
+        return type_id
 
 def get_source_type(type_id):
-    return source_type_dict[type_id]
+    if source_type_dict:
+        return source_type_dict[type_id]
+    else:
+        return type_id
