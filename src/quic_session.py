@@ -148,8 +148,6 @@ class QuicConnection:
             json.dump(json_obj, f)
 
 
-
-
 class PacketReceived:
     def __init__(self, quic_connection, packet_received_event, relate_events):
         self.relate_events = relate_events.copy()
@@ -222,9 +220,6 @@ class PacketSent:
             frame = self.frames[i]
             frame.frame_id = '%s_%s_%s' % (self.type, self.packet_number, i)
             quic_connection.add_frame(frame)
-
-
-
 
     def init_frame(self, related_sent_event):
         events_buffer = []
