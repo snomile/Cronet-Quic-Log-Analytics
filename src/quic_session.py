@@ -34,6 +34,7 @@ class QuicConnection:
         self.packet_sent_dict = {}
         self.packet_received_dict = {}
         self.construct_quic_data_structure(self.quic_chrome_event_list)
+        self.tag_packet_by_ack()
 
     def construct_quic_data_structure(self, event_list):
         i = 0
@@ -80,6 +81,18 @@ class QuicConnection:
         print('stream: ', len(self.stream_dict.keys()))
         print('frame: ', len(self.frames))
 
+    def tag_packet_by_ack(self):
+        largest_observed_packet = 0
+        for frame in self.frames:
+            if frame.frame_type == 'ACK' and frame.direction == 'receive':
+                latest_largest_observed_packet = frame.largest_observed
+                for i in range(largest_observed_packet+1, latest_largest_observed_packet+1):
+                    packet = self.packet_sent_dict[i]
+                    packet.ack_by_frame_id = frame.frame_id
+                    frame_time_elaps = self.packet_received_dict[frame.packet_number].time_elaps
+                    packet.ack_delay = frame_time_elaps - packet.time_elaps
+                largest_observed_packet = latest_largest_observed_packet
+
 
     def add_packet(self,packet):
         packet.time_elaps = packet.time_int - self.start_time_int
@@ -115,7 +128,6 @@ class QuicConnection:
             for packet in self.frames:
                 cw.writerow(packet.get_info_list())
 
-
         #construct json obj
         print('saving quic_connection.json...')
         json_obj = {
@@ -129,6 +141,8 @@ class QuicConnection:
                 'direction':'send',
                 'time': packet.time_elaps,
                 'number': packet.packet_number,
+                'ack_by_frame' : packet.ack_by_frame_id,
+                'ack_delay': packet.ack_delay,
                 'info': packet.get_info_list(),
                 'frame_ids':[frame.frame_id for frame in packet.frames]
             }
@@ -181,7 +195,7 @@ class PacketReceived:
         for event in related_sent_event:
             if 'FRAME_RECEIVED' in event.event_type or event == related_sent_event[-1]: #if current event is the last event, the last QuicFrame must be create before loop end
                 if last_frame_received_event != None:
-                    frame = QuicFrame(last_frame_received_event, events_buffer)
+                    frame = QuicFrame(self.packet_number, last_frame_received_event, events_buffer)
                     self.frames.append(frame)
                     events_buffer = []
                 last_frame_received_event = event
@@ -213,6 +227,8 @@ class PacketSent:
         self.packet_number = QUIC_SESSION_PACKET_SENT_event.other_data['params']['packet_number']
         self.size = QUIC_SESSION_PACKET_SENT_event.other_data['params']['size']
         self.transmission_type = QUIC_SESSION_PACKET_SENT_event.other_data['params']['transmission_type']
+        self.ack_by_frame_id = 0
+        self.ack_delay = 0 # ms
 
         self.frames = []
         self.init_frame(related_event.copy())
@@ -225,7 +241,7 @@ class PacketSent:
         events_buffer = []
         for event in related_sent_event:
             if 'FRAME_SENT' in event.event_type:
-                frame = QuicFrame(event, events_buffer)
+                frame = QuicFrame(self.packet_number, event, events_buffer)
                 self.frames.append(frame)
                 events_buffer = []
             else:
@@ -252,11 +268,12 @@ class QuicStream:
 
 
 class QuicFrame:
-    def __init__(self, event, relate_events):
+    def __init__(self,packet_number, event, relate_events):
         relate_events = relate_events.copy()
         self.info_list = []
         self.frame_type = None
         self.frame_id = None
+        self.packet_number = packet_number
 
         if event.event_type == 'QUIC_SESSION_STREAM_FRAME_SENT':
             self.frame_type = 'STREAM'
