@@ -118,6 +118,7 @@ class QuicConnection:
         print('saving quic_packet.csv...')
         with open(self.persistant_file_path +'_quic_packet.csv', 'wt') as f:
             cw = csv.writer(f)
+            cw.writerow(['Time', 'Time Elaps', 'Type', 'Packet Number','Size'])
             for packet in self.packets:
                 cw.writerow(packet.get_info_list())
 
@@ -254,6 +255,7 @@ class PacketSent:
             self.type,
             self.packet_number,
             self.size,
+            self.ack_delay,
             self.transmission_type,
             [frame.get_info_list() for frame in self.frames]
         ]
