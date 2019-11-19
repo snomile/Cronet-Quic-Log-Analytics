@@ -85,13 +85,14 @@ class QuicConnection:
         packet.time_elaps = packet.time_int - self.start_time_int
         self.packets.append(packet)
 
+
     def add_frame(self,frame):
         self.frames.append(frame)
         stream_id = frame.stream_id
         if stream_id in self.stream_dict.keys():
-            self.stream_dict[stream_id].append(frame)
+            self.stream_dict[stream_id].append(frame.frame_id)
         else:
-            self.stream_dict[stream_id] = [frame]
+            self.stream_dict[stream_id] = [frame.frame_id]
 
 
     def save(self):
@@ -118,8 +119,10 @@ class QuicConnection:
         #construct json obj
         print('saving quic_connection.json...')
         json_obj = {
-            'packets_sent':[],
-            'packets_received':[]
+            'packets_sent': [],
+            'packets_received': [],
+            'stream_dict': self.stream_dict,
+            'frame_dict': {frame.frame_id: frame.__dict__ for frame in self.frames}
         }
         for packet in self.packet_sent_dict.values():
             packet_json_obj = {
@@ -127,7 +130,7 @@ class QuicConnection:
                 'time': packet.time_elaps,
                 'number': packet.packet_number,
                 'info': packet.get_info_list(),
-                'frames_json_obj':[frame.__dict__ for frame in packet.frames]
+                'frame_ids':[frame.frame_id for frame in packet.frames]
             }
             json_obj['packets_sent'].append(packet_json_obj)
 
@@ -137,7 +140,7 @@ class QuicConnection:
                 'time': packet.time_elaps,
                 'number': packet.packet_number,
                 'info': packet.get_info_list(),
-                'frames_json_obj':[frame.__dict__ for frame in packet.frames]
+                'frame_ids':[frame.frame_id for frame in packet.frames]
             }
             json_obj['packets_received'].append(packet_json_obj)
 
@@ -148,7 +151,7 @@ class QuicConnection:
 
 
 class PacketReceived:
-    def __init__(self, quic_session, packet_received_event,relate_events):
+    def __init__(self, quic_connection, packet_received_event, relate_events):
         self.relate_events = relate_events.copy()
         if self.relate_events[0].event_type != 'QUIC_SESSION_UNAUTHENTICATED_PACKET_HEADER_RECEIVED':
             raise BaseException('QUIC_SESSION_PACKET_RECEIVED event followed by illigal event type: %s' % self.relate_events[0].event_type)
@@ -169,8 +172,10 @@ class PacketReceived:
 
         self.frames = []
         self.init_frame(self.relate_events)
-        for frame in self.frames:
-            quic_session.add_frame(frame)
+        for i in range(len(self.frames)):
+            frame = self.frames[i]
+            frame.frame_id = '%s_%s_%s' % (self.type, self.packet_number, i)
+            quic_connection.add_frame(frame)
 
     def init_frame(self, related_sent_event):
         events_buffer = []
@@ -202,7 +207,7 @@ class PacketReceived:
 
 
 class PacketSent:
-    def __init__(self, quic_session, QUIC_SESSION_PACKET_SENT_event, related_event):
+    def __init__(self, quic_connection, QUIC_SESSION_PACKET_SENT_event, related_event):
         self.time_int = QUIC_SESSION_PACKET_SENT_event.time_int
         self.time_elaps = 0
         self.type = 'PacketSent'
@@ -213,8 +218,12 @@ class PacketSent:
 
         self.frames = []
         self.init_frame(related_event.copy())
-        for frame in self.frames:
-            quic_session.add_frame(frame)
+        for i in range(len(self.frames)):
+            frame = self.frames[i]
+            frame.frame_id = '%s_%s_%s' % (self.type, self.packet_number, i)
+            quic_connection.add_frame(frame)
+
+
 
 
     def init_frame(self, related_sent_event):
@@ -251,7 +260,8 @@ class QuicFrame:
     def __init__(self, event, relate_events):
         relate_events = relate_events.copy()
         self.info_list = []
-        self.frame_type = ''
+        self.frame_type = None
+        self.frame_id = None
 
         if event.event_type == 'QUIC_SESSION_STREAM_FRAME_SENT':
             self.frame_type = 'STREAM'
