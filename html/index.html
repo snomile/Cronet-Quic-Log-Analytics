@@ -2,9 +2,47 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>chrome log analysis</title>
+    <script src="./zepto.min.js"></script>
+    <script src="./zrender.min.js"></script>
+    <script src="./main.js"></script>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
+        #main {
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
 </head>
 <body>
-协作开发测试
+    <div id="main"></div>
+    <script>
+        $.getJSON('../data_converted/quic-gh2ir_quic_connection.json', function (data) {
+            // 解析数据
+            var stream_dict = data.stream_dict;
+            var frame_dict = data.frame_dict;
+            var packets_received = data.packets_received;
+            var packets_sent = data.packets_sent;
+            // 数据初始化
+            var streamMap = {}
+            // 初始化实例
+            var zr = zrender.init(document.getElementById('main'));
+            // 初始化 sent
+            // initPacketsSent(zr, packets_sent)
+            // 初始化 received
+            // initPacketsReceived(zr, packets_received)
+            // 初始化 stream
+            initStream(zr, stream_dict, streamMap);
+            // 初始化 frame
+            // initFrame(zr, frame_dict)
+            console.log(streamMap)
+        })
+    </script>
 </body>
+
 </html>
