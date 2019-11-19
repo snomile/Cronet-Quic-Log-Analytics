@@ -95,20 +95,60 @@ class QuicConnection:
 
 
     def save(self):
+        print('saving quic_session.csv...')
         with open(self.persistant_file_path +'_quic_session.csv', 'wt') as f:
             cw = csv.writer(f)
             for event in self.quic_chrome_event_list:
                 cw.writerow(event.get_info_list())
 
+        print('saving quic_packet.csv...')
         with open(self.persistant_file_path +'_quic_packet.csv', 'wt') as f:
             cw = csv.writer(f)
             for packet in self.packets:
                 cw.writerow(packet.get_info_list())
 
+        print('saving quic_frame.csv...')
+        with open(self.persistant_file_path +'_quic_frame.csv', 'wt') as f:
+            cw = csv.writer(f)
+            cw.writerow(['Frame type', 'Direction','Stream_id'])
+            for packet in self.frames:
+                cw.writerow(packet.get_info_list())
+
+
+        #construct json obj
+        print('saving quic_connection.json...')
+        json_obj = {
+            'packets_sent':[],
+            'packets_received':[]
+        }
+        for packet in self.packet_sent_dict.values():
+            packet_json_obj = {
+                'direction':'send',
+                'time': packet.time_elaps,
+                'number': packet.packet_number,
+                'info': packet.get_info_list(),
+                'frames_json_obj':[frame.__dict__ for frame in packet.frames]
+            }
+            json_obj['packets_sent'].append(packet_json_obj)
+
+        for packet in self.packet_received_dict.values():
+            packet_json_obj = {
+                'direction':'receive',
+                'time': packet.time_elaps,
+                'number': packet.packet_number,
+                'info': packet.get_info_list(),
+                'frames_json_obj':[frame.__dict__ for frame in packet.frames]
+            }
+            json_obj['packets_received'].append(packet_json_obj)
+
+        with open(self.persistant_file_path +'_quic_connection.json', "w") as f:
+            json.dump(json_obj, f)
+
+
+
 
 class PacketReceived:
     def __init__(self, quic_session, packet_received_event,relate_events):
-        self.quic_session = quic_session
         self.relate_events = relate_events.copy()
         if self.relate_events[0].event_type != 'QUIC_SESSION_UNAUTHENTICATED_PACKET_HEADER_RECEIVED':
             raise BaseException('QUIC_SESSION_PACKET_RECEIVED event followed by illigal event type: %s' % self.relate_events[0].event_type)
@@ -129,6 +169,8 @@ class PacketReceived:
 
         self.frames = []
         self.init_frame(self.relate_events)
+        for frame in self.frames:
+            quic_session.add_frame(frame)
 
     def init_frame(self, related_sent_event):
         events_buffer = []
@@ -136,15 +178,12 @@ class PacketReceived:
         for event in related_sent_event:
             if 'FRAME_RECEIVED' in event.event_type or event == related_sent_event[-1]: #if current event is the last event, the last QuicFrame must be create before loop end
                 if last_frame_received_event != None:
-                    frame = QuicFrame(self.quic_session, last_frame_received_event, events_buffer)
-                    self.add_frame(frame)
+                    frame = QuicFrame(last_frame_received_event, events_buffer)
+                    self.frames.append(frame)
                     events_buffer = []
                 last_frame_received_event = event
             else:
                 events_buffer.append(event)
-
-    def add_frame(self,frame):
-        self.frames.append(frame)
 
     def get_info_list(self):
         return [
@@ -164,7 +203,6 @@ class PacketReceived:
 
 class PacketSent:
     def __init__(self, quic_session, QUIC_SESSION_PACKET_SENT_event, related_event):
-        self.quic_session = quic_session
         self.time_int = QUIC_SESSION_PACKET_SENT_event.time_int
         self.time_elaps = 0
         self.type = 'PacketSent'
@@ -175,19 +213,19 @@ class PacketSent:
 
         self.frames = []
         self.init_frame(related_event.copy())
+        for frame in self.frames:
+            quic_session.add_frame(frame)
+
 
     def init_frame(self, related_sent_event):
         events_buffer = []
         for event in related_sent_event:
             if 'FRAME_SENT' in event.event_type:
-                frame = QuicFrame(self.quic_session, event, events_buffer)
-                self.add_frame(frame)
+                frame = QuicFrame(event, events_buffer)
+                self.frames.append(frame)
                 events_buffer = []
             else:
                 events_buffer.append(event)
-
-    def add_frame(self,frame):
-        self.frames.append(frame)
 
     def get_info_list(self):
         return [
@@ -210,53 +248,60 @@ class QuicStream:
 
 
 class QuicFrame:
-    def __init__(self,quic_session, event, relate_events):
-        self.quic_session = quic_session
-        self.event = event
-        self.relate_events = relate_events.copy()
+    def __init__(self, event, relate_events):
+        relate_events = relate_events.copy()
         self.info_list = []
         self.frame_type = ''
 
-        if self.event.event_type == 'QUIC_SESSION_STREAM_FRAME_SENT' or self.event.event_type == 'QUIC_SESSION_STREAM_FRAME_RECEIVED':
+        if event.event_type == 'QUIC_SESSION_STREAM_FRAME_SENT':
             self.frame_type = 'STREAM'
-            self.stream_id = self.event.other_data['params']['stream_id']
-            self.length = self.event.other_data['params']['length']
-            self.offset = self.event.other_data['params']['offset']
-            self.info_list.extend([self.frame_type,self.stream_id,self.length,self.offset])
-        elif self.event.event_type == 'QUIC_SESSION_ACK_FRAME_SENT' or self.event.event_type =='QUIC_SESSION_ACK_FRAME_RECEIVED':
+            self.direction = 'send'
+            self.stream_id = event.other_data['params']['stream_id']
+            self.length = event.other_data['params']['length']
+            self.offset = event.other_data['params']['offset']
+            self.info_list.extend([self.frame_type,self.direction,self.stream_id,self.length,self.offset])
+        elif event.event_type == 'QUIC_SESSION_STREAM_FRAME_RECEIVED':
+            self.frame_type = 'STREAM'
+            self.direction = 'receive'
+            self.stream_id = event.other_data['params']['stream_id']
+            self.length = event.other_data['params']['length']
+            self.offset = event.other_data['params']['offset']
+            self.info_list.extend([self.frame_type,self.direction,self.stream_id,self.length,self.offset])
+        elif event.event_type == 'QUIC_SESSION_ACK_FRAME_SENT':
             self.frame_type = 'ACK'
+            self.direction = 'send'
             self.stream_id = 'NONE'
-            self.largest_observed = self.event.other_data['params']['largest_observed']
-            self.missing_packets = self.event.other_data['params']['missing_packets']
-            self.delta_time_largest_observed_us = self.event.other_data['params']['delta_time_largest_observed_us']
-            self.received_packet_times = self.event.other_data['params']['received_packet_times']
-            self.info_list.extend([self.frame_type,self.largest_observed,self.missing_packets,self.delta_time_largest_observed_us,self.received_packet_times])
-        elif self.event.event_type == 'QUIC_SESSION_BLOCKED_FRAME_SENT':
+            self.largest_observed = event.other_data['params']['largest_observed']
+            self.missing_packets = event.other_data['params']['missing_packets']
+            self.delta_time_largest_observed_us = event.other_data['params']['delta_time_largest_observed_us']
+            self.received_packet_times = event.other_data['params']['received_packet_times']
+            self.info_list.extend([self.frame_type,self.direction,self.largest_observed,self.missing_packets,self.delta_time_largest_observed_us,self.received_packet_times])
+        elif event.event_type =='QUIC_SESSION_ACK_FRAME_RECEIVED':
+            self.frame_type = 'ACK'
+            self.direction = 'receive'
+            self.stream_id = 'NONE'
+            self.largest_observed = event.other_data['params']['largest_observed']
+            self.missing_packets = event.other_data['params']['missing_packets']
+            self.delta_time_largest_observed_us = event.other_data['params']['delta_time_largest_observed_us']
+            self.received_packet_times = event.other_data['params']['received_packet_times']
+            self.info_list.extend([self.frame_type,self.direction,self.largest_observed,self.missing_packets,self.delta_time_largest_observed_us,self.received_packet_times])
+        elif event.event_type == 'QUIC_SESSION_BLOCKED_FRAME_SENT':
             self.frame_type = 'BLOCKED'
-            self.stream_id = self.event.other_data['params']['stream_id']
-            self.info_list.extend([self.frame_type,self.stream_id])
-        elif self.event.event_type== 'QUIC_SESSION_WINDOW_UPDATE_FRAME_RECEIVED':
+            self.direction = 'send'
+            self.stream_id = event.other_data['params']['stream_id']
+            self.info_list.extend([self.frame_type,self.direction,self.stream_id])
+        elif event.event_type== 'QUIC_SESSION_WINDOW_UPDATE_FRAME_RECEIVED':
             self.frame_type = 'WINDOW_UPDATE'
-            self.stream_id = self.event.other_data['params']['stream_id']
-            self.byte_offset = self.event.other_data['params']['byte_offset']
+            self.direction = 'receive'
+            self.stream_id = event.other_data['params']['stream_id']
+            self.byte_offset = event.other_data['params']['byte_offset']
+            self.info_list.extend([self.frame_type,self.direction,self.stream_id,self.byte_offset])
         else:
-            print('WARN: unhandled sent frame',self.event.event_type)
+            print('WARN: unhandled sent frame',event.event_type)
+        self.info_list.extend([event.get_info_list() for event in relate_events])
 
-        self.quic_session.add_frame(self)
-        self.info_list.extend([event.get_info_list() for event in self.relate_events])
-        self.info_list.insert(0, self.frame_type)
 
     def get_info_list(self):
         return self.info_list
 
-
-if __name__ == '__main__':
-    packet_received_event = json.loads('{"params": {"peer_address": "34.102.205.215:443", "self_address": "192.168.100.10:64543", "size": 20}, "phase": 0, "source": {"id": 16, "type": 10}}')
-    header_received_event = json.loads('{"params": {"connection_id": "0", "header_format": "GOOGLE_QUIC_PACKET", "packet_number": 5, "reset_flag": 0, "version_flag": 0}, "phase": 0, "source": {"id": 16, "type": 10}}')
-    event_obj = PacketReceived(packet_received_event, header_received_event)
-    print(event_obj.get_info_list())
-
-    packet_sent_event = json.loads('{"params": {"encryption_level": "ENCRYPTION_INITIAL", "packet_number": 2, "sent_time_us": 87729807737, "size": 28, "transmission_type": "NOT_RETRANSMISSION"}, "phase": 0, "source": {"id": 16, "type": 10}}')
-    event_obj = PacketSent(packet_sent_event)
-    print(event_obj.get_info_list())
 
