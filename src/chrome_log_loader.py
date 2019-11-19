@@ -4,7 +4,7 @@ import os
 
 import constant_converter
 from chrome_session import ChromeSession, ChromeEvent
-from quic_session import QuicSession
+from quic_session import QuicConnection
 
 
 def fix_trunced_file(file_path):
@@ -42,7 +42,7 @@ def process_chrome_log(file_path):
     chrome_session.save()
 
     #extract quic session
-    quic_session = QuicSession(chrome_session.event_list,"../data_converted/"+filename)
+    quic_session = QuicConnection(chrome_session.event_list, "../data_converted/" + filename)
     quic_session.save()
 
 
