@@ -29,18 +29,18 @@
             var packets_received = data.packets_received;
             var packets_sent = data.packets_sent;
             // 数据初始化
-            var streamMap = {}
+            var streamMap = {};
+            var maxWidth = packets_received[packets_received.length - 1].time;
             // 初始化实例
-            var zr = zrender.init(document.getElementById('main'));
-            // 初始化 sent
-            // initPacketsSent(zr, packets_sent)
-            // 初始化 received
-            // initPacketsReceived(zr, packets_received)
-            // 初始化 stream
+            var zr = zrender.init(document.getElementById('main'), {
+                width: maxWidth * 7
+            });
+            // 初始化 stream line
             initStream(zr, stream_dict, streamMap);
-            // 初始化 frame
-            // initFrame(zr, frame_dict)
-            console.log(streamMap)
+            // 初始化 sent frame
+            initPacketsSent(zr, packets_sent, streamMap, frame_dict);
+            // 初始化 received frame
+            initPacketsReceived(zr, packets_received, streamMap, frame_dict);
         })
     </script>
 </body>

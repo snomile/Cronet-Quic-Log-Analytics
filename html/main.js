@@ -17,9 +17,34 @@ var defaultFont = {
  * @date 2019-11-19
  * @param {*} data
  */
-function initPacketsSent(render, data) {
+function initPacketsSent(render, data, streamMap, frameMap) {
+  var h = render.getHeight();
+  var lastTime = 0;
+  var step = 0;
   data.forEach(function (item) {
-    console.log(item)
+    if (item.time === lastTime) {
+      step += 1;
+    } else {
+      step = 0;
+    }
+    lastTime = item.time;
+    item.frame_ids.forEach(function(frame, index) {
+      var streamObj = streamMap[frameMap[frame].stream_id];
+      var rect = new zrender.Rect({
+        shape: {
+          width: 6,
+          height: 6,
+          x: item.time * 7 + 100,
+          y: streamObj.y1 - 3 - index * 6 - step * 6
+        },
+        style: {
+          fill: '#00bfff',
+          stroke: '#ffffff'
+        }
+      })
+      rect.on('mouser')
+      render.add(rect)
+    })
   })
 }
 
@@ -30,9 +55,33 @@ function initPacketsSent(render, data) {
  * @date 2019-11-19
  * @param {*} data
  */
-function initPacketsReceived(render, data) {
+function initPacketsReceived(render, data, streamMap, frameMap) {
+  var h = render.getHeight();
+  var lastTime = 0;
+  var step = 0;
   data.forEach(function (item) {
-    console.log(item)
+    if (item.time === lastTime) {
+      step += 1;
+    } else {
+      step = 0;
+    }
+    lastTime = item.time;
+    item.frame_ids.forEach(function (frame, index) {
+      var streamObj = streamMap[frameMap[frame].stream_id];
+      var rect = new zrender.Rect({
+        shape: {
+          width: 6,
+          height: 6,
+          x: item.time * 7 + 100,
+          y: streamObj.y1 - 3 - index * 6 - step * 6
+        },
+        style: {
+          fill: '#ff4500',
+          stroke: '#ffffff'
+        }
+      })
+      render.add(rect)
+    })
   })
 }
 
@@ -50,7 +99,7 @@ function initStream(render, map, streamMap) {
   var w = render.getWidth();
   var h = render.getHeight();
   // 获取每个stream的坐标间距
-  var step = h / (keys.length + 2);
+  var step = h / (keys.length + 1);
   keys.forEach(function(key, index) {
     // 计算stream的y坐标，并保存
     var y = step * (index + 1);
