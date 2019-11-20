@@ -129,21 +129,21 @@ class QuicFrame:
         elif event.event_type == 'QUIC_SESSION_ACK_FRAME_SENT':
             self.frame_type = 'ACK'
             self.direction = 'send'
-            self.stream_id = 'NONE'
+            self.stream_id = 'N/A'
             self.largest_observed = event.other_data['params']['largest_observed']
             self.missing_packets = event.other_data['params']['missing_packets']
             self.delta_time_largest_observed_us = event.other_data['params']['delta_time_largest_observed_us']
             self.received_packet_times = event.other_data['params']['received_packet_times']
-            self.info_list.extend([self.frame_type,self.direction,self.largest_observed,self.missing_packets,self.delta_time_largest_observed_us,self.received_packet_times])
+            self.info_list.extend([self.frame_type,self.direction,self.stream_id,self.largest_observed,self.missing_packets,self.delta_time_largest_observed_us,self.received_packet_times])
         elif event.event_type =='QUIC_SESSION_ACK_FRAME_RECEIVED':
             self.frame_type = 'ACK'
             self.direction = 'receive'
-            self.stream_id = 'NONE'
+            self.stream_id = 'N/A'
             self.largest_observed = event.other_data['params']['largest_observed']
             self.missing_packets = event.other_data['params']['missing_packets']
             self.delta_time_largest_observed_us = event.other_data['params']['delta_time_largest_observed_us']
             self.received_packet_times = event.other_data['params']['received_packet_times']
-            self.info_list.extend([self.frame_type,self.direction,self.largest_observed,self.missing_packets,self.delta_time_largest_observed_us,self.received_packet_times])
+            self.info_list.extend([self.frame_type,self.direction,self.stream_id,self.largest_observed,self.missing_packets,self.delta_time_largest_observed_us,self.received_packet_times])
         elif event.event_type == 'QUIC_SESSION_BLOCKED_FRAME_SENT':
             self.frame_type = 'BLOCKED'
             self.direction = 'send'
@@ -156,7 +156,7 @@ class QuicFrame:
             self.byte_offset = event.other_data['params']['byte_offset']
             self.info_list.extend([self.frame_type,self.direction,self.stream_id,self.byte_offset])
         else:
-            print('WARN: unhandled sent frame',event.event_type)
+            print('WARN: unhandled frame',event.event_type)
         self.info_list.extend([event.get_info_list() for event in relate_events])
 
 

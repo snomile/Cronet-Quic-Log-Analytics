@@ -18,18 +18,42 @@ class QuicConnection:
     def __init__(self,chrome_event_list,persistant_file_path):
         self.persistant_file_path = persistant_file_path
         self.quic_chrome_event_list = []
+        self.general_info = {}
 
-        #extract quic event and connection start time
+        #extract quic general info
+        chlo_event_index = 0
+        shlo_event_index = 0
         for event in chrome_event_list:
             if event.source_type == 'QUIC_SESSION' and event.event_type not in ingore_event_type_list:
-                self.quic_chrome_event_list.append(event)
                 if event.event_type == 'QUIC_SESSION':
                     self.start_time_int = event.time_int
+                    self.general_info['Start_time'] = event.time_int
+                    self.general_info['Host'] = event.other_data['params']['host']
+                    self.general_info['Port'] = event.other_data['params']['port']
+                    print('quic session found')
+                elif event.event_type == 'QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_SENT':
+                    chlo_event_index += 1
+                    self.general_info['CHLO%s' % chlo_event_index] = event.other_data['params']
+                elif event.event_type == 'QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_RECEIVED':
+                    shlo_event_index += 1
+                    self.general_info['SHLO%s' % chlo_event_index] = event.other_data['params']
+                elif event.event_type == 'QUIC_SESSION_VERSION_NEGOTIATED':
+                    self.general_info['Version'] = event.other_data['params']['version']
+                else:
+                    self.quic_chrome_event_list.append(event)
             else:
                 #print('ignore NONE quic event,', event.get_info_list())
                 pass
+        for key,value in self.general_info.items():
+            if isinstance(value,dict):
+                print(key,': ----------------------')
+                for _key, _value in value.items():
+                    print('\t',_key,':',_value)
+            else:
+                print(key,':',value)
 
-        #construct quic data structure
+
+        #construct packet/stream/frame data structure
         self.packets = []
         self.frames = []
         self.stream_dict = {}
@@ -48,11 +72,7 @@ class QuicConnection:
         received_event_buffer = []
         while i < length:
             event = event_list[i]
-            if event.event_type == 'QUIC_SESSION':
-                print('quic session found, host: ', event.other_data['params']['host'],'port: ', event.other_data['params']['port'])
-            elif event.event_type == 'QUIC_SESSION_VERSION_NEGOTIATED':
-                print('quic version: ', event.other_data['params']['version'])
-            elif event.event_type == 'QUIC_SESSION_PACKET_RECEIVED':
+            if event.event_type == 'QUIC_SESSION_PACKET_RECEIVED':
                 #search the next packet received event
                 for j in range(i+1,length):
                     next_event = event_list[j]
@@ -109,6 +129,10 @@ class QuicConnection:
         else:
             self.stream_dict[stream_id] = [frame.frame_id]
 
+    def get_general_info(self):
+        for event in self.quic_chrome_event_list:
+            self.general_info['']=''
+        pass
 
     def save(self):
         print('saving quic_session.csv...')
@@ -127,13 +151,21 @@ class QuicConnection:
         print('saving quic_frame.csv...')
         with open(self.persistant_file_path +'_quic_frame.csv', 'wt') as f:
             cw = csv.writer(f)
-            cw.writerow(['Frame type', 'Direction','Stream_id'])
-            for packet in self.frames:
-                cw.writerow(packet.get_info_list())
+            cw.writerow(['Time Elaps','Packet Number','ACK delay', 'Frame type', 'Direction','Stream_id'])
+            for frame in self.frames:
+                if frame.direction == 'receive':
+                    packet = self.packet_received_dict[frame.packet_number]
+                    csv_info = [packet.time_elaps, packet.packet_number, 'N/A']
+                else:
+                    packet = self.packet_sent_dict[frame.packet_number]
+                    csv_info = [packet.time_elaps,packet.packet_number,packet.ack_delay]
+                csv_info.extend(frame.get_info_list())
+                cw.writerow(csv_info)
 
         #construct json obj
         print('saving quic_connection.json...')
         json_obj = {
+            'general_info' : self.general_info,
             'packets_sent': [],
             'packets_received': [],
             'stream_dict': self.stream_dict,
