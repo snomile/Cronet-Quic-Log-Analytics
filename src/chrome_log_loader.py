@@ -1,4 +1,3 @@
-import csv
 import json
 import os
 
@@ -41,7 +40,7 @@ def process_chrome_log(file_path):
         chrome_session.add_event(c_event)
     chrome_session.save()
 
-    #extract quic session
+    #extract quic session log
     quic_session = QuicConnection(chrome_session.event_list, "../data_converted/" + filename)
     quic_session.save()
 
