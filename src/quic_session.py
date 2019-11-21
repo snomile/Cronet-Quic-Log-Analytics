@@ -167,7 +167,9 @@ class QuicConnection:
         json_obj = {
             'general_info' : self.general_info,
             'packets_sent': [],
+            'packet_sent_dict' : {},
             'packets_received': [],
+            'packet_received_dict': {},
             'stream_dict': self.stream_dict,
             'frame_dict': {frame.frame_id: frame.__dict__ for frame in self.frames}
         }
@@ -179,9 +181,11 @@ class QuicConnection:
                 'ack_by_frame' : packet.ack_by_frame_id,
                 'ack_delay': packet.ack_delay,
                 'info': packet.get_info_list(),
+                'length': packet.size,
                 'frame_ids':[frame.frame_id for frame in packet.frames]
             }
             json_obj['packets_sent'].append(packet_json_obj)
+            json_obj['packet_sent_dict'][packet.packet_number] = packet_json_obj
 
         for packet in self.packet_received_dict.values():
             packet_json_obj = {
@@ -189,9 +193,11 @@ class QuicConnection:
                 'time': packet.time_elaps,
                 'number': packet.packet_number,
                 'info': packet.get_info_list(),
+                'length': packet.size,
                 'frame_ids':[frame.frame_id for frame in packet.frames]
             }
             json_obj['packets_received'].append(packet_json_obj)
+            json_obj['packet_received_dict'][packet.packet_number] = packet_json_obj
 
         with open(self.persistant_file_path +'_quic_connection.json', "w") as f:
             json.dump(json_obj, f)

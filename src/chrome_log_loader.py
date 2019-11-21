@@ -48,8 +48,9 @@ def process_chrome_log(file_path):
 
 if __name__ == '__main__':
     file_path = "../data_original/quic-gh2ir.json"
+    #file_path = "../data_original/quic-sa2ir_slow.json"
     fix_trunced_file(file_path)
     process_chrome_log(file_path)
 
-    visualize.init(file_path)
-    visualize.show()
+    # visualize.init(file_path)
+    # visualize.show()
