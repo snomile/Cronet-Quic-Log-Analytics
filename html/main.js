@@ -32,17 +32,17 @@ function initPacketsSent(render, data, streamMap, frameMap) {
       var streamObj = streamMap[frameMap[frame].stream_id];
       var rect = new zrender.Rect({
         shape: {
-          width: 6,
-          height: 6,
-          x: item.time * 7 + 100,
-          y: streamObj.y1 - 3 - index * 6 - step * 6
+          width: 9,
+          height: 9,
+          x: item.time * 10 + 100,
+          y: streamObj.y1 - 4.5 - index * 9 - step * 9
         },
         style: {
           fill: '#00bfff',
           stroke: '#ffffff'
-        }
+        },
+        info: frame
       })
-      rect.on('mouser')
       render.add(rect)
     })
   })
@@ -70,15 +70,16 @@ function initPacketsReceived(render, data, streamMap, frameMap) {
       var streamObj = streamMap[frameMap[frame].stream_id];
       var rect = new zrender.Rect({
         shape: {
-          width: 6,
-          height: 6,
-          x: item.time * 7 + 100,
-          y: streamObj.y1 - 3 - index * 6 - step * 6
+          width: 9,
+          height: 9,
+          x: item.time * 10 + 100,
+          y: streamObj.y1 - 4.5 - index * 9 - step * 9
         },
         style: {
           fill: '#ff4500',
           stroke: '#ffffff'
-        }
+        },
+        info: frame
       })
       render.add(rect)
     })
@@ -93,7 +94,7 @@ function initPacketsReceived(render, data, streamMap, frameMap) {
  * @param {*} render
  * @param {*} map
  */
-function initStream(render, map, streamMap) {
+function initStream(render, map, streamMap, maxWidth) {
   var keys = Object.keys(map);
   keys.reverse();
   var w = render.getWidth();
@@ -106,7 +107,7 @@ function initStream(render, map, streamMap) {
     streamMap[key] = {
       x1: 100,
       y1: y,
-      x2: w - 25,
+      x2: maxWidth - 25,
       y2: y,
     };
     // 设定stream文字
