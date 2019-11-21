@@ -65,27 +65,52 @@ def show_packet_ack_delay_all():
             rtt_list.append(rtt)
 
     #calculate total packet size on the fly
-    receive_time_list = []
+    ack_time_cfcw_dict = {}
     for frame in frame_dict.values():
         if frame['frame_type'] == 'ACK' and frame['direction'] == 'receive':
-            receive_time = packet_received_dict[str(frame['packet_number'])]['time']
-            receive_time_list.append(receive_time)
+            ack_packet_number_list = frame['ack_packet_number_list']
+            total_ack_size = 0
+            for ack_packet_number in ack_packet_number_list:
+                ack_packet = packet_sent_dict[str(ack_packet_number)]
+                ack_packet_length = ack_packet['length']
+                total_ack_size += ack_packet_length
+            ack_time_cfcw_dict[frame['time_elaps']] = total_ack_size
 
-    packet_sent_index = 0
-    current_on_the_fly_packet_size = 0
-    on_the_fly_packet_size = []
+
     packet_sent_list = list(packet_sent_dict.values())
-    packet_time = 0
-    for timestamp in receive_time_list:
-        while packet_time < timestamp:
-            packet = packet_sent_list[packet_sent_index]
-            packet_time = int(packet['time'])
-            current_on_the_fly_packet_size += packet['length']
-            on_the_fly_packet_size.append(current_on_the_fly_packet_size)
-            packet_sent_index += 1
-        current_on_the_fly_packet_size = 0
-    for i in range(len(packet_sent_list)-packet_sent_index):
-        on_the_fly_packet_size.append(0)  # on the connection end stage, there're no data frame on the fly, so fill with 0 to match the count of packet_sent_list, otherwise matplot will raise an error
+    current_receiver_windows_offset = packet_sent_list[0]['length']
+    on_the_fly_packet_size_list = [current_receiver_windows_offset]
+    for i in range(1, len(packet_sent_list)):
+        previous_packet = packet_sent_list[i - 1]
+        packet = packet_sent_list[i]
+        current_receiver_windows_offset += packet['length']
+        for ack_time in ack_time_cfcw_dict.keys():
+            if previous_packet['time'] < ack_time and packet['time'] >= ack_time:
+                current_receiver_windows_offset -= ack_time_cfcw_dict[ack_time]
+        on_the_fly_packet_size_list.append(current_receiver_windows_offset)
+
+
+    # receive_time_list = []
+    # for frame in frame_dict.values():
+    #     if frame['frame_type'] == 'ACK' and frame['direction'] == 'receive':
+    #         receive_time = packet_received_dict[str(frame['packet_number'])]['time']
+    #         receive_time_list.append(receive_time)
+    #
+    # packet_sent_index = 0
+    # current_on_the_fly_packet_size = 0
+    # on_the_fly_packet_size = []
+    # packet_sent_list = list(packet_sent_dict.values())
+    # packet_time = 0
+    # for timestamp in receive_time_list:
+    #     while packet_time < timestamp:
+    #         packet = packet_sent_list[packet_sent_index]
+    #         packet_time = int(packet['time'])
+    #         current_on_the_fly_packet_size += packet['length']
+    #         on_the_fly_packet_size.append(current_on_the_fly_packet_size)
+    #         packet_sent_index += 1
+    #     current_on_the_fly_packet_size = 0
+    # for i in range(len(packet_sent_list)-packet_sent_index):
+    #     on_the_fly_packet_size.append(0)  # on the connection end stage, there're no data frame on the fly, so fill with 0 to match the count of packet_sent_list, otherwise matplot will raise an error
 
 
     #packet ack delay
@@ -99,7 +124,7 @@ def show_packet_ack_delay_all():
 
     #packet size on the fly
     plt.subplot(212)
-    plt.plot(packet_sent_time_sequence_list, on_the_fly_packet_size, label='RTT')
+    plt.plot(packet_sent_time_sequence_list, on_the_fly_packet_size_list, label='RTT')
     plt.xlabel('Packet Sent Time Offset (ms)')
     plt.ylabel('Packet Length On the Fly(bytes)')
     plt.legend()

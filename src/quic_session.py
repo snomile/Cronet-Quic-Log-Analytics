@@ -113,13 +113,12 @@ class QuicConnection:
                     packet.ack_by_frame_id = frame.frame_id
                     frame_time_elaps = self.packet_received_dict[frame.packet_number].time_elaps
                     packet.ack_delay = frame_time_elaps - packet.time_elaps
+                    frame.ack_packet_number_list.append(packet.packet_number)
                 largest_unobserved_packet = latest_largest_observed_packet + 1
 
 
     def add_packet(self,packet):
-        packet.time_elaps = packet.time_int - self.start_time_int
         self.packets.append(packet)
-
 
     def add_frame(self,frame):
         self.frames.append(frame)

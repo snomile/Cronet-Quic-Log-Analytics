@@ -5,7 +5,7 @@ class PacketReceived:
             raise BaseException('QUIC_SESSION_PACKET_RECEIVED event followed by illigal event type: %s' % self.relate_events[0].event_type)
 
         self.time_int = packet_received_event.time_int
-        self.time_elaps = 0
+        self.time_elaps = self.time_int - quic_connection.start_time_int
         self.type = 'PacketReceived'
         self.source_id = packet_received_event.source_id
         self.peer_address = packet_received_event.other_data['params']['peer_address']
@@ -31,7 +31,7 @@ class PacketReceived:
         for event in related_sent_event:
             if 'FRAME_RECEIVED' in event.event_type or event == related_sent_event[-1]: #if current event is the last event, the last QuicFrame must be create before loop end
                 if last_frame_received_event != None:
-                    frame = QuicFrame(self.packet_number, last_frame_received_event, events_buffer)
+                    frame = QuicFrame(self.packet_number, self.time_elaps, last_frame_received_event, events_buffer)
                     self.frames.append(frame)
                     events_buffer = []
                 last_frame_received_event = event
@@ -57,7 +57,7 @@ class PacketReceived:
 class PacketSent:
     def __init__(self, quic_connection, QUIC_SESSION_PACKET_SENT_event, related_event):
         self.time_int = QUIC_SESSION_PACKET_SENT_event.time_int
-        self.time_elaps = 0
+        self.time_elaps = self.time_int - quic_connection.start_time_int
         self.type = 'PacketSent'
         self.source_id = QUIC_SESSION_PACKET_SENT_event.source_id
         self.packet_number = QUIC_SESSION_PACKET_SENT_event.other_data['params']['packet_number']
@@ -77,7 +77,7 @@ class PacketSent:
         events_buffer = []
         for event in related_sent_event:
             if 'FRAME_SENT' in event.event_type:
-                frame = QuicFrame(self.packet_number, event, events_buffer)
+                frame = QuicFrame(self.packet_number, self.time_elaps,event, events_buffer)
                 self.frames.append(frame)
                 events_buffer = []
             else:
@@ -105,12 +105,13 @@ class QuicStream:
 
 
 class QuicFrame:
-    def __init__(self,packet_number, event, relate_events):
+    def __init__(self,packet_number,time_elaps, event, relate_events):
         relate_events = relate_events.copy()
         self.info_list = []
         self.frame_type = None
         self.frame_id = None
         self.packet_number = packet_number
+        self.time_elaps = time_elaps
 
         if event.event_type == 'QUIC_SESSION_STREAM_FRAME_SENT':
             self.frame_type = 'STREAM'
@@ -143,6 +144,7 @@ class QuicFrame:
             self.missing_packets = event.other_data['params']['missing_packets']
             self.delta_time_largest_observed_us = event.other_data['params']['delta_time_largest_observed_us']
             self.received_packet_times = event.other_data['params']['received_packet_times']
+            self.ack_packet_number_list = []
             self.info_list.extend([self.frame_type,self.direction,self.stream_id,'largest_observed: %s' % self.largest_observed,'missing_packets: %s' % self.missing_packets,'delta_time_largest_observed_us: %s' % self.delta_time_largest_observed_us,'received_packet_times: %s' % self.received_packet_times])
         elif event.event_type == 'QUIC_SESSION_BLOCKED_FRAME_SENT':
             self.frame_type = 'BLOCKED'
