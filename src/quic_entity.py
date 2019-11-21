@@ -63,7 +63,7 @@ class PacketSent:
         self.packet_number = QUIC_SESSION_PACKET_SENT_event.other_data['params']['packet_number']
         self.size = QUIC_SESSION_PACKET_SENT_event.other_data['params']['size']
         self.transmission_type = QUIC_SESSION_PACKET_SENT_event.other_data['params']['transmission_type']
-        self.ack_by_frame_id = 0
+        self.ack_by_frame_id = 'N/A'
         self.ack_delay = 0 # ms
 
         self.frames = []

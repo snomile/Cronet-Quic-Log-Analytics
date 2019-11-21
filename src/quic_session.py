@@ -104,16 +104,16 @@ class QuicConnection:
         print('frame: ', len(self.frames))
 
     def tag_packet_by_ack(self):
-        largest_observed_packet = 0
+        largest_unobserved_packet = 1
         for frame in self.frames:
             if frame.frame_type == 'ACK' and frame.direction == 'receive':
                 latest_largest_observed_packet = frame.largest_observed
-                for i in range(largest_observed_packet+1, latest_largest_observed_packet+1):
+                for i in range(largest_unobserved_packet, latest_largest_observed_packet+1):
                     packet = self.packet_sent_dict[i]
                     packet.ack_by_frame_id = frame.frame_id
                     frame_time_elaps = self.packet_received_dict[frame.packet_number].time_elaps
                     packet.ack_delay = frame_time_elaps - packet.time_elaps
-                largest_observed_packet = latest_largest_observed_packet
+                largest_unobserved_packet = latest_largest_observed_packet + 1
 
 
     def add_packet(self,packet):
