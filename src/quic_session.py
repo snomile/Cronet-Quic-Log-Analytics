@@ -16,6 +16,7 @@ ingore_event_type_list = [
 
 class QuicConnection:
     def __init__(self,chrome_event_list,persistant_file_path):
+        self.chrome_event_list = chrome_event_list
         self.persistant_file_path = persistant_file_path
         self.quic_chrome_event_list = []
         self.general_info = {}
@@ -61,6 +62,8 @@ class QuicConnection:
         self.packet_received_dict = {}
         self.construct_quic_data_structure(self.quic_chrome_event_list)
         self.tag_packet_by_ack()
+
+        self.validate()
 
     def construct_quic_data_structure(self, event_list):
         i = 0
@@ -128,10 +131,39 @@ class QuicConnection:
         else:
             self.stream_dict[stream_id] = [frame.frame_id]
 
-    def get_general_info(self):
-        for event in self.quic_chrome_event_list:
-            self.general_info['']=''
-        pass
+    def validate(self):
+        print('validating...')
+        ack_frame_receive_count = 0
+        packet_receive_count = 0
+        packet_sent_count = 0
+        for event in self.chrome_event_list:
+            if event.event_type == 'QUIC_SESSION_PACKET_RECEIVED':
+                packet_receive_count += 1
+            elif event.event_type == 'QUIC_SESSION_PACKET_SENT':
+                packet_sent_count += 1
+            elif event.event_type == 'QUIC_SESSION_ACK_FRAME_RECEIVED':
+                ack_frame_receive_count += 1
+
+        ack_frame_receive_count_after_processing = 0
+        for frame in self.frames:
+            if frame.frame_type == 'ACK' and frame.direction == 'receive':
+                ack_frame_receive_count_after_processing += 1
+        print('quic entity count from chrome log:')
+        print('PACKET_RECEIVED: ',packet_receive_count)
+        print('PACKET_SENT: ',packet_sent_count)
+        print('ACK_FRAME_RECEIVED: ', ack_frame_receive_count)
+        print('-------------------')
+        print('quic entity count after processing:')
+        print('PACKET_RECEIVED: ',len(self.packet_received_dict))
+        print('PACKET_SENT: ',len(self.packet_sent_dict))
+        print('ACK_FRAME_RECEIVED: ', ack_frame_receive_count_after_processing)
+
+        if packet_receive_count != len(self.packet_received_dict) or packet_sent_count != len(self.packet_sent_dict) or ack_frame_receive_count != ack_frame_receive_count_after_processing:
+            print('ERROR: count mismatch, check log and program please')
+        else:
+            print('success')
+
+
 
     def save(self):
         print('saving quic_session.csv...')
