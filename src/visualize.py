@@ -12,6 +12,7 @@ frame_dict = {}
 packet_sent_dict = {}
 packet_received_dict = {}
 
+
 def init(original_file_path):
     global frame_dict,packet_sent_dict,packet_received_dict
     (filepath, tempfilename) = os.path.split(original_file_path)
@@ -30,13 +31,12 @@ def init(original_file_path):
 
 def show():
     show_packet_ack_delay_all()
+    show_cfcw_update_info()
 
-def show_packet_ack_delay_all():
+def calculate_packet_ack_delay():
     packet_sent_time_sequence_list = []
     ack_delay_total_list = []
     ack_delay_server_list = []
-
-    #calculate packet ack delay
     for packet in packet_sent_dict.values():
         packet_sent_time_sequence_list.append(int(packet['time']))
         ack_delay_total = int(packet['ack_delay'])
@@ -52,7 +52,9 @@ def show_packet_ack_delay_all():
             ack_delay_server = round(float(ack_frame['delta_time_largest_observed_us'])/1000,3)
             ack_delay_server_list.append(ack_delay_server)
 
-    #calculate rtt
+    return packet_sent_time_sequence_list,ack_delay_total_list
+
+def calculate_rtt():
     rtt_timestamp = []
     rtt_list = []
     for frame in frame_dict.values():
@@ -63,8 +65,9 @@ def show_packet_ack_delay_all():
             rtt = largest_observed_packet_ack_delay - ack_delay_server
             rtt_timestamp.append(int(packet_sent_dict[str(largest_observed_packet_number)]['time']))
             rtt_list.append(rtt)
+    return rtt_timestamp,rtt_list
 
-    #calculate total packet size on the fly
+def calculate_packet_size_on_the_fly():
     #find all ack time and length
     ack_time_cfcw_dict = {}
     for frame in frame_dict.values():
@@ -80,9 +83,11 @@ def show_packet_ack_delay_all():
     packet_sent_list = list(packet_sent_dict.values())
     current_receiver_windows_offset = packet_sent_list[0]['length']
     on_the_fly_packet_size_list = [current_receiver_windows_offset/1024]
+    packet_sent_time_sequence_list = [int(packet_sent_list[0]['time'])]
     for i in range(1, len(packet_sent_list)):
         previous_packet = packet_sent_list[i - 1]
         packet = packet_sent_list[i]
+        packet_sent_time_sequence_list.append(int(packet['time']))
         current_receiver_windows_offset += packet['length']
         previous_sent_time = previous_packet['time']
         current_sent_time = packet['time']
@@ -91,29 +96,86 @@ def show_packet_ack_delay_all():
                 current_receiver_windows_offset -= ack_length
         on_the_fly_packet_size_list.append(current_receiver_windows_offset/1024)
 
+    return packet_sent_time_sequence_list,on_the_fly_packet_size_list
 
+def calculate_cfcw():
+    cfcw_timestamp = []
+    cfcw_list = []
+    for frame in frame_dict.values():
+        if frame['frame_type'] == 'WINDOW_UPDATE' and frame['direction'] == 'receive' and frame['stream_id'] == 0:
+            byte_offset = frame['byte_offset']
+            cfcw_list.append(byte_offset/1024)
+            cfcw_timestamp.append(frame['time_elaps'])
 
-    #packet ack delay
-    plt.subplot(211)
+    return cfcw_timestamp,cfcw_list
+
+def calcualte_total_sent_size():
+    total_sent_size_list = []
+    total_sent_size = 0
+    packet_sent_time_sequence_list = []
+    for packet in packet_sent_dict.values():
+        packet_sent_time_sequence_list.append(int(packet['time']))
+        total_sent_size += packet['length']
+        total_sent_size_list.append(total_sent_size/1024)
+    return packet_sent_time_sequence_list,total_sent_size_list
+
+def calculate_block():
+    block_timestamp = []
+    block_stream_id_list = []
+    for frame in frame_dict.values():
+        if frame['frame_type'] == 'BLOCKED' and frame['direction'] == 'send':
+            block_stream_id_list.append(frame['stream_id'])
+            block_timestamp.append(frame['time_elaps'])
+    return block_timestamp,block_stream_id_list
+
+def show_packet_ack_delay_all():
+    packet_sent_time_sequence_list,ack_delay_total_list = calculate_packet_ack_delay()
+    rtt_timestamp, rtt_list = calculate_rtt()
+
     plt.scatter(packet_sent_time_sequence_list, ack_delay_total_list, color='g', marker='.',label='Packet ack delay')
     plt.scatter(rtt_timestamp, rtt_list, color='r',marker='_', label='RTT')
-    plt.ylim((80, 140))
+    plt.ylim((80, 200))
     plt.xlabel('Packet Sent Time Offset (ms)')
     plt.ylabel('Latency (ms)')
     plt.title("Packet ACK Delay")
     plt.legend()
-
-    #packet size on the fly
-    plt.subplot(212)
-    plt.plot(packet_sent_time_sequence_list, on_the_fly_packet_size_list, label='RTT')
-    plt.xlabel('Packet Sent Time Offset (ms)')
-    plt.ylabel('Packet Length On the Fly (KB)')
-    plt.legend()
-
     plt.show()
 
+def show_packet_size_on_the_fly():
+    packet_sent_time_sequence_list,on_the_fly_packet_size_list = calculate_packet_size_on_the_fly()
+    plt.plot(packet_sent_time_sequence_list, on_the_fly_packet_size_list)
+    plt.xlabel('Packet Sent Time Offset (ms)')
+    plt.ylabel('Packet Size (KB)')
+    plt.title("Packet Size on the fly")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+def show_cfcw_update_info():
+    cfcw_timestamp, cfcw_list = calculate_cfcw()
+    packet_sent_time_sequence_list,total_sent_size_list = calcualte_total_sent_size()
+    block_timestamp,block_stream_id_list = calculate_block()
+
+    fig = plt.figure()
+    ax1 = fig.add_subplot(111)
+    ax1.plot(cfcw_timestamp, cfcw_list, label='CFCW Offset')
+    ax1.plot(packet_sent_time_sequence_list, total_sent_size_list, label='Total Sent Size')
+    ax1.set_ylabel('Packet Sent (KB)')
+    ax1.set_title('CFCW')
+    ax1.legend()
+
+    ax2 = ax1.twinx()  # this is the important function
+    ax2.scatter(block_timestamp, block_stream_id_list, marker='*')
+    ax2.set_ylabel('Blocked Stream ID')
+    ax2.legend()
+
+    plt.legend()
+    plt.grid(True)
+    plt.show()
 
 
 if __name__ == '__main__':
     init("../data_original/quic-gh2ir.json")
-    show()
+    show_packet_size_on_the_fly()
+    show_packet_ack_delay_all()
+    show_cfcw_update_info()
