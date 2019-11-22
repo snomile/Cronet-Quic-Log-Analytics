@@ -25,18 +25,36 @@ class PacketReceived:
             frame.frame_id = '%s_%s_%s' % (self.type, self.packet_number, i)
             quic_connection.add_frame(frame)
 
-    def init_frame(self, related_sent_event):
-        events_buffer = []
-        last_frame_received_event = None
-        for event in related_sent_event:
-            if 'FRAME_RECEIVED' in event.event_type or event == related_sent_event[-1]: #if current event is the last event, the last QuicFrame must be create before loop end
-                if last_frame_received_event != None:
-                    frame = QuicFrame(self.packet_number, self.time_elaps, last_frame_received_event, events_buffer)
-                    self.frames.append(frame)
-                    events_buffer = []
-                last_frame_received_event = event
+    def init_frame(self, related_event):
+        #find all frame received event
+        frame_received_event_index_list = []
+        for i in range(len(related_event)):
+            event = related_event[i]
+            if 'FRAME_RECEIVED' in event.event_type:
+                frame_received_event_index_list.append(i)
+
+        for i in range(len(frame_received_event_index_list)):
+            index = frame_received_event_index_list[i]
+            if i == len(frame_received_event_index_list) -1:  #for the last frame received event, the rest packet relate event all belongs to the frame
+                next_index = len(related_event)-1
             else:
-                events_buffer.append(event)
+                next_index = frame_received_event_index_list[i+1]
+            events_belong_to_frame = related_event[index + 1: next_index - 1]
+            frame = QuicFrame(self.packet_number, self.time_elaps, related_event[index], events_belong_to_frame)
+            self.frames.append(frame)
+
+        #
+        # events_buffer = []
+        # last_frame_received_event = None
+        # for event in related_event:
+        #     if 'FRAME_RECEIVED' in event.event_type or event == related_event[-1]: #if current event is the last event, the last QuicFrame must be create before loop end
+        #         if last_frame_received_event != None:
+        #             frame = QuicFrame(self.packet_number, self.time_elaps, last_frame_received_event, events_buffer)
+        #             self.frames.append(frame)
+        #             events_buffer = []
+        #         last_frame_received_event = event
+        #     else:
+        #         events_buffer.append(event)
 
     def get_info_list(self):
         return [

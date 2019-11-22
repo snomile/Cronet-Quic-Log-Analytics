@@ -136,6 +136,7 @@ class QuicConnection:
         ack_frame_receive_count = 0
         packet_receive_count = 0
         packet_sent_count = 0
+        window_update_frame_receive_count = 0
         for event in self.chrome_event_list:
             if event.event_type == 'QUIC_SESSION_PACKET_RECEIVED':
                 packet_receive_count += 1
@@ -143,26 +144,35 @@ class QuicConnection:
                 packet_sent_count += 1
             elif event.event_type == 'QUIC_SESSION_ACK_FRAME_RECEIVED':
                 ack_frame_receive_count += 1
+            elif event.event_type == 'QUIC_SESSION_WINDOW_UPDATE_FRAME_RECEIVED':
+                window_update_frame_receive_count += 1
 
         ack_frame_receive_count_after_processing = 0
+        windows_update_frame_receive_count_after_processing = 0
         for frame in self.frames:
             if frame.frame_type == 'ACK' and frame.direction == 'receive':
                 ack_frame_receive_count_after_processing += 1
-        print('quic entity count from chrome log:')
+            if frame.frame_type == 'WINDOW_UPDATE' and frame.direction == 'receive':
+                windows_update_frame_receive_count_after_processing += 1
+        print('QUIC entity count from chrome log:')
         print('PACKET_RECEIVED: ',packet_receive_count)
         print('PACKET_SENT: ',packet_sent_count)
         print('ACK_FRAME_RECEIVED: ', ack_frame_receive_count)
+        print('WINDOW_UPDATE_FRAME_RECEIVED: ', window_update_frame_receive_count)
         print('-------------------')
         print('quic entity count after processing:')
         print('PACKET_RECEIVED: ',len(self.packet_received_dict))
         print('PACKET_SENT: ',len(self.packet_sent_dict))
         print('ACK_FRAME_RECEIVED: ', ack_frame_receive_count_after_processing)
+        print('WINDOW_UPDATE_FRAME_RECEIVED: ', windows_update_frame_receive_count_after_processing)
 
-        if packet_receive_count != len(self.packet_received_dict) or packet_sent_count != len(self.packet_sent_dict) or ack_frame_receive_count != ack_frame_receive_count_after_processing:
+        if packet_receive_count != len(self.packet_received_dict) \
+                or packet_sent_count != len(self.packet_sent_dict) \
+                or ack_frame_receive_count != ack_frame_receive_count_after_processing \
+                or windows_update_frame_receive_count_after_processing != windows_update_frame_receive_count_after_processing:
             print('ERROR: count mismatch, check log and program please')
         else:
             print('success')
-
 
 
     def save(self):
