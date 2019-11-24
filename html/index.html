@@ -17,10 +17,22 @@
             width: 100vw;
             height: 100vh;
         }
+        #show {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: rgba(255, 255, 255, 0.8);
+            border-radius: 5px;
+            max-width: 500px;
+            padding: 10px 20px;
+            box-sizing: border-box;
+        }
     </style>
 </head>
 <body>
     <div id="main"></div>
+    <div id="show" style="display: none;"></div>
     <script>
         $.getJSON('../data_converted/quic-gh2ir_quic_connection.json', function (data) {
             // 解析数据
@@ -41,13 +53,20 @@
             initPacketsReceived(zr, packets_received, streamMap, frame_dict);
             // 增加悬浮
             zr.on('mouseover', function(e) {
+                var x = e.offsetX + 10;
+                var y = e.offsetY + 10;
                 if(e.target.info) {
-                    console.log(frame_dict[e.target.info])
+                    if (typeof e.target.info === 'string') {
+                        tip(frame_dict[e.target.info], x, y);
+                    } else {
+                        tip(e.target.info, x, y);
+                    }
                 }
             })
             ///拖动组, 整体拖动
             zr.dragData = { drag: false, pos: [0, 0], group: null, target: null };
             zr.on('mousedown', function (e) {
+                $('#show').hide();
                 zr.dragData.pos = [e.event.zrX, e.event.zrY];
                 zr.dragData.target = e.target;
                 if (e.target == undefined)

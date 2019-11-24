@@ -124,7 +124,8 @@ function initStream(render, map, streamMap, maxWidth) {
         lineDash: [2],
         opacity: 0.8
       },
-      shape: streamMap[key]
+      shape: streamMap[key],
+      // info: { text: 'stream_' + key }
     });
     render.add(streamLine);
   })
@@ -144,4 +145,22 @@ function initFrame(render, map) {
   keys.forEach(function (key) {
     console.log(key, map[key])
   })
+}
+
+function tip(info, x, y) {
+  var html = '';
+  var keys = Object.keys(info)
+  keys.forEach(function (key) {
+    html += '<div class="info">' + key + ':' + JSON.stringify(info[key]) + '</div>'
+  })
+  $('#show').html(html);
+  $('#show').show();
+  if ($('#main').width() - $('#show').width() < x) {
+    x = x - $('#show').width() - 20;
+  }
+  if ($('#main').height() - $('#show').height() < y) {
+    y = y - $('#show').height() - 20;
+  }
+  $('#show').css('left', x);
+  $('#show').css('top', y);
 }
