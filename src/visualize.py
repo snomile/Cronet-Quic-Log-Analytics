@@ -37,6 +37,7 @@ def calculate_packet_ack_delay():
     packet_sent_time_sequence_list = []
     ack_delay_total_list = []
     ack_delay_server_list = []
+
     for packet in packet_sent_dict.values():
         packet_sent_time_sequence_list.append(int(packet['time']))
         ack_delay_total = int(packet['ack_delay'])
@@ -53,6 +54,27 @@ def calculate_packet_ack_delay():
             ack_delay_server_list.append(ack_delay_server)
 
     return packet_sent_time_sequence_list,ack_delay_total_list
+
+
+def calculate_packet_lost_timestamp():
+    lost_packet_number_list = []
+    lost_packet_sent_time_sequence_list = []
+    lost_packet_sent_ack_delay_list = []
+
+    #find all lost packet number
+    for frame in frame_dict.values():
+        if frame['frame_type'] == 'ACK' and frame['direction'] == 'receive' and len(frame['missing_packets'])>0:
+            lost_packet_numbers = frame['missing_packets']  #TODO check the consistency with QUIC_SESSION_PACKET_LOST
+            lost_packet_number_list.extend(lost_packet_numbers)
+
+    for packet in packet_sent_dict.values():
+        if packet['number'] in lost_packet_number_list:
+            lost_packet_sent_time_sequence_list.append(int(packet['time']))
+            ack_delay_total = int(packet['ack_delay'])
+            lost_packet_sent_ack_delay_list.append(ack_delay_total)
+
+    return lost_packet_sent_time_sequence_list,lost_packet_sent_ack_delay_list
+
 
 def calculate_rtt():
     rtt_timestamp = []
@@ -130,11 +152,13 @@ def calculate_block():
 
 def show_packet_ack_delay_all():
     packet_sent_time_sequence_list,ack_delay_total_list = calculate_packet_ack_delay()
+    lost_packet_sent_time_sequence_list, lost_packet_sent_ack_delay_list = calculate_packet_lost_timestamp()
     rtt_timestamp, rtt_list = calculate_rtt()
 
     plt.scatter(packet_sent_time_sequence_list, ack_delay_total_list, color='g', marker='.',label='Packet ack delay')
-    plt.scatter(rtt_timestamp, rtt_list, color='r',marker='_', label='RTT')
-    plt.ylim((80, 200))
+    plt.scatter(lost_packet_sent_time_sequence_list, lost_packet_sent_ack_delay_list, color='r', marker='*', label='Packet LOST')
+    plt.scatter(rtt_timestamp, rtt_list, color='b',marker='_', label='RTT')
+    #plt.ylim((80, 200))
     plt.xlabel('Packet Sent Time Offset (ms)')
     plt.ylabel('Latency (ms)')
     plt.title("Packet ACK Delay")
@@ -175,7 +199,9 @@ def show_cfcw_update_info():
 
 
 if __name__ == '__main__':
-    init("../data_original/quic-gh2ir.json")
-    show_packet_size_on_the_fly()
+    #init("../data_original/quic-gh2ir.json")
+    init("../data_original/netlog.json")
+
+    # show_packet_size_on_the_fly()
     show_packet_ack_delay_all()
-    show_cfcw_update_info()
+    # show_cfcw_update_info()

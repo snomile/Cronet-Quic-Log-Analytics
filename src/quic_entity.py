@@ -175,6 +175,12 @@ class QuicFrame:
             self.stream_id = event.other_data['params']['stream_id']
             self.byte_offset = event.other_data['params']['byte_offset']
             self.info_list.extend([self.frame_type,self.direction,self.stream_id, 'byte_offset: %s' % self.byte_offset])
+        elif event.event_type== 'QUIC_SESSION_WINDOW_UPDATE_FRAME_SENT':
+            self.frame_type = 'WINDOW_UPDATE'
+            self.direction = 'send'
+            self.stream_id = event.other_data['params']['stream_id']
+            self.byte_offset = event.other_data['params']['byte_offset']
+            self.info_list.extend([self.frame_type, self.direction, self.stream_id, 'byte_offset: %s' % self.byte_offset])
         else:
             print('WARN: unhandled frame',event.event_type)
         self.info_list.extend([event.get_info_list() for event in relate_events])
