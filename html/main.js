@@ -50,6 +50,7 @@ function initPacketsSent(render, data, streamMap, frameMap) {
       render.add(rect);
       var ackFrame = frameMap[ack_by_frame];
       if (ackFrame) {
+        ackFrame.ack_delay = ack_delay;
         // 添加关联连线
         var line = new zrender.Line({
           style: {
@@ -60,8 +61,8 @@ function initPacketsSent(render, data, streamMap, frameMap) {
           shape: {
             x1: x + 4.5,
             y1: y + 4.5,
-            x2: frameMap[ack_by_frame].x + 4.5,
-            y2: frameMap[ack_by_frame].y + 4.5
+            x2: ackFrame.x + 4.5,
+            y2: ackFrame.y + 4.5
           }
         });
         render.add(line);
