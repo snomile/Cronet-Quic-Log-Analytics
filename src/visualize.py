@@ -11,10 +11,11 @@ import matplotlib.pyplot as plt
 frame_dict = {}
 packet_sent_dict = {}
 packet_received_dict = {}
+general_info = {}
 
 
 def init(original_file_path):
-    global frame_dict,packet_sent_dict,packet_received_dict
+    global frame_dict,packet_sent_dict,packet_received_dict,general_info
     (filepath, tempfilename) = os.path.split(original_file_path)
     (filename, extension) = os.path.splitext(tempfilename)
     with open('../data_converted/' + filename+ '_quic_connection.json', 'r') as load_f:
@@ -22,8 +23,9 @@ def init(original_file_path):
         frame_dict = load_dict['frame_dict']
         packet_sent_dict = load_dict['packet_sent_dict']
         packet_received_dict = load_dict['packet_received_dict']
+        general_info = load_dict['general_info']
 
-    print('load general info: ', len(load_dict['general_info']))
+    print('load general info: ', len(general_info))
     print('load packet_sent: ', len(packet_sent_dict))
     print('load packet_received: ', len(packet_received_dict))
     print('load stream_dict: ', len(load_dict['stream_dict']))
@@ -31,7 +33,7 @@ def init(original_file_path):
 
 def show():
     show_packet_ack_delay_all()
-    show_cfcw_update_info()
+    show_server_cfcw_update_info()
 
 def calculate_packet_ack_delay():
     packet_sent_time_sequence_list = []
@@ -120,11 +122,28 @@ def calculate_packet_size_on_the_fly():
 
     return packet_sent_time_sequence_list,on_the_fly_packet_size_list
 
-def calculate_cfcw():
-    cfcw_timestamp = []
-    cfcw_list = []
+def calculate_server_cfcw():
+    #init by default server cfcw
+    cfcw_timestamp = [0]
+    cfcw_list = [general_info['Server_CFCW']/1024]
+
+    #add server window_update info
     for frame in frame_dict.values():
         if frame['frame_type'] == 'WINDOW_UPDATE' and frame['direction'] == 'receive' and frame['stream_id'] == 0:
+            byte_offset = frame['byte_offset']
+            cfcw_list.append(byte_offset/1024)
+            cfcw_timestamp.append(frame['time_elaps'])
+
+    return cfcw_timestamp,cfcw_list
+
+def calculate_client_cfcw():
+    #init by default client cfcw
+    cfcw_timestamp = [0]
+    cfcw_list = [general_info['Client_CFCW']/1024]
+
+    #add server window_update info
+    for frame in frame_dict.values():
+        if frame['frame_type'] == 'WINDOW_UPDATE' and frame['direction'] == 'send' and frame['stream_id'] == 0:
             byte_offset = frame['byte_offset']
             cfcw_list.append(byte_offset/1024)
             cfcw_timestamp.append(frame['time_elaps'])
@@ -141,7 +160,17 @@ def calcualte_total_sent_size():
         total_sent_size_list.append(total_sent_size/1024)
     return packet_sent_time_sequence_list,total_sent_size_list
 
-def calculate_block():
+def calcualte_total_received_size():
+    total_received_size_list = []
+    total_received_size = 0
+    packet_sent_time_sequence_list = []
+    for packet in packet_received_dict.values():
+        packet_sent_time_sequence_list.append(int(packet['time']))
+        total_received_size += packet['length']
+        total_received_size_list.append(total_received_size/1024)
+    return packet_sent_time_sequence_list,total_received_size_list
+
+def calculate_client_block():
     block_timestamp = []
     block_stream_id_list = []
     for frame in frame_dict.values():
@@ -170,22 +199,25 @@ def show_packet_size_on_the_fly():
     plt.plot(packet_sent_time_sequence_list, on_the_fly_packet_size_list)
     plt.xlabel('Packet Sent Time Offset (ms)')
     plt.ylabel('Packet Size (KB)')
-    plt.title("Packet Size on the fly")
+    plt.title("Inflight Packet Size ")
     plt.legend()
     plt.grid(True)
     plt.show()
 
-def show_cfcw_update_info():
-    cfcw_timestamp, cfcw_list = calculate_cfcw()
+
+def show_server_cfcw_update_info():
+    cfcw_timestamp, cfcw_list = calculate_server_cfcw()
     packet_sent_time_sequence_list,total_sent_size_list = calcualte_total_sent_size()
-    block_timestamp,block_stream_id_list = calculate_block()
+    block_timestamp, block_stream_id_list = calculate_client_block()
+    cfcw_timestamp.append(packet_sent_time_sequence_list[-1])
+    cfcw_list.append(cfcw_list[0])
 
     fig = plt.figure()
     ax1 = fig.add_subplot(111)
-    ax1.plot(cfcw_timestamp, cfcw_list, label='CFCW Offset')
+    ax1.plot(cfcw_timestamp, cfcw_list, label='Server CFCW Offset')
     ax1.plot(packet_sent_time_sequence_list, total_sent_size_list, label='Total Sent Size')
-    ax1.set_ylabel('Packet Sent (KB)')
-    ax1.set_title('CFCW')
+    ax1.set_ylabel('Client Packet Sent (KB)')
+    ax1.set_title('Server CFCW and Client Sent Size')
     ax1.legend()
 
     ax2 = ax1.twinx()  # this is the important function
@@ -197,11 +229,35 @@ def show_cfcw_update_info():
     plt.grid(True)
     plt.show()
 
+def show_client_cfcw_update_info():
+    cfcw_timestamp, cfcw_list = calculate_client_cfcw()
+    packet_receive_time_sequence_list,total_receive_size_list = calcualte_total_received_size()
+    #block_timestamp, block_stream_id_list = calculate_server_block()
+    cfcw_timestamp.append(packet_receive_time_sequence_list[-1])
+    cfcw_list.append(cfcw_list[-1])
+
+    fig = plt.figure()
+    ax1 = fig.add_subplot(111)
+    #ax1.plot(cfcw_timestamp, cfcw_list, label='Client CFCW Offset')
+    ax1.plot(packet_receive_time_sequence_list, total_receive_size_list, label='Total Received Size')
+    ax1.set_ylabel('Packet Received (KB)')
+    ax1.set_title('Client CFCW and Received Size')
+    ax1.legend()
+
+    ax2 = ax1.twinx()  # this is the important function
+    #ax2.scatter(block_timestamp, block_stream_id_list, marker='*')
+    ax2.set_ylabel('Blocked Stream ID')
+    ax2.legend()
+
+    plt.legend()
+    plt.grid(True)
+    plt.show()
 
 if __name__ == '__main__':
     #init("../data_original/quic-gh2ir.json")
     init("../data_original/netlog.json")
 
-    # show_packet_size_on_the_fly()
-    show_packet_ack_delay_all()
-    # show_cfcw_update_info()
+    #show_packet_size_on_the_fly()
+    #show_packet_ack_delay_all()
+    #show_server_cfcw_update_info()
+    show_client_cfcw_update_info()

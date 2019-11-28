@@ -24,6 +24,8 @@ class QuicConnection:
         #extract quic general info
         chlo_event_index = 0
         shlo_event_index = 0
+        last_chlo = None
+        last_shlo = None
         for event in chrome_event_list:
             if event.source_type == 'QUIC_SESSION' and event.event_type not in ingore_event_type_list:
                 if event.event_type == 'QUIC_SESSION':
@@ -35,9 +37,11 @@ class QuicConnection:
                 elif event.event_type == 'QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_SENT':
                     chlo_event_index += 1
                     self.general_info['CHLO%s' % chlo_event_index] = event.other_data['params']
+                    last_chlo = event.other_data['params']
                 elif event.event_type == 'QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_RECEIVED':
                     shlo_event_index += 1
                     self.general_info['SHLO%s' % chlo_event_index] = event.other_data['params']
+                    last_shlo = event.other_data['params']
                 elif event.event_type == 'QUIC_SESSION_VERSION_NEGOTIATED':
                     self.general_info['Version'] = event.other_data['params']['version']
                 else:
@@ -45,6 +49,22 @@ class QuicConnection:
             else:
                 #print('ignore NONE quic event,', event.get_info_list())
                 pass
+
+        #exact SFCW and CFCW
+        last_chlo_infos = last_chlo['quic_crypto_handshake_message'].split('\n')
+        for info in last_chlo_infos:
+            if 'CFCW' in info:
+                self.general_info['Client_CFCW'] = int(info.split(': ')[1])
+            if 'SFCW' in info:
+                self.general_info['Client_SFCW'] = int(info.split(': ')[1])
+        last_shlo_infos = last_shlo['quic_crypto_handshake_message'].split('\n')
+        for info in last_shlo_infos:
+            if 'CFCW' in info:
+                self.general_info['Server_CFCW'] = int(info.split(': ')[1])
+            if 'SFCW' in info:
+                self.general_info['Server_SFCW'] = int(info.split(': ')[1])
+
+
         for key,value in self.general_info.items():
             if isinstance(value,dict):
                 print(key,': ----------------------')
@@ -134,9 +154,11 @@ class QuicConnection:
     def validate(self):
         print('validating...')
         ack_frame_receive_count = 0
+        ack_frame_send_count = 0
         packet_receive_count = 0
         packet_sent_count = 0
         window_update_frame_receive_count = 0
+        window_update_frame_send_count = 0
         for event in self.chrome_event_list:
             if event.event_type == 'QUIC_SESSION_PACKET_RECEIVED':
                 packet_receive_count += 1
@@ -144,35 +166,51 @@ class QuicConnection:
                 packet_sent_count += 1
             elif event.event_type == 'QUIC_SESSION_ACK_FRAME_RECEIVED':
                 ack_frame_receive_count += 1
+            elif event.event_type == 'QUIC_SESSION_ACK_FRAME_SENT':
+                ack_frame_send_count += 1
             elif event.event_type == 'QUIC_SESSION_WINDOW_UPDATE_FRAME_RECEIVED':
                 window_update_frame_receive_count += 1
+            elif event.event_type == 'QUIC_SESSION_WINDOW_UPDATE_FRAME_SENT':
+                window_update_frame_send_count += 1
 
         ack_frame_receive_count_after_processing = 0
+        ack_frame_send_count_after_processing = 0
         windows_update_frame_receive_count_after_processing = 0
+        windows_update_frame_send_count_after_processing = 0
         for frame in self.frames:
             if frame.frame_type == 'ACK' and frame.direction == 'receive':
                 ack_frame_receive_count_after_processing += 1
+            if frame.frame_type == 'ACK' and frame.direction == 'send':
+                ack_frame_send_count_after_processing += 1
             if frame.frame_type == 'WINDOW_UPDATE' and frame.direction == 'receive':
                 windows_update_frame_receive_count_after_processing += 1
+            if frame.frame_type == 'WINDOW_UPDATE' and frame.direction == 'send':
+                windows_update_frame_send_count_after_processing += 1
         print('QUIC entity count from chrome log:')
         print('PACKET_RECEIVED: ',packet_receive_count)
         print('PACKET_SENT: ',packet_sent_count)
         print('ACK_FRAME_RECEIVED: ', ack_frame_receive_count)
+        print('ACK_FRAME_SENT: ', ack_frame_send_count)
         print('WINDOW_UPDATE_FRAME_RECEIVED: ', window_update_frame_receive_count)
+        print('WINDOW_UPDATE_FRAME_SENT: ', window_update_frame_send_count)
         print('-------------------')
         print('quic entity count after processing:')
         print('PACKET_RECEIVED: ',len(self.packet_received_dict))
         print('PACKET_SENT: ',len(self.packet_sent_dict))
         print('ACK_FRAME_RECEIVED: ', ack_frame_receive_count_after_processing)
+        print('ACK_FRAME_SENT: ', ack_frame_send_count_after_processing)
         print('WINDOW_UPDATE_FRAME_RECEIVED: ', windows_update_frame_receive_count_after_processing)
+        print('WINDOW_UPDATE_FRAME_SENT: ', windows_update_frame_send_count_after_processing)
 
         if packet_receive_count != len(self.packet_received_dict) \
                 or packet_sent_count != len(self.packet_sent_dict) \
                 or ack_frame_receive_count != ack_frame_receive_count_after_processing \
-                or windows_update_frame_receive_count_after_processing != windows_update_frame_receive_count_after_processing:
+                or ack_frame_send_count != ack_frame_send_count_after_processing \
+                or windows_update_frame_receive_count_after_processing != windows_update_frame_receive_count_after_processing \
+                or window_update_frame_send_count != windows_update_frame_send_count_after_processing:
             print('ERROR: count mismatch, check log and program please')
         else:
-            print('success')
+            print('validate success')
 
 
     def save(self):
