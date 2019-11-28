@@ -2,6 +2,7 @@ import json
 import os
 
 import constant_converter
+import visualize
 from chrome_session import ChromeSession, ChromeEvent
 from quic_session import QuicConnection
 
@@ -44,9 +45,17 @@ def process_chrome_log(file_path):
     quic_session = QuicConnection(chrome_session.event_list, "../data_converted/" + filename)
     quic_session.save()
 
+def show_graph(file_path):
+    visualize.init(file_path)
+    visualize.show_packet_size_on_the_fly()
+    visualize.show_packet_ack_delay_all()
+    visualize.show_server_cfcw_update_info()
+    visualize.show_client_cfcw_update_info()
+
 
 if __name__ == '__main__':
     #file_path = "../data_original/quic-gh2ir.json"
-    file_path = "../data_original/netlog.json"
+    file_path = "../data_original/netlog-2nd.json"
     fix_trunced_file(file_path)
     process_chrome_log(file_path)
+    show_graph(file_path)

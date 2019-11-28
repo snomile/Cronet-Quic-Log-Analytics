@@ -1,5 +1,6 @@
 import csv
 import json
+import os
 
 from quic_entity import PacketReceived, PacketSent
 
@@ -28,7 +29,7 @@ class QuicConnection:
         last_shlo = None
         for event in chrome_event_list:
             if event.source_type == 'QUIC_SESSION' and event.event_type not in ingore_event_type_list:
-                if event.event_type == 'QUIC_SESSION':
+                if event.event_type == 'QUIC_SESSION' and event.other_data['phase'] == 1:
                     self.start_time_int = event.time_int
                     self.general_info['Start_time'] = event.time_int
                     self.general_info['Host'] = event.other_data['params']['host']
@@ -49,6 +50,10 @@ class QuicConnection:
             else:
                 #print('ignore NONE quic event,', event.get_info_list())
                 pass
+
+        if len(self.quic_chrome_event_list) == 0:
+            print('No Quic session found, exit')
+            os._exit(-1)
 
         #exact SFCW and CFCW
         last_chlo_infos = last_chlo['quic_crypto_handshake_message'].split('\n')

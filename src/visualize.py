@@ -257,7 +257,7 @@ if __name__ == '__main__':
     #init("../data_original/quic-gh2ir.json")
     init("../data_original/netlog.json")
 
-    #show_packet_size_on_the_fly()
-    #show_packet_ack_delay_all()
-    #show_server_cfcw_update_info()
+    show_packet_size_on_the_fly()
+    show_packet_ack_delay_all()
+    show_server_cfcw_update_info()
     show_client_cfcw_update_info()

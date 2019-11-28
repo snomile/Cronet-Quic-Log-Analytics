@@ -1,0 +1,84 @@
+Time Elaps,Packet Number,ACK delay,Frame type,Direction,Stream_id
+1,1,186,STREAM,send,1,length: 1024,offset: 0
+152,2,36,STREAM,send,1,length: 1024,offset: 0
+185,1,N/A,STREAM,receive,1,length: 245,offset: 0
+187,3,31,STREAM,send,1,length: 1024,offset: 1024
+187,2,N/A,ACK,receive,N/A,largest_observed: 1,missing_packets: [],delta_time_largest_observed_us: 2473,received_packet_times: []
+188,3,N/A,ACK,receive,N/A,largest_observed: 2,missing_packets: [],delta_time_largest_observed_us: 95,received_packet_times: []
+201,4,N/A,STREAM,receive,1,length: 1173,offset: 245
+201,4,792,ACK,send,N/A,largest_observed: 4,missing_packets: [],delta_time_largest_observed_us: 392,received_packet_times: []
+202,5,N/A,STREAM,receive,1,length: 1173,offset: 1418
+202,6,N/A,STREAM,receive,1,length: 45,offset: 2591
+205,5,788,ACK,send,N/A,largest_observed: 6,missing_packets: [],delta_time_largest_observed_us: 2351,received_packet_times: []
+218,7,N/A,ACK,receive,N/A,largest_observed: 3,missing_packets: [],delta_time_largest_observed_us: 25256,received_packet_times: []
+281,6,712,STREAM,send,1,length: 1024,offset: 2048
+284,7,709,STREAM,send,3,length: 132,offset: 0,"[319522106, 5030, 'QUIC_CHROMIUM_CLIENT_STREAM_SEND_REQUEST_HEADERS', 10, 'QUIC_SESSION', '{""params"": {""headers"": ["":method: GET"", "":authority: info.snomile.ink"", "":scheme: https"", "":path: /server.log"", ""user-agent: com.startimes.cronet_localsample/1 (Linux; U; Android 6.0.1; zh_CN; SM-N9100; Build/MMB29M; Cronet/80.0.3956.0)"", ""accept-encoding: gzip, deflate""], ""quic_priority"": 1, ""quic_stream_id"": 5}, ""phase"": 0}']"
+509,8,484,STREAM,send,1,length: 1024,offset: 2048
+966,9,27,STREAM,send,1,length: 1024,offset: 2048
+993,8,N/A,ACK,receive,N/A,largest_observed: 9,"missing_packets: [6, 7]",delta_time_largest_observed_us: 87,received_packet_times: []
+1274,10,313,STREAM,send,3,length: 132,offset: 0
+1389,10,N/A,STREAM,receive,1,length: 156,offset: 2636
+1395,11,192,ACK,send,N/A,largest_observed: 10,missing_packets: [9],delta_time_largest_observed_us: 4950,received_packet_times: []
+1396,11,N/A,STREAM,receive,1,length: 156,offset: 2636
+1403,12,184,ACK,send,N/A,largest_observed: 11,missing_packets: [9],delta_time_largest_observed_us: 5943,received_packet_times: []
+1404,12,N/A,STREAM,receive,1,length: 156,offset: 2636
+1406,13,181,ACK,send,N/A,largest_observed: 12,missing_packets: [9],delta_time_largest_observed_us: 1201,received_packet_times: []
+1540,14,47,STREAM,send,3,length: 132,offset: 0
+1557,13,N/A,STREAM,receive,3,length: 185,offset: 0
+1560,15,14884,ACK,send,N/A,largest_observed: 13,missing_packets: [9],delta_time_largest_observed_us: 2930,received_packet_times: []
+1576,14,N/A,STREAM,receive,5,length: 1235,offset: 0
+1580,15,N/A,STREAM,receive,5,length: 1233,offset: 1235
+1580,16,14864,ACK,send,N/A,largest_observed: 15,missing_packets: [9],delta_time_largest_observed_us: 352,received_packet_times: []
+1581,16,N/A,STREAM,receive,5,length: 1233,offset: 2468
+1586,17,N/A,STREAM,receive,5,length: 1233,offset: 3701
+1587,17,14857,ACK,send,N/A,largest_observed: 17,missing_packets: [9],delta_time_largest_observed_us: 647,received_packet_times: []
+1587,18,N/A,ACK,receive,N/A,largest_observed: 14,missing_packets: [10],delta_time_largest_observed_us: 3706,received_packet_times: []
+1587,18,N/A,STREAM,receive,5,length: 1219,offset: 4934
+1589,19,N/A,STREAM,receive,5,length: 1233,offset: 6153
+1589,18,14855,ACK,send,N/A,largest_observed: 19,missing_packets: [],delta_time_largest_observed_us: 360,received_packet_times: []
+1591,20,N/A,STREAM,receive,5,length: 1233,offset: 7386
+1592,21,N/A,STREAM,receive,5,length: 1233,offset: 8619
+1595,19,14849,ACK,send,N/A,largest_observed: 21,missing_packets: [],delta_time_largest_observed_us: 2730,received_packet_times: []
+1597,22,N/A,STREAM,receive,5,length: 1233,offset: 9852
+1599,23,N/A,STREAM,receive,5,length: 1233,offset: 11085
+1599,20,14845,ACK,send,N/A,largest_observed: 23,missing_packets: [],delta_time_largest_observed_us: 373,received_packet_times: []
+1600,24,N/A,STREAM,receive,5,length: 1233,offset: 12318
+1601,25,N/A,STREAM,receive,5,length: 1233,offset: 13551
+1601,21,14843,ACK,send,N/A,largest_observed: 25,missing_packets: [],delta_time_largest_observed_us: 369,received_packet_times: []
+1604,26,N/A,STREAM,receive,5,length: 1233,offset: 14784
+1606,27,N/A,STREAM,receive,5,length: 1233,offset: 16017
+1608,22,14836,ACK,send,N/A,largest_observed: 27,missing_packets: [],delta_time_largest_observed_us: 1059,received_packet_times: []
+1611,28,N/A,STREAM,receive,5,length: 1233,offset: 17250
+1612,29,N/A,STREAM,receive,5,length: 1233,offset: 18483
+1615,23,14829,ACK,send,N/A,largest_observed: 29,missing_packets: [],delta_time_largest_observed_us: 2587,received_packet_times: []
+1617,30,N/A,STREAM,receive,5,length: 1233,offset: 19716
+1619,31,N/A,STREAM,receive,5,length: 1233,offset: 20949
+1620,24,14824,ACK,send,N/A,largest_observed: 31,missing_packets: [],delta_time_largest_observed_us: 368,received_packet_times: []
+1620,32,N/A,STREAM,receive,5,length: 1233,offset: 22182
+1623,33,N/A,STREAM,receive,5,length: 1233,offset: 23415
+1624,25,14820,ACK,send,N/A,largest_observed: 33,missing_packets: [],delta_time_largest_observed_us: 399,received_packet_times: []
+1629,34,N/A,STREAM,receive,5,length: 1233,offset: 24648
+1630,35,N/A,STREAM,receive,5,length: 1233,offset: 25881
+1632,26,14812,ACK,send,N/A,largest_observed: 35,missing_packets: [],delta_time_largest_observed_us: 2067,received_packet_times: []
+1634,36,N/A,STREAM,receive,5,length: 1233,offset: 27114
+1636,37,N/A,STREAM,receive,5,length: 1233,offset: 28347
+1636,27,14808,ACK,send,N/A,largest_observed: 37,missing_packets: [],delta_time_largest_observed_us: 349,received_packet_times: []
+1637,38,N/A,STREAM,receive,5,length: 1233,offset: 29580
+1637,39,N/A,STREAM,receive,5,length: 1233,offset: 30813
+1638,28,14806,ACK,send,N/A,largest_observed: 39,missing_packets: [],delta_time_largest_observed_us: 643,received_packet_times: []
+1641,40,N/A,STREAM,receive,5,length: 722,offset: 32046
+1643,41,N/A,STREAM,receive,5,length: 1233,offset: 32768
+1644,29,14800,ACK,send,N/A,largest_observed: 41,missing_packets: [],delta_time_largest_observed_us: 572,received_packet_times: []
+1644,42,N/A,STREAM,receive,5,length: 1233,offset: 34001
+1647,43,N/A,STREAM,receive,5,length: 1233,offset: 35234
+1650,30,14794,ACK,send,N/A,largest_observed: 43,missing_packets: [],delta_time_largest_observed_us: 567,received_packet_times: []
+1651,44,N/A,STREAM,receive,5,length: 1233,offset: 36467
+1652,45,N/A,STREAM,receive,5,length: 926,offset: 37700
+1652,31,14792,ACK,send,N/A,largest_observed: 45,missing_packets: [],delta_time_largest_observed_us: 470,received_packet_times: []
+1656,46,N/A,STREAM,receive,5,length: 0,offset: 38626
+1658,47,N/A,STREAM,receive,3,length: 185,offset: 0
+1659,32,14785,ACK,send,N/A,largest_observed: 47,missing_packets: [],delta_time_largest_observed_us: 513,received_packet_times: []
+16402,33,42,PING,send,N/A
+16444,48,N/A,ACK,receive,N/A,largest_observed: 33,missing_packets: [10],delta_time_largest_observed_us: 25176,received_packet_times: []
+45524,34,0,ACK,send,N/A,largest_observed: 48,missing_packets: [],delta_time_largest_observed_us: 29076593,received_packet_times: []
+45524,34,0,CONNECTION_CLOSE,send,N/A,No recent network activity.,25
