@@ -28,14 +28,18 @@ function initPacketsSent(render, data, streamMap, frameMap) {
       step = 0;
     }
     lastTime = item.time;
+    var ack_by_frame = item.ack_by_frame;
+    var ack_delay = item.ack_delay;
     item.frame_ids.forEach(function(frame, index) {
       var streamObj = streamMap[frameMap[frame].stream_id];
+      var x = item.time * 10 + 100;
+      var y = streamObj.y1 - 4.5 - index * 9 - step * 9;
       var rect = new zrender.Rect({
         shape: {
           width: 9,
           height: 9,
-          x: item.time * 10 + 100,
-          y: streamObj.y1 - 4.5 - index * 9 - step * 9
+          x: x,
+          y: y,
         },
         style: {
           fill: '#00bfff',
@@ -43,7 +47,25 @@ function initPacketsSent(render, data, streamMap, frameMap) {
         },
         info: frame
       })
-      render.add(rect)
+      render.add(rect);
+      var ackFrame = frameMap[ack_by_frame];
+      if (ackFrame) {
+        // 添加关联连线
+        var line = new zrender.Line({
+          style: {
+            lineWidth: 1,
+            lineDash: [5],
+            opacity: 0.6
+          },
+          shape: {
+            x1: x + 4.5,
+            y1: y + 4.5,
+            x2: frameMap[ack_by_frame].x + 4.5,
+            y2: frameMap[ack_by_frame].y + 4.5
+          }
+        });
+        render.add(line);
+      }
     })
   })
 }
@@ -68,12 +90,14 @@ function initPacketsReceived(render, data, streamMap, frameMap) {
     lastTime = item.time;
     item.frame_ids.forEach(function (frame, index) {
       var streamObj = streamMap[frameMap[frame].stream_id];
+      var x = item.time * 10 + 100;
+      var y =  streamObj.y1 - 4.5 - index * 9 - step * 9;
       var rect = new zrender.Rect({
         shape: {
           width: 9,
           height: 9,
-          x: item.time * 10 + 100,
-          y: streamObj.y1 - 4.5 - index * 9 - step * 9
+          x: x,
+          y: y,
         },
         style: {
           fill: '#ff4500',
@@ -81,7 +105,11 @@ function initPacketsReceived(render, data, streamMap, frameMap) {
         },
         info: frame
       })
-      render.add(rect)
+      frameMap[frame] = Object.assign(frameMap[frame], {
+        x: x,
+        y: y,
+      })
+      render.add(rect);
     })
   })
 }

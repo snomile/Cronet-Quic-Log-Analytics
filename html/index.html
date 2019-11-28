@@ -42,15 +42,16 @@
             var packets_sent = data.packets_sent;
             // 数据初始化
             var streamMap = {};
+            var receivedFrameMap = {};
             var maxWidth = packets_received[packets_received.length - 1].time * 10 + 100;
             // 初始化实例
             var zr = zrender.init(document.getElementById('main'));
             // 初始化 stream line
             initStream(zr, stream_dict, streamMap, maxWidth);
-            // 初始化 sent frame
-            initPacketsSent(zr, packets_sent, streamMap, frame_dict);
             // 初始化 received frame
             initPacketsReceived(zr, packets_received, streamMap, frame_dict);
+            // 初始化 sent frame
+            initPacketsSent(zr, packets_sent, streamMap, frame_dict);
             // 增加悬浮
             zr.on('mouseover', function(e) {
                 var x = e.offsetX + 10;
