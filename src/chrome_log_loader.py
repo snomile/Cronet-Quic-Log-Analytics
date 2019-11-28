@@ -55,7 +55,7 @@ def show_graph(file_path):
 
 if __name__ == '__main__':
     #file_path = "../data_original/quic-gh2ir.json"
-    file_path = "../data_original/netlog-2nd.json"
+    file_path = "../data_original/netlog-1.json"
     fix_trunced_file(file_path)
     process_chrome_log(file_path)
     show_graph(file_path)
