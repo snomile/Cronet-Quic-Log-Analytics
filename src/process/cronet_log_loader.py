@@ -19,16 +19,12 @@ def fix_trunced_file(file_path):
         else:
             print('no need to fix')
 
-def process_chrome_log(file_path):
+def process_chrome_log(fullpath, project_root, filename):
     #fix file
-    fix_trunced_file(file_path)
-
-    #get file info
-    (filepath, tempfilename) = os.path.split(file_path)
-    (filename, extension) = os.path.splitext(tempfilename)
+    fix_trunced_file(fullpath)
 
     #load log data
-    with open(file_path, 'r') as load_f:
+    with open(fullpath, 'r') as load_f:
         load_dict = json.load(load_f)
         constants = load_dict['constants']
         log_events = load_dict['events']
@@ -37,14 +33,14 @@ def process_chrome_log(file_path):
     #convert and save chrome event log
     constant_converter.init(constants)
     start_time = int(log_events[0]['time'])
-    cronet_session = CronetSession(start_time, "../resource/data_converted/" + filename + '.csv')
+    cronet_session = CronetSession(start_time, project_root + "/resource/data_converted/" + filename + '.csv')
     for log_event in log_events:
         c_event = CronetEvent(log_event)
         cronet_session.add_event(c_event)
     cronet_session.save()
 
     #extract quic session log
-    quic_session = QuicConnection(cronet_session.event_list, "../resource/data_converted/" + filename)
+    quic_session = QuicConnection(cronet_session.event_list, project_root + "/resource/data_converted/" + filename)
     quic_session.save()
 
 if __name__ == '__main__':
