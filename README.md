@@ -7,4 +7,4 @@ By this tool, you can
 2) track the handshake and client/server CFCW/SFCW related frames, which would be hlepful for analyzing the bottleneck of the throughput.
 
 
-![image](http://github.com/snomile/Cronet-Quic-Log-Analytics/raw/master/resource/doc/packet_traffic_analyze.png)
+![image](https://github.com/snomile/Cronet-Quic-Log-Analytics/blob/master/resource/doc/packet_traffic_analyze.png)
