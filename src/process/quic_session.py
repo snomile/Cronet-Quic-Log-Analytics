@@ -29,6 +29,7 @@ class QuicConnection:
         last_chlo = None
         last_shlo = None
         dns_info_list = []
+        quic_stream_factory_job_list = []
         for event in chrome_event_list:
             if event.source_type == 'QUIC_SESSION' and event.event_type not in ingore_event_type_list:
                 if event.event_type == 'QUIC_SESSION' and event.other_data['phase'] == 1:
@@ -37,16 +38,18 @@ class QuicConnection:
                     print('Quic session found')
                 elif event.event_type == 'QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_SENT':
                     chlo_event_index += 1
-                    self.general_info['CHLO%s' % chlo_event_index] = event.other_data['params']
+                    self.general_info['CHLO%s' % chlo_event_index] = (event.time_int - self.request_start_time_int, event.other_data['params'])
                     last_chlo = event.other_data['params']
                 elif event.event_type == 'QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_RECEIVED':
                     shlo_event_index += 1
-                    self.general_info['SHLO%s' % chlo_event_index] = event.other_data['params']
+                    self.general_info['SHLO%s' % chlo_event_index] = (event.time_int - self.request_start_time_int, event.other_data['params'])
                     last_shlo = event.other_data['params']
                 elif event.event_type == 'QUIC_SESSION_VERSION_NEGOTIATED':
                     self.general_info['Version'] = event.other_data['params']['version']
                 else:
                     self.quic_chrome_event_list.append(event)
+            elif event.event_type == 'QUIC_STREAM_FACTORY_JOB' and event.phase == 'PHASE_BEGIN':
+                quic_stream_factory_job_list.append((event.source_id,event.other_data['params']['server_id']))
             elif event.event_type == 'HOST_RESOLVER_IMPL_REQUEST':
                 dns_info_list.append((event.source_id,
                                       event.time_int - self.request_start_time_int,
@@ -66,13 +69,17 @@ class QuicConnection:
             os._exit(-1)
 
         #extract dns info
-        #find correct dns record
         correct_source_id = None
+        for source_id, server_id in quic_stream_factory_job_list:  # dns job share same source id as quic_stream_factory_job,which contains the real domain name
+            if self.general_info['Host'] in server_id:
+                correct_source_id = source_id
+                break
+
         for source_id,time, phase, other_data in dns_info_list:
-            if phase == 'PHASE_BEGIN' and self.general_info['Host'] in other_data['params']['host']:
+            if phase == 'PHASE_BEGIN' and correct_source_id == source_id:
                 correct_source_id = source_id
                 self.general_info['DNS_begin_time'] = time
-            if phase == 'PHASE_END' and source_id == correct_source_id:
+            if phase == 'PHASE_END' and correct_source_id == source_id:
                 self.general_info['DNS_end_time'] = time
                 break
 
@@ -91,6 +98,7 @@ class QuicConnection:
                 self.general_info['Server_SFCW'] = int(info.split(': ')[1])
 
 
+        #print general info
         for key,value in self.general_info.items():
             if isinstance(value,dict):
                 print(key,': ----------------------')
@@ -156,15 +164,25 @@ class QuicConnection:
         largest_unobserved_packet = 1
         for frame in self.frames:
             if frame.frame_type == 'ACK' and frame.direction == 'receive':
+                #calc server caused delay
+                ack_delay_by_server = round(frame.delta_time_largest_observed_us/1000.0, 3)
+
+                #tag packet with ack delay
                 latest_largest_observed_packet = frame.largest_observed
                 for i in range(largest_unobserved_packet, latest_largest_observed_packet+1):
                     packet = self.packet_sent_dict[i]
                     packet.ack_by_frame_id = frame.frame_id
                     frame_time_elaps = self.packet_received_dict[frame.packet_number].time_elaps
                     packet.ack_delay = frame_time_elaps - packet.time_elaps
+                    packet.ack_delay_server = ack_delay_by_server
                     frame.ack_packet_number_list.append(packet.packet_number)
                 largest_unobserved_packet = latest_largest_observed_packet + 1
 
+                #tag packet with lost tag
+                if len(frame.missing_packets) > 0:
+                    for packet_number in frame.missing_packets: # TODO check the consistency with QUIC_SESSION_PACKET_LOST
+                        lost_packet = self.packet_sent_dict[packet_number]
+                        lost_packet.is_lost = True
 
     def add_packet(self,packet):
         self.packets.append(packet)
@@ -285,9 +303,11 @@ class QuicConnection:
                 'number': packet.packet_number,
                 'ack_by_frame' : packet.ack_by_frame_id,
                 'ack_delay': packet.ack_delay,
+                'ack_delay_server': packet.ack_delay_server,
                 'info': packet.get_info_list(),
                 'length': packet.size,
-                'frame_ids':[frame.frame_id for frame in packet.frames]
+                'frame_ids':[frame.frame_id for frame in packet.frames],
+                'is_lost': packet.is_lost
             }
             json_obj['packets_sent'].append(packet_json_obj)
             json_obj['packet_sent_dict'][packet.packet_number] = packet_json_obj

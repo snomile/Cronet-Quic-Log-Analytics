@@ -2,7 +2,7 @@ import json
 import os
 
 from process import constant_converter
-from process.chrome_session import ChromeSession, ChromeEvent
+from process.cronet_session import CronetSession, CronetEvent
 from process.quic_session import QuicConnection
 
 
@@ -37,16 +37,16 @@ def process_chrome_log(file_path):
     #convert and save chrome event log
     constant_converter.init(constants)
     start_time = int(log_events[0]['time'])
-    chrome_session = ChromeSession(start_time, "../data_converted/" + filename + '.csv')
+    cronet_session = CronetSession(start_time, "../resource/data_converted/" + filename + '.csv')
     for log_event in log_events:
-        c_event = ChromeEvent(log_event)
-        chrome_session.add_event(c_event)
-    chrome_session.save()
+        c_event = CronetEvent(log_event)
+        cronet_session.add_event(c_event)
+    cronet_session.save()
 
     #extract quic session log
-    quic_session = QuicConnection(chrome_session.event_list, "../data_converted/" + filename)
+    quic_session = QuicConnection(cronet_session.event_list, "../resource/data_converted/" + filename)
     quic_session.save()
 
 if __name__ == '__main__':
-    file_path = "../data_original/netlog-1.json"
+    file_path = "../resource/data_original/netlog-2.json"
     process_chrome_log(file_path)

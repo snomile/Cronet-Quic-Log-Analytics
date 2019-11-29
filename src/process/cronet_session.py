@@ -4,7 +4,7 @@ import json
 from process import constant_converter
 
 
-class ChromeSession:
+class CronetSession:
     def __init__(self,session_start_time,persistant_file_path):
         self.session_start_time = session_start_time
         self.event_list = []
@@ -21,7 +21,7 @@ class ChromeSession:
                 cw.writerow(c_event.get_info_list())
 
 
-class ChromeEvent():
+class CronetEvent():
     def __init__(self,event_log_obj):
         self.time_int = int(event_log_obj['time'])
         self.time_elaps = 0
@@ -48,5 +48,5 @@ def get_source_desc(source):
 if __name__ == '__main__':
     event_log_str = '{"params":{"new_config":{"auto_detect":true}},"phase":0,"source":{"id":7,"type":0},"time":"87726889","type":27}'
     event_log_obj = json.loads(event_log_str)
-    event = ChromeEvent(event_log_obj)
+    event = CronetEvent(event_log_obj)
     print(event.get_info_list())

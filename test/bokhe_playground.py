@@ -49,6 +49,10 @@ if __name__ == '__main__':
                       source=source, text_align='center')
     p.add_layout(labels)
 
-    output_file("elements.html", title="elements.py example")
 
+
+
+
+
+    output_file("../test/graph.html")
     show(p)

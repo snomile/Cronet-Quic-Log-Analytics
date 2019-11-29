@@ -1,4 +1,5 @@
 import json
+from sklearn import preprocessing
 
 from bokeh.models import ColumnDataSource
 
@@ -25,7 +26,6 @@ def init(file_path):
     print('load frame_dict: ', len(frame_dict))
 
 
-
 def calculate_packet_ack_delay():
     packet_sent_time_sequence_list = []
     ack_delay_total_list = []
@@ -35,38 +35,9 @@ def calculate_packet_ack_delay():
         packet_sent_time_sequence_list.append(int(packet['time']))
         ack_delay_total = int(packet['ack_delay'])
         ack_delay_total_list.append(ack_delay_total)
-        ack_frame_id = packet['ack_by_frame']
-        if ack_frame_id == 'N/A':
-            if packet['info'][7][0][0] == 'ACK':
-                ack_delay_server_list.append(0) # the last ack packet won't be acked, manually set the ack_delay_server to 0
-            else:
-                print('WARN: Possible error packet: ', packet['number'], ', which is not ACKed')
-        else:
-            ack_frame = frame_dict[ack_frame_id]
-            ack_delay_server = round(float(ack_frame['delta_time_largest_observed_us'])/1000,3)
-            ack_delay_server_list.append(ack_delay_server)
+        ack_delay_server_list.append(packet['ack_delay_server'])
 
-    return packet_sent_time_sequence_list,ack_delay_total_list
-
-
-def calculate_packet_lost_timestamp():
-    lost_packet_number_list = []
-    lost_packet_sent_time_sequence_list = []
-    lost_packet_sent_ack_delay_list = []
-
-    #find all lost packet number
-    for frame in frame_dict.values():
-        if frame['frame_type'] == 'ACK' and frame['direction'] == 'receive' and len(frame['missing_packets'])>0:
-            lost_packet_numbers = frame['missing_packets']  #TODO check the consistency with QUIC_SESSION_PACKET_LOST
-            lost_packet_number_list.extend(lost_packet_numbers)
-
-    for packet in packet_sent_dict.values():
-        if packet['number'] in lost_packet_number_list:
-            lost_packet_sent_time_sequence_list.append(int(packet['time']))
-            ack_delay_total = int(packet['ack_delay'])
-            lost_packet_sent_ack_delay_list.append(ack_delay_total)
-
-    return lost_packet_sent_time_sequence_list,lost_packet_sent_ack_delay_list
+    return packet_sent_time_sequence_list,ack_delay_total_list,ack_delay_server_list
 
 
 def calculate_rtt():
@@ -153,26 +124,6 @@ def calculate_client_cfcw():
 
     return cfcw_timestamp,cfcw_list
 
-def calcualte_total_sent_size():
-    total_sent_size_list = []
-    total_sent_size = 0
-    packet_sent_time_sequence_list = []
-    for packet in packet_sent_dict.values():
-        packet_sent_time_sequence_list.append(int(packet['time']))
-        total_sent_size += packet['length']
-        total_sent_size_list.append(total_sent_size/1024)
-    return packet_sent_time_sequence_list,total_sent_size_list
-
-def calcualte_total_received_size():
-    total_received_size_list = []
-    total_received_size = 0
-    packet_sent_time_sequence_list = []
-    for packet in packet_received_dict.values():
-        packet_sent_time_sequence_list.append(int(packet['time']))
-        total_received_size += packet['length']
-        total_received_size_list.append(total_received_size/1024)
-    return packet_sent_time_sequence_list,total_received_size_list
-
 def calculate_client_block():
     block_timestamp = []
     block_stream_id_list = []
@@ -198,18 +149,71 @@ def get_dns_source():
     return source
 
 def get_packet_send_source():
-    packet_sent_time_sequence_list, total_sent_size_list = calcualte_total_sent_size()
-    source = ColumnDataSource(data={
+    total_sent_size = 0
+    total_sent_size_list = []
+    packet_sent_time_sequence_list = []
+    packet_numbers = []
+    ack_delay_total_list = []
+    ack_delay_server_list = []
+
+    lost_packet_sent_size_list = []
+    lost_packet_sent_time_sequence_list = []
+    lost_packet_numbers = []
+    lost_ack_delay_total_list = []
+    lost_ack_delay_server_list = []
+
+    for packet in packet_sent_dict.values():
+        packet_sent_time = int(packet['time'])
+        total_sent_size += packet['length']
+        current_total_sent_size = total_sent_size / 1024
+        ack_delay_total = int(packet['ack_delay'])
+        ack_delay_server = int(packet['ack_delay_server'])
+
+        if packet['is_lost']:
+            lost_packet_sent_time_sequence_list.append(packet_sent_time)
+            lost_packet_sent_size_list.append(current_total_sent_size)
+            lost_packet_numbers.append(packet['number'])
+            lost_ack_delay_total_list.append(ack_delay_total)
+            lost_ack_delay_server_list.append(ack_delay_server)
+        else:
+            packet_sent_time_sequence_list.append(packet_sent_time)
+            total_sent_size_list.append(current_total_sent_size)
+            packet_numbers.append(packet['number'])
+            ack_delay_total_list.append(ack_delay_total)
+            ack_delay_server_list.append(ack_delay_server)
+
+    packet_send_source = ColumnDataSource(data={
         'x': packet_sent_time_sequence_list,
         'y': total_sent_size_list,
+        'number': packet_numbers,
+        'ack_delay': ack_delay_total_list,
+        'size': preprocessing.minmax_scale(ack_delay_total_list,feature_range=(5, 15))
     })
-    return source
+
+    packet_lost_source = ColumnDataSource(data={
+        'x': lost_packet_sent_time_sequence_list,
+        'y': lost_packet_sent_size_list,
+        'number': lost_packet_numbers,
+        'ack_delay': lost_ack_delay_total_list,
+        'size': [15]* len(lost_packet_sent_time_sequence_list)
+    })
+    return packet_send_source, packet_lost_source
 
 def get_packet_receive_source():
-    packet_receive_time_sequence_list, total_receive_size_list = calcualte_total_received_size()
+    current_total_received_size = 0
+    total_received_size_list = []
+    packet_receive_time_sequence_list = []
+    packet_numer_list = []
+    for packet in packet_received_dict.values():
+        packet_receive_time_sequence_list.append(int(packet['time']))
+        current_total_received_size += packet['length']
+        total_received_size_list.append(current_total_received_size/1024)
+        packet_numer_list.append(packet['number'])
+
     source = ColumnDataSource(data={
         'x': packet_receive_time_sequence_list,
-        'y': total_receive_size_list,
+        'y': total_received_size_list,
+        'number': packet_numer_list
     })
     return source
 
@@ -243,5 +247,33 @@ def get_client_block_connection_level_source():
         'y': [-1] * len(client_block_timestamp),
         'stream_id': client_block_stream_id_list,
         'color': color_list
+    })
+    return source
+
+def get_handshake_source():
+    actions = []
+    timestamps = []
+    infos = []
+
+    for key,value in general_info.items():
+        if 'CHLO' in key or 'SHLO' in key:
+            actions.append(key)
+            timestamps.append(value[0])
+            infos.append(value[1]['quic_crypto_handshake_message'])
+
+    source = ColumnDataSource(data={
+        'x': timestamps,
+        'y': [-1] * len(timestamps),
+        'infos': infos,
+        'actions': actions
+    })
+    return source
+
+def get_packet_size_inflight():
+    packet_sent_time_sequence_list, on_the_fly_packet_size_list = calculate_packet_size_on_the_fly()
+
+    source = ColumnDataSource(data={
+        'x': packet_sent_time_sequence_list,
+        'y': on_the_fly_packet_size_list,
     })
     return source

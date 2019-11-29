@@ -83,7 +83,9 @@ class PacketSent:
         self.size = QUIC_SESSION_PACKET_SENT_event.other_data['params']['size']
         self.transmission_type = QUIC_SESSION_PACKET_SENT_event.other_data['params']['transmission_type']
         self.ack_by_frame_id = 'N/A'
-        self.ack_delay = 0 # ms
+        self.ack_delay = 0  # ms, init by quic_session.tag_packet_by_ack
+        self.ack_delay_server = 0  # ms
+        self.is_lost = False
 
         self.frames = []
         self.init_frame(related_event.copy())
@@ -110,6 +112,7 @@ class PacketSent:
             self.packet_number,
             self.size,
             self.ack_delay,
+            self.ack_delay_server,
             self.transmission_type,
             [frame.get_info_list() for frame in self.frames]
         ]
