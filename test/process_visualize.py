@@ -5,8 +5,8 @@ from visualize import helper_data
 from visualize import graph
 
 if __name__ == '__main__':
-    #file_path = "../data_original/quic-gh2ir.json"
-    file_path = "../resource/data_original/netlog-2.json"
+    file_path = "../resource/data_original/quic-gh2ir.json"
+    #file_path = "../resource/data_original/netlog-2.json"
 
     (filepath, tempfilename) = os.path.split(file_path)
     (filename, extension) = os.path.splitext(tempfilename)
