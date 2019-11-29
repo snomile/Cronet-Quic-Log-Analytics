@@ -7,8 +7,7 @@ By this tool, you can
 2) track the client/server CFCW/SFCW/Window_Update/Block related frames, which would be hlepful for analyzing the bottleneck of the throughput.
 3) use the interactive diagram to go through every details of the quic session, including DNS time cost, handshake time cost, which packet is lost, packet size inflight......
 
-Usage
-put your cronet log under data_original, then run process_visualize.py(file_path should be match your log file name)
+Usage: put your cronet log under data_original, then run process_visualize.py(file_path should match your log file name)
 
 
 ![image](https://github.com/snomile/Cronet-Quic-Log-Analytics/blob/master/resource/doc/packet_traffic_analyze.png)
