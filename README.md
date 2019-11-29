@@ -13,4 +13,6 @@ Usage:
 
 
 ![image](https://github.com/snomile/Cronet-Quic-Log-Analytics/blob/master/resource/doc/packet_traffic_analyze.png)
+![image](https://github.com/snomile/Cronet-Quic-Log-Analytics/blob/master/resource/doc/massive_send.png)
+![image](https://github.com/snomile/Cronet-Quic-Log-Analytics/blob/master/resource/doc/block.png)
 ![image](https://github.com/snomile/Cronet-Quic-Log-Analytics/blob/master/resource/doc/packet_size_inflight.png)

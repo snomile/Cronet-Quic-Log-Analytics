@@ -13,8 +13,8 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         file_path = sys.argv[1]
     else:
-        # file_path = "quic-gh2ir.json"
-        file_path = "netlog-2.json"
+        file_path = "quic-gh2ir.json"
+        #file_path = "netlog-2.json"
 
     paths = [file_path,
              cur_abs_path + '/' + file_path,
