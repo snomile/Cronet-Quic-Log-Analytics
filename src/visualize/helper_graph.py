@@ -11,5 +11,6 @@ def get_plot(x_label,y_label,title):
 def display(plot):
     plot.legend.location = "top_left"
     plot.legend.click_policy = "mute"
-    output_file("../test/graph.html")
+    filename = plot.title.text.replace(" ", "").lower()
+    output_file("../../resource/html_output/%s.html" % filename)
     show(plot)

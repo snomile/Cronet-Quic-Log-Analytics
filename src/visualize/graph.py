@@ -8,7 +8,6 @@ def show():
     graph_packet_size_inflight.show()
 
 if __name__ == '__main__':
-    #helper_data.init("../resource/data_converted/netlog-2_quic_connection.json")
-    helper_data.init("../resource/data_converted/quic-gh2ir_quic_connection.json")
-
+    helper_data.init("../../resource/data_converted/netlog-2_quic_connection.json")
+    #helper_data.init("../../resource/data_converted/quic-gh2ir_quic_connection.json")
     show()
