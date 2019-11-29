@@ -121,24 +121,27 @@ function initPacketsReceived(render, data, streamMap, frameMap) {
  * @author yang.xiaolong
  * @date 2019-11-19
  * @param {*} render
- * @param {*} map
+ * @param {*} stream_dict
  */
-function initStream(render, map, streamMap, maxWidth) {
-  var keys = Object.keys(map);
+function initStream(render, stream_dict, maxWidth) {
+  var keys = Object.keys(stream_dict);
   keys.reverse();
   var w = render.getWidth();
   var h = render.getHeight();
   // 获取每个stream的坐标间距
-  var step = h / (keys.length + 1);
+  var step = h / (keys.length + 3);
   keys.forEach(function(key, index) {
     // 计算stream的y坐标，并保存
-    var y = step * (index + 1);
-    streamMap[key] = {
-      x1: 100,
-      y1: y,
-      x2: maxWidth - 25,
-      y2: y,
-    };
+    var y = step * (index + 2);
+    var streamObj = stream_dict[key];
+    if (streamObj) {
+      streamObj = Object.assign(streamObj, {
+        x1: 100,
+        y1: y,
+        x2: maxWidth - 25,
+        y2: y,
+      });
+    }
     // 设定stream文字
     var fontStyle = Object.assign(defaultFont, { text: 'stream_' + key });
     var streamText = new zrender.Text({
@@ -153,8 +156,8 @@ function initStream(render, map, streamMap, maxWidth) {
         lineDash: [2],
         opacity: 0.8
       },
-      shape: streamMap[key],
-      // info: { text: 'stream_' + key }
+      shape: streamObj,
+      // info: streamObj
     });
     render.add(streamLine);
   })
