@@ -4,7 +4,12 @@ But reading the log by netlog-viewer(https://netlog-viewer.appspot.com/) is pain
 
 By this tool, you can
 1) read QUIC client log on the packet/frame/stream level, each packet would be tagged by important info(eg. ack_delay, if_lost, etc.), along with the content of the packet itself.
-2) track the handshake and client/server CFCW/SFCW related frames, which would be hlepful for analyzing the bottleneck of the throughput.
+2) track the client/server CFCW/SFCW/Window_Update/Block related frames, which would be hlepful for analyzing the bottleneck of the throughput.
+3) use the interactive diagram to go through every details of the quic session, including DNS time cost, handshake time cost, which packet is lost, packet size inflight......
+
+Usage
+put your cronet log under data_original, then run process_visualize.py(file_path should be match your log file name)
 
 
 ![image](https://github.com/snomile/Cronet-Quic-Log-Analytics/blob/master/resource/doc/packet_traffic_analyze.png)
+![image](https://github.com/snomile/Cronet-Quic-Log-Analytics/blob/master/resource/doc/packet_size_inflight.png)
