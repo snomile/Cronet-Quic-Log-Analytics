@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>chrome log analysis by echarts</title>
+    <script src="./zepto.min.js"></script>
+    <script src="./echarts.min.js"></script>
+    <script src="./echarts-main.js"></script>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        #main {
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="main"></div>
+    <script>
+        $.getJSON('../data_converted/quic-gh2ir_quic_connection.json', function (data) {
+            // 解析数据
+            var stream_dict = data.stream_dict;
+            var frame_dict = data.frame_dict;
+            var packets_received = data.packets_received;
+            var packets_sent = data.packets_sent;
+            // 初始化echarts
+            var myChart = echarts.init(document.getElementById('main'));
+            var option = {};
+            // 处理stream，构建y轴
+            var streamObj = initStream(stream_dict);
+            option.yAxis = {
+                name: 'Stream',
+                data: streamObj.yValues
+            };
+            // 处理packet  received
+
+            // 处理packets sent
+        })
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>chrome log analysis by zrender</title>
+  <script src="./zepto.min.js"></script>
+  <script src="./zrender.min.js"></script>
+  <script src="./main.js"></script>
+  <style>
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    #main {
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #show {
+      position: absolute;
+      top: 0;
+      left: 0;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: rgba(255, 255, 255, 0.8);
+      border-radius: 5px;
+      max-width: 500px;
+      padding: 10px 20px;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="main"></div>
+  <div id="show" style="display: none;"></div>
+  <script>
+    $.getJSON('../data_converted/quic-gh2ir_quic_connection.json', function (data) {
+      // 解析数据
+      var stream_dict = data.stream_dict;
+      var frame_dict = data.frame_dict;
+      var packets_received = data.packets_received;
+      var packets_sent = data.packets_sent;
+      var maxWidth = packets_received[packets_received.length - 1].time * 10 + 100;
+      var screenWidth = $('#main').width();
+      // 初始化实例
+      var zr = zrender.init(document.getElementById('main'), {
+        devicePixelRatio: 10
+      });
+      // 初始化 stream line
+      initStream(zr, stream_dict, maxWidth);
+      // 初始化 received frame
+      initPacketsReceived(zr, packets_received, stream_dict, frame_dict);
+      // 初始化 sent frame
+      initPacketsSent(zr, packets_sent, stream_dict, frame_dict);
+      // 增加悬浮
+      zr.on('mouseover', function (e) {
+        var x = e.offsetX + 10;
+        var y = e.offsetY + 10;
+        if (e.target.info) {
+          if (typeof e.target.info === 'string') {
+            tip(frame_dict[e.target.info], x, y);
+          } else {
+            tip(e.target.info, x, y);
+          }
+        }
+      })
+      ///拖动组, 整体拖动
+      zr.dragData = { drag: false, pos: [0, 0], group: null, target: null };
+      zr.on('mousedown', function (e) {
+        $('#show').hide();
+        zr.dragData.pos = [e.event.zrX, e.event.zrY];
+        zr.dragData.target = e.target;
+        if (e.target == undefined)
+          zr.dragData.drag = true;
+        else if (e.target.parent && e.target.parent.type == "group") {
+          zr.dragData.drag = true;
+          zr.dragData.group = e.target.parent;
+        }
+      });
+      zr.on('mouseup', function (e) {
+        zr.dragData.drag = false;
+        zr.dragData.group = null;
+      });
+      zr.on('mousemove', function (e) {
+        if (zr.dragData.drag != true) return;
+        var new_pos = [e.event.zrX, e.event.zrY];
+        if (zr.dragData.group != null) {
+          var pos = [new_pos[0] - zr.dragData.pos[0], new_pos[1] - zr.dragData.pos[1]];
+          zr.dragData.group.children().forEach(function (x) { x.position = [0, 0]; });
+          zr.dragData.group.position[0] += pos[0]; zr.dragData.group.position[1] += pos[1];
+          zr.dragData.group.dirty();
+        } else {
+          var pos = [new_pos[0] - zr.dragData.pos[0], new_pos[1] - zr.dragData.pos[1]];
+          zr.storage.getDisplayList(true, true).forEach(function (x) {
+            x.position[0] += pos[0]; x.position[1] += pos[1]; x.dirty();
+          })
+        }
+        zr.dragData.pos = [e.event.zrX, e.event.zrY];
+      });
+    })
+  </script>
+</body>
+
+</html>
