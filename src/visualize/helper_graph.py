@@ -1,10 +1,12 @@
 from bokeh.plotting import figure, show, save, output_file
 
 project_root = None
+filename = None
 
-def init(root_path):
-    global project_root
+def init(root_path, filename_without_ext):
+    global project_root,filename
     project_root = root_path
+    filename = filename_without_ext
 
 
 def get_plot(x_label,y_label,title):
@@ -18,7 +20,6 @@ def get_plot(x_label,y_label,title):
 def display(plot):
     plot.legend.location = "top_left"
     plot.legend.click_policy = "mute"
-    filename = plot.title.text.replace(" ", "").lower()
-    output_file(project_root + "/resource/html_output/%s.html" % filename)
-    #save(plot)
+    output_filename = filename + '_' + plot.title.text.replace(" ", "").lower()
+    output_file(project_root + "/resource/html_output/%s.html" % output_filename)
     show(plot)

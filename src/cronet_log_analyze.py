@@ -34,7 +34,7 @@ if __name__ == '__main__':
 
         #show graph
         helper_data.init(project_root + "/resource/data_converted/" + filename + '_quic_connection.json')
-        helper_graph.init(project_root)
+        helper_graph.init(project_root,filename)
         graph.show()
     else:
         print('file %s does not exist, exit now' % file_path)

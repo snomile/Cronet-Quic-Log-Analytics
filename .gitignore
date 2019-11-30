@@ -105,3 +105,4 @@ venv.bak/
 /.idea/
 /test/bokhe_playground.html
 /test/graph.html
+/resource/html_output
