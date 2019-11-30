@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>chrome log analysis by echarts</title>
+    <link rel="icon" href="data:image/ico;base64,aWNv">
     <script src="./zepto.min.js"></script>
     <script src="./echarts.min.js"></script>
     <script src="./echarts-main.js"></script>
@@ -25,7 +26,7 @@
 <body>
     <div id="main"></div>
     <script>
-        $.getJSON('../data_converted/quic-gh2ir_quic_connection.json', function (data) {
+        $.getJSON('/data_converted/quic-gh2ir_quic_connection.json', function (data) {
             // 解析数据
             var stream_dict = data.stream_dict;
             var frame_dict = data.frame_dict;
@@ -33,16 +34,108 @@
             var packets_sent = data.packets_sent;
             // 初始化echarts
             var myChart = echarts.init(document.getElementById('main'));
-            var option = {};
-            // 处理stream，构建y轴
-            var streamObj = initStream(stream_dict);
-            option.yAxis = {
-                name: 'Stream',
-                data: streamObj.yValues
+            var option = {
+                tooltip: {
+                    trigger: 'item',
+                    formatter: function (params) { 
+                        if (params.componentSubType === 'scatter') {
+                            var frame = params.value[2];
+                            var frameObj = frame;
+                            if (typeof frame === 'string') {
+                                frameObj = frame_dict[frame];
+                            }
+                            var keys = Object.keys(frameObj);
+                            var res = [];
+                            keys.forEach(function (key) {
+                                res.push(key + ': ' + frameObj[key]);
+                            })
+                            return res.join('<br />');
+                        }
+                        return null;
+                    }
+                },
+                dataZoom: [{
+                    type: 'slider',
+                    start: 50,
+                    end: 60
+                },
+                {
+                    type: 'inside',
+                    start: 50,
+                    end: 60
+                }
+                ],
+                series: [],
             };
-            // 处理packet  received
-
-            // 处理packets sent
+            // 构建x轴
+            option.xAxis = {
+                type: 'value',
+                max: 'dataMax',
+                splitLine: {
+                    show: false
+                },
+            }
+            // 处理stream，构建y轴
+            var streamMap = initStream(stream_dict);
+            var yData = Object.keys(streamMap.yData)
+            option.yAxis = {
+                type: 'value',
+                data:  yData,
+                interval: 150,
+                axisLabel: {
+                    formatter: function (value) {
+                        return streamMap.yData[value];
+                    }
+                }
+            };
+            // 增加packet received frame
+            var receivedData = initPacketsReceived(packets_received, streamMap, frame_dict);
+            option.series[0] = {
+                symbolSize: 4,
+                symbol: 'rect',
+                name: 'packets received',
+                large: true,
+                largeThreshold: 1000,
+                data: receivedData,
+                color: 'red',
+                type: 'scatter',
+            }
+            // 增加packets sent frame
+            var sentData = initPacketsSent(packets_sent, streamMap, frame_dict);
+            option.series[1] = {
+                symbolSize: 4,
+                symbol: 'rect',
+                name: 'packets sent',
+                large: true,
+                largeThreshold: 1000,
+                data: sentData.frameData,
+                color: 'green',
+                type: 'scatter'
+            }
+            // 增加packets
+            option.series[2] = {
+                symbolSize: 4,
+                large: true,
+                largeThreshold: 1000,
+                symbol: 'rect',
+                name: 'packets',
+                data: sentData.packetData,
+                color: 'darkorchid',
+                type: 'scatter'
+            }
+            // 增加连线
+            // option.series[3] = {
+            //     type: 'lines',
+            //     large: true,
+            //     largeThreshold: 1000,
+            //     coordinateSystem: 'cartesian2d',
+            //     data: sentData.lineData,
+            //     lineStyle: {
+            //      color: 'gray',
+            //      type: 'solid'
+            //     }
+            // }
+            myChart.setOption(option);
         })
     </script>
 </body>

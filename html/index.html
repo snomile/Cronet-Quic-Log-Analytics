@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <!-- import CSS -->
+  <link rel="stylesheet" href="element-ui.css">
+  <link rel="icon" href="data:image/ico;base64,aWNv">
+  <style>
+    body {
+      padding: 20px;
+    }
+    .upload-demo {
+      max-width: 700px;
+    }
+    .title {
+      margin: 0 auto 20px;
+      width: 100%;
+      font-size: 30px;
+      padding-left: 10px;
+    }
+    .done {
+      margin-top: 20px;
+      color: #67C23A;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <div class="title">chrome log analysis</div>
+    <el-card class="box-card">
+      <div slot="header" class="clearfix">
+        <span>upload log</span>
+      </div>
+      <el-upload drag action="/upload/" multiple :before-upload="handleBefore" :on-success="handleSuccess"
+        :file-list="fileList">
+        <i class="el-icon-upload"></i>
+        <div class="el-upload__text">Drag the file here, or <em>click upload</em></div>
+      </el-upload>
+      <div class="done" v-if="done">upload done, time: {{end / 1000}}s</div>
+    </el-card>
+    <el-card class="box-card" style="margin-top: 30px;">
+      <div slot="header" class="clearfix">
+        <span>analysis log</span>
+      </div>
+      <div>
+        <el-link type="primary" href="/echarts.html" target="_blank">the chrome log analysis by echarts</el-link>
+      </div>
+      <div>
+        <el-link type="primary" href="https://element.eleme.io" target="_blank">link</el-link>
+      </div><div>
+        <el-link type="primary" href="https://element.eleme.io" target="_blank">link</el-link>
+      </div><div>
+        <el-link type="primary" href="https://element.eleme.io" target="_blank">link</el-link>
+      </div>
+    </el-card>  
+  </div>
+</body>
+<!-- import Vue before Element -->
+<script src="vue.js"></script>
+<!-- import JavaScript -->
+<script src="element-ui.js"></script>
+<script>
+  new Vue({
+    el: '#app',
+    data: function () {
+      return { start: 0, end: 0, fileList: [], done: false }
+    },
+    methods: {
+      clean() {
+        this.fileList = []
+      },
+      handleBefore() {
+        if (this.start > 0) {
+          return
+        }
+        this.start = new Date().getTime()
+      },
+      handleSuccess(response, file, fileList) {
+        let hasUpload = false
+        fileList.forEach(item => {
+          if (item.status !== 'success') {
+            hasUpload = true
+          }
+        })
+        if (!hasUpload) {
+          this.done = true;
+          this.end = new Date().getTime() - this.start
+          this.start = 0
+        }
+      }
+    }
+  })
+</script>
+
+</html>
