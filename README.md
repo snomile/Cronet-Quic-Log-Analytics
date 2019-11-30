@@ -8,8 +8,8 @@ By this tool, you can
 3) use the interactive diagram to go through every details of the quic session, including DNS time cost, handshake time cost, which packet is lost, packet size inflight......
 
 Usage:
-1) clone the project
-2) use "python3 pv.py $path_to_cronet_log.json" to process log files, browser will be open automatically when processing ends.
+1) clone the project, enter src directory with terminal
+2) use "python3 cronet_log_analyze.py $path_to_cronet_log.json" to process log files, browser will open automatically when processing ends.
 
 
 ![image](https://github.com/snomile/Cronet-Quic-Log-Analytics/blob/master/resource/doc/packet_traffic_analyze.png)

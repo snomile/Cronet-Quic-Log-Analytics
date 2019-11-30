@@ -7,14 +7,14 @@ from visualize import graph
 
 if __name__ == '__main__':
     abs_py_path = os.path.abspath(sys.argv[0])
-    project_root = abs_py_path[:abs_py_path.index('/src/pv.py')]
+    project_root = abs_py_path[:abs_py_path.index('/src/cronet_log_analyze.py')]
     cur_abs_path = os.path.abspath(os.curdir)
 
     if len(sys.argv) > 1:
         file_path = sys.argv[1]
     else:
-        file_path = "quic-gh2ir.json"
-        #file_path = "netlog-2.json"
+        #file_path = "quic-gh2ir.json"
+        file_path = "netlog-2.json"
 
     paths = [file_path,
              cur_abs_path + '/' + file_path,
