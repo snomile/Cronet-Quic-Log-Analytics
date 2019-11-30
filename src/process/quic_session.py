@@ -1,91 +1,56 @@
 import csv
 import json
-import os
 
 from process.quic_entity import PacketReceived, PacketSent
 
-ingore_event_type_list = [
+IGNORE_EVENT_TYPE_LIST = [
+    'QUIC_SESSION',
+    'QUIC_SESSION_VERSION_NEGOTIATED',
+    'CERT_CT_COMPLIANCE_CHECKED',
     'QUIC_SESSION_PACKET_AUTHENTICATED',
     'QUIC_SESSION_PADDING_FRAME_SENT',
     'QUIC_SESSION_PADDING_FRAME_RECEIVED',
-    #'SIGNED_CERTIFICATE_TIMESTAMPS_CHECKED',
-    #'CERT_VERIFIER_REQUEST',
-    #'CERT_VERIFIER_REQUEST_BOUND_TO_JOB',
-    #'QUIC_SESSION_CERTIFICATE_VERIFIED'
+    'SIGNED_CERTIFICATE_TIMESTAMPS_CHECKED',
+    'CERT_VERIFIER_REQUEST',
+    'CERT_VERIFIER_REQUEST_BOUND_TO_JOB',
+    'QUIC_SESSION_CERTIFICATE_VERIFIED'
 ]
 
 
 class QuicConnection:
-    def __init__(self,chrome_event_list,persistant_file_path):
-        self.chrome_event_list = chrome_event_list
-        self.persistant_file_path = persistant_file_path
-        self.quic_chrome_event_list = []
-        self.general_info = {}
+    def __init__(self, host, dns_begin_time, dns_end_time, cronet_event_list, data_converted_path, filename_without_ext):
+        self.general_info = {'Host': host, 'DNS_begin_time': 0, 'DNS_end_time': dns_end_time- dns_begin_time}
+        self.request_start_time_int = dns_begin_time
+        self.general_info['Start_time'] = dns_begin_time
+        self.cronet_event_list = [cronet_event for cronet_event in cronet_event_list if cronet_event.event_type not in IGNORE_EVENT_TYPE_LIST]
+        self.data_converted_path = data_converted_path
 
         #extract general info
-        self.request_start_time_int = 9999999999
         chlo_event_index = 0
         shlo_event_index = 0
+        first_chlo_time = 999999999
         last_chlo = None
         last_shlo = None
-        dns_info_list = []
-        quic_stream_factory_job_list = []
-        for event in chrome_event_list:
-            if event.source_type == 'QUIC_SESSION' and event.event_type not in ingore_event_type_list:
-                if event.event_type == 'QUIC_SESSION' and event.other_data['phase'] == 1:
-                    self.general_info['Host'] = event.other_data['params']['host']
-                    self.general_info['Port'] = event.other_data['params']['port']
-                    print('Quic session found')
-                elif event.event_type == 'QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_SENT':
-                    chlo_event_index += 1
-                    self.general_info['CHLO%s' % chlo_event_index] = (event.time_int - self.request_start_time_int, event.other_data['params'])
-                    last_chlo = event.other_data['params']
-                elif event.event_type == 'QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_RECEIVED':
-                    shlo_event_index += 1
-                    self.general_info['SHLO%s' % chlo_event_index] = (event.time_int - self.request_start_time_int, event.other_data['params'])
-                    last_shlo = event.other_data['params']
-                elif event.event_type == 'QUIC_SESSION_VERSION_NEGOTIATED':
-                    self.general_info['Version'] = event.other_data['params']['version']
-                else:
-                    self.quic_chrome_event_list.append(event)
-            elif event.event_type == 'QUIC_STREAM_FACTORY_JOB' and event.phase == 'PHASE_BEGIN':
-                quic_stream_factory_job_list.append((event.source_id,event.other_data['params']['server_id']))
-            elif event.event_type == 'HOST_RESOLVER_IMPL_REQUEST':
-                dns_info_list.append((event.source_id,
-                                      event.time_int - self.request_start_time_int,
-                                      event.phase,
-                                      event.other_data
-                                      ))
-            elif event.event_type == 'REQUEST_ALIVE' and event.phase == 'PHASE_BEGIN':
-                if self.request_start_time_int > event.time_int:
-                    self.request_start_time_int = event.time_int
-                    self.general_info['Start_time'] = event.time_int
-            else:
-                #print('ignore NONE quic event,', event.get_info_list())
-                pass
-
-        if len(self.quic_chrome_event_list) == 0:
-            print('No Quic session found, exit')
-            os._exit(-1)
-
-
-        #extract dns info
-        correct_source_id = None
-        for source_id, server_id in quic_stream_factory_job_list:  # dns job share same source id as quic_stream_factory_job,which contains the real domain name
-            if self.general_info['Host'] in server_id:
-                correct_source_id = source_id
-                break
-
-        for source_id,time, phase, other_data in dns_info_list:
-            if phase == 'PHASE_BEGIN' and correct_source_id == source_id:
-                correct_source_id = source_id
-                self.general_info['DNS_begin_time'] = time
-            if phase == 'PHASE_END' and correct_source_id == source_id:
-                self.general_info['DNS_end_time'] = time
-                break
-
+        for event in self.cronet_event_list:
+            if event.event_type == 'QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_SENT':
+                chlo_event_index += 1
+                self.general_info['CHLO%s' % chlo_event_index] = (event.time_int - self.request_start_time_int, event.other_data['params'])
+                if event.time_int < first_chlo_time:
+                    first_chlo_time = event.time_int
+                last_chlo = event.other_data['params']
+            elif event.event_type == 'QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_RECEIVED':
+                shlo_event_index += 1
+                self.general_info['SHLO%s' % chlo_event_index] = (event.time_int - self.request_start_time_int, event.other_data['params'])
+                last_shlo = event.other_data['params']
+            elif event.event_type == 'QUIC_SESSION_VERSION_NEGOTIATED':
+                self.general_info['Version'] = event.other_data['params']['version']
 
         #exact SFCW and CFCW
+        self.general_info['Client_CFCW'] = 9999999999  # default a large value so it will not appear on the graph
+        self.general_info['Client_SFCW'] = 9999999999
+        self.general_info['Server_CFCW'] = 9999999999
+        self.general_info['Server_SFCW'] = 9999999999
+
         last_chlo_infos = last_chlo['quic_crypto_handshake_message'].split('\n')
         for info in last_chlo_infos:
             if 'CFCW' in info:
@@ -99,6 +64,11 @@ class QuicConnection:
             if 'SFCW' in info:
                 self.general_info['Server_SFCW'] = int(info.split(': ')[1])
 
+        #generate save file path
+        self.fullpath_json_file = '%s%s_%s_%s_quic_connection.json' % (data_converted_path, filename_without_ext, host, first_chlo_time)
+        self.fullpath_quic_frame_csv_file = '%s%s_%s_%s_quic_frame.csv' % (data_converted_path, filename_without_ext, host, first_chlo_time)
+        self.fullpath_quic_packet_csv_file = '%s%s_%s_%s_quic_packet.csv' % (data_converted_path, filename_without_ext, host, first_chlo_time)
+        self.fullpath_quic_session_csv_file = '%s%s_%s_%s_quic_session.csv' % (data_converted_path, filename_without_ext, host, first_chlo_time)
 
         #print general info
         for key,value in self.general_info.items():
@@ -107,23 +77,21 @@ class QuicConnection:
             else:
                 print(key,':',value)
 
+        self.construct_quic_data_structure()
+        self.tag_packet_by_ack()
+        self.validate()
 
-        #construct packet/stream/frame data structure
+    def construct_quic_data_structure(self):
         self.packets = []
         self.frames = []
         self.stream_dict = {}
         self.packet_sent_dict = {}
         self.packet_received_dict = {}
-        self.construct_quic_data_structure(self.quic_chrome_event_list)
-        self.tag_packet_by_ack()
 
-        self.validate()
-
-    def construct_quic_data_structure(self, event_list):
         i = 0
-        event_list = event_list.copy()
+        event_list = self.cronet_event_list.copy()
         length = len(event_list)
-        print('events to process: ',length)
+        print('events to process: ', length)
 
         sent_event_buffer = []
         received_event_buffer = []
@@ -203,7 +171,7 @@ class QuicConnection:
         packet_sent_count = 0
         window_update_frame_receive_count = 0
         window_update_frame_send_count = 0
-        for event in self.chrome_event_list:
+        for event in self.cronet_event_list:
             if event.event_type == 'QUIC_SESSION_PACKET_RECEIVED':
                 packet_receive_count += 1
             elif event.event_type == 'QUIC_SESSION_PACKET_SENT':
@@ -258,21 +226,18 @@ class QuicConnection:
 
 
     def save(self):
-        print('saving quic_session.csv...')
-        with open(self.persistant_file_path +'_quic_session.csv', 'wt') as f:
+        with open(self.fullpath_quic_session_csv_file, 'wt') as f:
             cw = csv.writer(f)
-            for event in self.quic_chrome_event_list:
+            for event in self.cronet_event_list:
                 cw.writerow(event.get_info_list())
 
-        print('saving quic_packet.csv...')
-        with open(self.persistant_file_path +'_quic_packet.csv', 'wt') as f:
+        with open(self.fullpath_quic_packet_csv_file, 'wt') as f:
             cw = csv.writer(f)
             cw.writerow(['Time', 'Time Elaps', 'Type', 'Packet Number','Size'])
             for packet in self.packets:
                 cw.writerow(packet.get_info_list())
 
-        print('saving quic_frame.csv...')
-        with open(self.persistant_file_path +'_quic_frame.csv', 'wt') as f:
+        with open(self.fullpath_quic_frame_csv_file, 'wt') as f:
             cw = csv.writer(f)
             cw.writerow(['Time Elaps','Packet Number','ACK delay', 'Frame type', 'Direction','Stream_id'])
             for frame in self.frames:
@@ -286,7 +251,7 @@ class QuicConnection:
                 cw.writerow(csv_info)
 
         #construct json obj
-        print('saving quic_connection.json...')
+        print('generate json at', self.fullpath_json_file)
         json_obj = {
             'general_info': self.general_info,
             'packets_sent': [],
@@ -324,5 +289,7 @@ class QuicConnection:
             json_obj['packets_received'].append(packet_json_obj)
             json_obj['packet_received_dict'][packet.packet_number] = packet_json_obj
 
-        with open(self.persistant_file_path +'_quic_connection.json', "w") as f:
+        with open(self.fullpath_json_file, "w") as f:
             json.dump(json_obj, f)
+
+        return self.fullpath_json_file

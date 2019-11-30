@@ -214,7 +214,6 @@ class QuicFrame:
             self.offset = event.other_data['params']['offset']
             self.quic_rst_stream_error = constant_converter.get_quic_rst_error(event.other_data['params']['quic_rst_stream_error'])
             self.info_list.extend([self.frame_type, self.direction, self.stream_id, self.offset, self.quic_rst_stream_error])
-
         else:
             print('WARN: unhandled frame',event.event_type)
         self.info_list.extend([event.get_info_list() for event in relate_events])
