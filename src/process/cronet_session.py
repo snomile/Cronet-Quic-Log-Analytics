@@ -103,7 +103,6 @@ class CronetEvent():
     def __init__(self,event_log_obj):
         self.time_int = int(event_log_obj['time'])
         self.time_elaps = 0
-        #time_str = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(self.time_int))
         self.event_type = constant_converter.get_event_type(event_log_obj['type'])
         self.source_id = event_log_obj['source']['id']
         self.source_type = constant_converter.get_source_type(event_log_obj['source']['type'])
