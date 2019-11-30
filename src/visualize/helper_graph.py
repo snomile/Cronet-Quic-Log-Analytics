@@ -1,3 +1,5 @@
+import datetime
+
 from bokeh.plotting import figure, show, save, output_file
 
 project_root = None
@@ -20,7 +22,8 @@ def get_plot(x_label,y_label,title):
 def display(plot):
     plot.legend.location = "top_left"
     plot.legend.click_policy = "mute"
-    output_filename = filename + '_' + plot.title.text.replace(" ", "").lower()
+    output_filename = datetime.datetime.now().strftime('%y%m%d_%H%M%S.%f_') + filename + '_' + plot.title.text.replace(" ", "").lower()
+    #output_filename = filename + '_' + plot.title.text.replace(" ", "").lower()
     output_filepath = project_root + "/resource/html_output/%s.html" % output_filename
     output_file(output_filepath)
     print('generate html at', output_filepath)
