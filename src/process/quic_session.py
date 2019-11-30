@@ -8,10 +8,10 @@ ingore_event_type_list = [
     'QUIC_SESSION_PACKET_AUTHENTICATED',
     'QUIC_SESSION_PADDING_FRAME_SENT',
     'QUIC_SESSION_PADDING_FRAME_RECEIVED',
-    'SIGNED_CERTIFICATE_TIMESTAMPS_CHECKED',
-    'CERT_VERIFIER_REQUEST',
-    'CERT_VERIFIER_REQUEST_BOUND_TO_JOB',
-    'QUIC_SESSION_CERTIFICATE_VERIFIED'
+    #'SIGNED_CERTIFICATE_TIMESTAMPS_CHECKED',
+    #'CERT_VERIFIER_REQUEST',
+    #'CERT_VERIFIER_REQUEST_BOUND_TO_JOB',
+    #'QUIC_SESSION_CERTIFICATE_VERIFIED'
 ]
 
 
@@ -68,6 +68,7 @@ class QuicConnection:
             print('No Quic session found, exit')
             os._exit(-1)
 
+
         #extract dns info
         correct_source_id = None
         for source_id, server_id in quic_stream_factory_job_list:  # dns job share same source id as quic_stream_factory_job,which contains the real domain name
@@ -82,6 +83,7 @@ class QuicConnection:
             if phase == 'PHASE_END' and correct_source_id == source_id:
                 self.general_info['DNS_end_time'] = time
                 break
+
 
         #exact SFCW and CFCW
         last_chlo_infos = last_chlo['quic_crypto_handshake_message'].split('\n')

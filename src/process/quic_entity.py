@@ -1,3 +1,6 @@
+from process import constant_converter
+
+
 class PacketReceived:
     def __init__(self, quic_connection, packet_received_event, relate_events):
         self.relate_events = relate_events.copy()
@@ -197,6 +200,21 @@ class QuicFrame:
             self.quic_error = event.other_data['params']['quic_error']
             self.details = event.other_data['params']['details']
             self.info_list.extend([self.frame_type, self.direction, self.stream_id,self.details,self.quic_error])
+        elif event.event_type == 'QUIC_SESSION_RST_STREAM_FRAME_SENT':
+            self.frame_type = 'RST'
+            self.direction = 'send'
+            self.stream_id = event.other_data['params']['stream_id']
+            self.offset = event.other_data['params']['offset']
+            self.quic_rst_stream_error = constant_converter.get_quic_rst_error(event.other_data['params']['quic_rst_stream_error'])
+            self.info_list.extend([self.frame_type, self.direction, self.stream_id,self.offset,self.quic_rst_stream_error])
+        elif event.event_type == 'QUIC_SESSION_RST_STREAM_FRAME_RECEIVED':
+            self.frame_type = 'RST'
+            self.direction = 'receive'
+            self.stream_id = event.other_data['params']['stream_id']
+            self.offset = event.other_data['params']['offset']
+            self.quic_rst_stream_error = constant_converter.get_quic_rst_error(event.other_data['params']['quic_rst_stream_error'])
+            self.info_list.extend([self.frame_type, self.direction, self.stream_id, self.offset, self.quic_rst_stream_error])
+
         else:
             print('WARN: unhandled frame',event.event_type)
         self.info_list.extend([event.get_info_list() for event in relate_events])

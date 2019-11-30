@@ -106,3 +106,5 @@ venv.bak/
 /test/bokhe_playground.html
 /test/graph.html
 /resource/html_output
+/resource/data_converted
+/resource/data_original
