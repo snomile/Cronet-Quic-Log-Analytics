@@ -1,4 +1,4 @@
-from bokeh.plotting import figure, show, output_file
+from bokeh.plotting import figure, show, save, output_file
 
 project_root = None
 
@@ -20,4 +20,5 @@ def display(plot):
     plot.legend.click_policy = "mute"
     filename = plot.title.text.replace(" ", "").lower()
     output_file(project_root + "/resource/html_output/%s.html" % filename)
+    #save(plot)
     show(plot)

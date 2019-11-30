@@ -100,10 +100,8 @@ class QuicConnection:
 
         #print general info
         for key,value in self.general_info.items():
-            if isinstance(value,dict):
-                print(key,': ----------------------')
-                for _key, _value in value.items():
-                    print('\t',_key,':',_value)
+            if isinstance(value,tuple):  #CHLO and SHLO
+                 print(key,':', value[1]['quic_crypto_handshake_message'])
             else:
                 print(key,':',value)
 
