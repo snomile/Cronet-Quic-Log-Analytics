@@ -21,5 +21,7 @@ def display(plot):
     plot.legend.location = "top_left"
     plot.legend.click_policy = "mute"
     output_filename = filename + '_' + plot.title.text.replace(" ", "").lower()
-    output_file(project_root + "/resource/html_output/%s.html" % output_filename)
+    output_filepath = project_root + "/resource/html_output/%s.html" % output_filename
+    output_file(output_filepath)
+    print('generate html at', output_filepath)
     show(plot)
