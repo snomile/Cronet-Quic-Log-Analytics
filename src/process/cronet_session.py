@@ -73,7 +73,7 @@ class CronetSession:
         for source_id, event_list in self.source_quic_dict.items():
             host = event_list[0].other_data['params']['host']
             if host not in dns_dict.keys():
-                print('quic session source id', source_id,'has no dns record, add dummy one')
+                print('WARN: quic session source id', source_id,'has no dns record, add dummy one')
                 dns_dict[host] = (event_list[0].time_int, event_list[0].time_int)
             source_id =  event_list[0].source_id
             if host in quic_session_dict.keys():
@@ -92,7 +92,7 @@ class CronetSession:
             dns_begin_time, dns_end_time = dns_dict[host]
             for (source_id, event_list) in quic_session_group_list:
                 if event_list:
-                    print('found quic session, host:', host, 'source id:', source_id, 'event start absloute time:', event_list[0].time_int)
+                    print('processing quic session data, host:', host, 'source id:', source_id, 'event start absloute time:', event_list[0].time_int)
                     quic_session = QuicConnection(host, dns_begin_time, dns_end_time, event_list, self.data_converted_path, self.filename_without_ext)
                     json_files.append(quic_session.save())
 
