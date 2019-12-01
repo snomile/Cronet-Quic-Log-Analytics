@@ -11,7 +11,7 @@ def show():
         ('y', '@y'),
         ('packet number', '@number'),
         ('ack_delay', '@ack_delay'),
-        ('frame', '@frame')
+        ('info', '@info')
     ]
 
     #dns
@@ -23,8 +23,8 @@ def show():
     #handshake
     handshake_source = helper_data.get_handshake_source()
     p.circle("x", "y", source=handshake_source,size=12,color='yellow', line_color="black", fill_alpha=0.7,legend_label='Handshake', muted_color='yellow', muted_alpha=0.05)
-    dns_labels = LabelSet(x="x", y="y", text="actions", y_offset=8,text_font_size="8pt", text_color="#555555", source= handshake_source, text_align='center')
-    p.add_layout(dns_labels)
+    handshake_labels = LabelSet(x="x", y="y", text="name", y_offset=8,text_font_size="8pt", text_color="#555555", source= handshake_source, text_align='center')
+    p.add_layout(handshake_labels)
 
     #client send packet
     packet_send_source, packet_lost_source = helper_data.get_packet_send_source()
@@ -52,6 +52,14 @@ def show():
     p.add_layout(client_send_block_labels)
 
     #client congestion
+
+    #client send close
+    client_send_connection_close_source = helper_data.get_client_send_connection_close_source()
+    p.circle("x", "y", source=client_send_connection_close_source, size=12, color='brown', line_color="black", fill_alpha=0.7, legend_label='Connection Close',
+             muted_color='pink', muted_alpha=0.05)
+    send_connection_close_labels = LabelSet(x="x", y="y", text="name", y_offset=8, text_font_size="8pt", text_color="#555555",
+                          source=client_send_connection_close_source, text_align='center')
+    p.add_layout(send_connection_close_labels)
 
 
     #client receive

@@ -3,17 +3,19 @@
 event_type_dict = {}
 source_type_dict = {}
 phase_type_dict = {}
-quic_rst_error_type_dict= {}
+quic_rst_error_type_dict = {}
+quic_error_type_dict = {}
 
 def revert_key_value(dict):
     return {v : k for k, v in dict.items()}
 
 def init(constants_dict):
-    global event_type_dict,source_type_dict,phase_type_dict,quic_rst_error_type_dict
+    global event_type_dict,source_type_dict,phase_type_dict,quic_rst_error_type_dict,quic_error_type_dict
     event_type_dict = revert_key_value(constants_dict['logEventTypes'])
     source_type_dict = revert_key_value(constants_dict['logSourceType'])
     phase_type_dict = revert_key_value(constants_dict['logEventPhase'])
     quic_rst_error_type_dict = revert_key_value(constants_dict['quicRstStreamError'])
+    quic_error_type_dict = revert_key_value(constants_dict['quicError'])
 
 
 def get_event_type(type_id):
@@ -39,4 +41,8 @@ def get_quic_rst_error(error_id):
         return quic_rst_error_type_dict[error_id]
     else:
         return error_id
+
+def get_quic_error(error_id):
+    return quic_error_type_dict[error_id]
+
 

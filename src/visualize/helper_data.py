@@ -143,7 +143,7 @@ def calculate_client_block_connection_level():
 def get_dns_source():
     source = ColumnDataSource(data={
         'x': [general_info['DNS_begin_time'], general_info['DNS_end_time']],
-        'y': [-3, -3],
+        'y': [-2, -2],
         'name': ['dns begin', 'dns end']
     })
     return source
@@ -206,7 +206,7 @@ def get_packet_send_source():
         'number': lost_packet_numbers,
         'ack_delay': lost_ack_delay_total_list,
         'size': [15]* len(lost_packet_sent_time_sequence_list),
-        'frame': lost_packet_frame_infos
+        'info': lost_packet_frame_infos
     })
     return packet_send_source, packet_lost_source
 
@@ -275,8 +275,8 @@ def get_handshake_source():
     source = ColumnDataSource(data={
         'x': timestamps,
         'y': [-1] * len(timestamps),
-        'infos': infos,
-        'actions': actions
+        'info': infos,
+        'name': actions
     })
     return source
 
@@ -286,5 +286,25 @@ def get_packet_size_inflight():
     source = ColumnDataSource(data={
         'x': packet_sent_time_sequence_list,
         'y': on_the_fly_packet_size_list,
+    })
+    return source
+
+def get_client_send_connection_close_source():
+    connection_close_time_list = []
+    infos = []
+    actions = []
+
+    for frame in frame_dict.values():
+        if frame['frame_type'] == 'CONNECTION_CLOSE' and frame['direction'] == 'send':
+            time = frame['time_elaps']
+            connection_close_time_list.append(time)
+            actions.append('Client_SEND_CONNECTION_CLOSE')
+            infos.append('quic error: ' + frame['quic_error'])
+
+    source = ColumnDataSource(data={
+        'x': connection_close_time_list,
+        'y': [-1] * len(connection_close_time_list),
+        'name': actions ,
+        'info': infos
     })
     return source
