@@ -15,7 +15,7 @@ def init(root_path, filename_without_ext,host_starttime):
 
 def get_plot(x_label,y_label,title):
     p = figure(plot_width=1200, sizing_mode='scale_both', toolbar_location="above",
-               tools='wheel_zoom,xwheel_zoom, ywheel_zoom,box_zoom,hover,box_select,reset,pan,crosshair', active_scroll="wheel_zoom")
+               tools='wheel_zoom,xwheel_zoom, ywheel_zoom,box_zoom,hover,box_select,reset,pan,crosshair', active_scroll="xwheel_zoom")
     p.xaxis.axis_label = x_label
     p.yaxis.axis_label = y_label
     p.title.text = title + '_' + host

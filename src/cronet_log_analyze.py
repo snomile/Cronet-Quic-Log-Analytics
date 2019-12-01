@@ -1,7 +1,7 @@
 import os
 import sys
 
-from process import cronet_log_loader
+from process import cronet_log_loader,cronet_session
 from visualize import helper_data, helper_graph
 from visualize import graph
 
@@ -11,6 +11,8 @@ file_path = "1575190014093-some_file_name2.json"
 show_receive_send = True
 show_ack_delay = False
 show_size_inflight = False
+cronet_session.IGNORE_DOMAIN_NAME_LIST = ['google.com','googleapis.com']
+
 
 def check_key_path(project_root):
     key_paths = [project_root + '/resource/html_output',
@@ -66,16 +68,8 @@ def process_show(usable_input_path, argv):
 
 
 if __name__ == '__main__':
-    import datetime
-    print('start at', datetime.datetime.now().strftime('%y%m%d_%H%M%S'))
-    print('args:')
-    for arg in sys.argv:
-        print(arg)
-    print('end')
-
-    #check key directory exist
-    abs_py_path = os.path.abspath(sys.argv[0])
-    project_root = abs_py_path[:abs_py_path.index('/src/cronet_log_analyze.py')]
+    abs_program_path = os.path.abspath(sys.argv[0])
+    project_root = abs_program_path[:abs_program_path.index('/src/cronet_log_analyze.py')]
     check_key_path(project_root)
     usable_input_path = find_usable_input_path()
     process_show(usable_input_path,sys.argv)

@@ -73,7 +73,7 @@ class CronetSession:
                     ignore = True
                     break
             if ignore:
-                print('WARN: quic session source id', source_id, 'was ignored due to the host is in IGNORE list', host)
+                print('WARN: quic session source id', source_id, 'host', host, 'was ignored due to IGNORE list')
                 continue
 
             if host not in dns_dict.keys():
@@ -127,9 +127,6 @@ class CronetEvent():
     def get_info_list(self):
         return [self.time_int, self.time_elaps, self.event_type, self.source_id, self.source_type, self.phase,self.source_dependency_id , self.source_dependency_type ,self.other_data_str]
 
-
-def get_source_desc(source):
-    return 'id: %s, type: %s' % (source['id'], constant_converter.get_source_type(source['type']))
 
 if __name__ == '__main__':
     event_log_str = '{"params":{"new_config":{"auto_detect":true}},"phase":0,"source":{"id":7,"type":0},"time":"87726889","type":27}'
