@@ -216,8 +216,10 @@ class QuicFrame:
             self.info_list.extend([self.frame_type, self.direction, self.stream_id, self.offset, self.quic_rst_stream_error])
         else:
             print('WARN: unhandled frame',event.event_type)
-        self.info_list.extend([event.get_info_list() for event in relate_events])
 
+        self.info_list = {}
+        for event in relate_events:
+            self.info_list[event.event_type] = event.get_info_list()
 
     def get_info_list(self):
         return self.info_list

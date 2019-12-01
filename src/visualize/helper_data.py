@@ -143,7 +143,7 @@ def calculate_client_block_connection_level():
 def get_dns_source():
     source = ColumnDataSource(data={
         'x': [general_info['DNS_begin_time'], general_info['DNS_end_time']],
-        'y': [-1, -1],
+        'y': [-3, -3],
         'name': ['dns begin', 'dns end']
     })
     return source
@@ -161,6 +161,7 @@ def get_packet_send_source():
     lost_packet_numbers = []
     lost_ack_delay_total_list = []
     lost_ack_delay_server_list = []
+    lost_packet_frame_infos = []
 
     for packet in packet_sent_dict.values():
         packet_sent_time = int(packet['time'])
@@ -169,18 +170,27 @@ def get_packet_send_source():
         ack_delay_total = int(packet['ack_delay'])
         ack_delay_server = int(packet['ack_delay_server'])
 
+        packet_sent_time_sequence_list.append(packet_sent_time)
+        total_sent_size_list.append(current_total_sent_size)
+        packet_numbers.append(packet['number'])
+        ack_delay_total_list.append(ack_delay_total)
+        ack_delay_server_list.append(ack_delay_server)
+
         if packet['is_lost']:
             lost_packet_sent_time_sequence_list.append(packet_sent_time)
             lost_packet_sent_size_list.append(current_total_sent_size)
             lost_packet_numbers.append(packet['number'])
             lost_ack_delay_total_list.append(ack_delay_total)
             lost_ack_delay_server_list.append(ack_delay_server)
-        else:
-            packet_sent_time_sequence_list.append(packet_sent_time)
-            total_sent_size_list.append(current_total_sent_size)
-            packet_numbers.append(packet['number'])
-            ack_delay_total_list.append(ack_delay_total)
-            ack_delay_server_list.append(ack_delay_server)
+
+            lost_packet_info = ''
+            for frame_id in packet['frame_ids']:
+                frame = frame_dict[frame_id]
+                frame_type = frame['frame_type']
+                lost_packet_info = lost_packet_info + frame_type + '\n'
+                frame_info = json.dumps(frame['info_list'])
+                lost_packet_info = lost_packet_info + frame_info + '\n'
+            lost_packet_frame_infos.append(lost_packet_info)
 
     packet_send_source = ColumnDataSource(data={
         'x': packet_sent_time_sequence_list,
@@ -195,7 +205,8 @@ def get_packet_send_source():
         'y': lost_packet_sent_size_list,
         'number': lost_packet_numbers,
         'ack_delay': lost_ack_delay_total_list,
-        'size': [15]* len(lost_packet_sent_time_sequence_list)
+        'size': [15]* len(lost_packet_sent_time_sequence_list),
+        'frame': lost_packet_frame_infos
     })
     return packet_send_source, packet_lost_source
 

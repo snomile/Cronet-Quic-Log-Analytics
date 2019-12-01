@@ -10,7 +10,8 @@ def show():
         ('time', '@x'),
         ('y', '@y'),
         ('packet number', '@number'),
-        ('ack_delay', '@ack_delay')
+        ('ack_delay', '@ack_delay'),
+        ('frame', '@frame')
     ]
 
     #dns
