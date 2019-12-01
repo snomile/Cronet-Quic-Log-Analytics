@@ -96,7 +96,7 @@ class CronetSession:
             dns_begin_time, dns_end_time = dns_dict[host]
             for (source_id, event_list) in quic_session_group_list:
                 if event_list:
-                    print('processing quic session data, host:', host, 'source id:', source_id, 'event start absloute time:', event_list[0].time_int)
+                    print('processing quic session data, host:', host, ', source id:', source_id, ', event start absloute time:', event_list[0].time_int)
                     quic_session = QuicConnection(host, dns_begin_time, dns_end_time, event_list, self.data_converted_path, self.filename_without_ext)
                     json_files.append(quic_session.save())
 
