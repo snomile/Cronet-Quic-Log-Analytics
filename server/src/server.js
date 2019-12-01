@@ -6,7 +6,7 @@ const koaBody = require('koa-body'); //解析上传文件的插件
 const staticFiles = require('koa-static')
 const shelljs = require('shelljs')
 const { log, error } = require('./util')
-const { htmlStatic, pythonStatic, uploadStatic, port } = require('./config')
+const { htmlStatic, pythonStatic, shellStatic, port } = require('./config')
 
 // 获取koa实例
 const app = new Koa()
@@ -29,23 +29,66 @@ app.use(koaBody({
 app.use(staticFiles(path.join(__dirname + htmlStatic)))
 app.use(staticFiles(path.join(__dirname + pythonStatic)))
 app.use(staticFiles(path.join(__dirname + '/upload/')))
-console.log(path.join(__dirname + '/upload/'))
 
 // 搭建上传服务
 router.post('/upload', async (ctx, next) => {
   const file = ctx.request.files.file; // 上传的文件在ctx.request.files.file
-  // 创建可读流
-  const reader = fs.createReadStream(file.path);
   // 修改文件的名称
   var myDate = new Date();
   var newFilename = myDate.getTime() + '-' + file.name;
   var targetPath = path.join(__dirname, '/upload/' + `${newFilename}`);
-  //创建可写流
-  const upStream = fs.createWriteStream(targetPath);
-  // 可读流通过管道写入可写流
-  reader.pipe(upStream);
-  //返回保存的路径
+  // 写入本身是异步的，这里改为同步方法，防止接下来的执行报错
+  var writeFile = function() {
+    return new Promise(function (resolve, reject) {
+      // 创建可读流
+      const reader = fs.createReadStream(file.path);
+      //创建可写流
+      const upStream = fs.createWriteStream(targetPath);
+      // 可读流通过管道写入可写流
+      reader.pipe(upStream);
+      upStream.on('finish', () => {
+        resolve('finish');
+      });
+    });
+  }
+  await writeFile();
   return ctx.body = { code: 200, data: { url: 'http://' + ctx.headers.host + '/' + newFilename, local: targetPath } };
+});
+
+router.post('/analysis', async (ctx, next) => {
+  const localPath = ctx.request.body.localPath;
+  const shell = 'python3 ' + path.join(__dirname, shellStatic) + ' ' + localPath;
+  log('begin shell: ' + shell);
+  const res = shelljs.exec(shell);
+  const urls = {};
+  const htmls = [];
+  if (res.stdout) {
+    const resLog = res.stdout;
+    resLog.split('\n').forEach(line => {
+      if (line.indexOf('generate json at') >= 0) {
+        const json = line.split('/data_converted/')[1];
+        const keyArray = json.split('_').reverse();
+        const key = keyArray[3] + '_' + keyArray[2];
+        urls[key] = [json];
+      }
+      if (line.indexOf('generate html at') >= 0) {
+        htmls.push(line.split('/html_output/')[1]);
+      }
+    })
+    const keys = Object.keys(urls);
+    keys.forEach(key => {
+      htmls.forEach(html => {
+        if (html.indexOf(key) >= 0) {
+          urls[key].push(html);
+        }
+      })
+    })
+  } else {
+    error(res.stderr);
+    return ctx.body = { code: 0, error: res.stderr };
+  }
+  //返回
+  return ctx.body = { code: 200, data: urls };
 });
 
 // 添加路由配置

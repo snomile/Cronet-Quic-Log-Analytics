@@ -33,7 +33,7 @@
       <div slot="header" class="clearfix">
         <span>upload log</span>
       </div>
-      <el-upload drag action="/upload/" multiple :before-upload="handleBefore" :on-success="handleSuccess"
+      <el-upload drag action="/upload/" :before-upload="handleBefore" :on-success="handleSuccess"
         :file-list="fileList">
         <i class="el-icon-upload"></i>
         <div class="el-upload__text">Drag the file here, or <em>click upload</em></div>
@@ -44,28 +44,34 @@
       <div slot="header" class="clearfix">
         <span>analysis log</span>
       </div>
-      <div>
-        <el-link type="primary" href="/echarts.html" target="_blank">the chrome log analysis by echarts</el-link>
-      </div>
-      <div>
-        <el-link type="primary" href="https://element.eleme.io" target="_blank">link</el-link>
-      </div><div>
-        <el-link type="primary" href="https://element.eleme.io" target="_blank">link</el-link>
-      </div><div>
-        <el-link type="primary" href="https://element.eleme.io" target="_blank">link</el-link>
-      </div>
-    </el-card>  
+      <el-card v-for="(value, name) in htmlList" :key="name" class="box-card" style="margin-top: 20px;">
+        <div slot="header" class="clearfix">
+          <span>{{name}}</span>
+        </div>
+        <div v-for="(url, index) in value" :key="url">
+          <el-link v-if="index === 0" type="primary" :href="'echarts.html?json=' + url" target="_blank">custom log analysis by echarts</el-link>
+          <el-link v-else type="primary" :href="'html_output/' + url" target="_blank">{{url}}</el-link>
+        </div>
+      </el-card>
+    </el-card>
+    <el-dialog title="提示" :visible.sync="visible" width="30%" center>
+      <span>{{msg}}</span>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="visible = false">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </body>
 <!-- import Vue before Element -->
 <script src="vue.js"></script>
 <!-- import JavaScript -->
 <script src="element-ui.js"></script>
+<script src="zepto.min.js"></script>
 <script>
   new Vue({
     el: '#app',
     data: function () {
-      return { start: 0, end: 0, fileList: [], done: false }
+      return { start: 0, end: 0, fileList: [], done: false, visible: false, msg: '', htmlList: {} }
     },
     methods: {
       clean() {
@@ -88,6 +94,20 @@
           this.done = true;
           this.end = new Date().getTime() - this.start
           this.start = 0
+        }
+        if (response.code === 200) {
+          const localPath = response.data.local;
+          const _this = this;
+          $.post('/analysis', {
+            localPath: localPath
+          }, function(res) {
+            if (res.code === 200) {
+              _this.htmlList = res.data;
+            } else {
+              _this.msg = res.error;
+              _this.visible = true;
+            }
+          }, 'json');
         }
       }
     }
