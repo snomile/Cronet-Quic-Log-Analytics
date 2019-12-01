@@ -6,7 +6,7 @@ const koaBody = require('koa-body'); //解析上传文件的插件
 const staticFiles = require('koa-static')
 const shelljs = require('shelljs')
 const { log, error } = require('./util')
-const { htmlStatic, pythonStatic, shellStatic, port } = require('./config')
+const { htmlStatic, pythonStatic, shellStatic, port, maxSize } = require('./config')
 
 // 获取koa实例
 const app = new Koa()
@@ -21,7 +21,7 @@ app.use(async (ctx, next) => {
 app.use(koaBody({
   multipart: true,
   formidable: {
-    maxFileSize: 10000 * 1024 * 1024    // 设置上传文件大小最大限制，默认10M
+    maxFileSize: maxSize * 1000 * 1024 * 1024    // 设置上传文件大小最大限制，默认10M
   }
 }))
 
@@ -88,7 +88,7 @@ router.post('/analysis', async (ctx, next) => {
     return ctx.body = { code: 0, error: res.stderr };
   }
   //返回
-  return ctx.body = { code: 200, data: urls };
+  return ctx.body = { code: 200, data: urls, message: res.stdout, error: res.stderr };
 });
 
 // 添加路由配置

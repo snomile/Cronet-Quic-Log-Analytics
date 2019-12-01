@@ -3,4 +3,5 @@ module.exports = {
   pythonStatic: '../../../resource/', // python图像化数据所在位置
   shellStatic: '../../src/cronet_log_analyze.py', // python命令所在位置
   port: 80,
+  maxSize: 100,
 }
