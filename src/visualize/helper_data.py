@@ -144,7 +144,7 @@ def get_dns_source():
     source = ColumnDataSource(data={
         'x': [general_info['DNS_begin_time'], general_info['DNS_end_time']],
         'y': [-2, -2],
-        'name': ['dns begin', 'dns end']
+        'name': ['DNS begin', 'Dns end']
     })
     return source
 

@@ -73,8 +73,8 @@ class CronetSession:
         for source_id, event_list in self.source_quic_dict.items():
             host = event_list[0].other_data['params']['host']
             if host not in dns_dict.keys():
-                print('quic session source id', source_id,'was ignored because of the domain name',host)
-                continue
+                print('quic session source id', source_id,'has no dns record, add dummy one')
+                dns_dict[host] = (event_list[0].time_int, event_list[0].time_int)
             source_id =  event_list[0].source_id
             if host in quic_session_dict.keys():
                 quic_session_dict[host].append((source_id, event_list))
