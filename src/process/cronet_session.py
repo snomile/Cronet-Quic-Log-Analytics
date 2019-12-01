@@ -57,14 +57,7 @@ class CronetSession:
                 elif cronet_event.event_type == 'DNS_TRANSACTION' and cronet_event.phase == 'PHASE_END':
                     dns_end_time = cronet_event.time_int
 
-            #check ignore list
-            ignore = False
-            for ignore_host in IGNORE_DOMAIN_NAME_LIST:
-                if ignore_host in host:
-                    ignore = True
-                    break
-            if ignore:
-                print('dns record was ignored because of the domain name',host)
+
             else:
                 dns_dict[host] = (dns_begin_time, dns_end_time)
 
@@ -72,6 +65,17 @@ class CronetSession:
         quic_session_dict = {}  # key: host, value: tuple(source id, quic session event)
         for source_id, event_list in self.source_quic_dict.items():
             host = event_list[0].other_data['params']['host']
+
+            #check ignore list
+            ignore = False
+            for ignore_host in IGNORE_DOMAIN_NAME_LIST:
+                if ignore_host in host:
+                    ignore = True
+                    break
+            if ignore:
+                print('WARN: quic session source id', source_id, 'was ignored due to the host is in IGNORE list', host)
+                continue
+
             if host not in dns_dict.keys():
                 print('WARN: quic session source id', source_id,'has no dns record, add dummy one')
                 dns_dict[host] = (event_list[0].time_int, event_list[0].time_int)

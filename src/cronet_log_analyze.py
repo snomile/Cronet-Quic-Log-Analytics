@@ -5,7 +5,7 @@ from process import cronet_log_loader
 from visualize import helper_data, helper_graph
 from visualize import graph
 
-file_path = "some_file_name4.json"
+file_path = "some_file_name2.json"
 #file_path = "netlog-2.json"
 
 show_receive_send = True
