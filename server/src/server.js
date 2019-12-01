@@ -85,7 +85,7 @@ router.post('/analysis', async (ctx, next) => {
     })
   } else {
     error(res.stderr);
-    return ctx.body = { code: 0, error: res.stderr };
+    return ctx.body = { code: 0, message: res.stdout, error: res.stderr };
   }
   //返回
   return ctx.body = { code: 200, data: urls, message: res.stdout, error: res.stderr };

@@ -44,7 +44,16 @@
       <div slot="header" class="clearfix">
         <span>analysis log</span>
       </div>
-      <el-card v-for="(value, name) in htmlList" :key="name" class="box-card" style="margin-top: 20px;">
+      <el-card v-if="visible" class="box-card" style="margin-top: 20px;">
+        <div slot="header" class="clearfix">
+          <span>The result is empty. Check the error in the log.</span>
+        </div>
+        <el-tabs>
+          <el-tab-pane label="message" name="first">{{message}}</el-tab-pane>
+          <el-tab-pane label="error" name="second">{{error}}</el-tab-pane>
+        </el-tabs>
+      </el-card>
+      <el-card v-else v-for="(value, name) in htmlList" :key="name" class="box-card" style="margin-top: 20px;">
         <div slot="header" class="clearfix">
           <span>{{name}}</span>
         </div>
@@ -54,12 +63,6 @@
         </div>
       </el-card>
     </el-card>
-    <el-dialog title="提示" :visible.sync="visible" width="30%" center>
-      <span>{{msg}}</span>
-      <span slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="visible = false">确 定</el-button>
-      </span>
-    </el-dialog>
   </div>
 </body>
 <!-- import Vue before Element -->
@@ -71,7 +74,7 @@
   new Vue({
     el: '#app',
     data: function () {
-      return { start: 0, end: 0, fileList: [], done: false, visible: false, msg: '', htmlList: {} }
+      return { start: 0, end: 0, fileList: [], done: false, visible: false, message: '', error: '', htmlList: {} }
     },
     methods: {
       clean() {
@@ -81,6 +84,8 @@
         if (this.start > 0) {
           return
         }
+        this.message = '';
+        this.error = '';
         this.start = new Date().getTime()
       },
       handleSuccess(response, file, fileList) {
@@ -103,8 +108,20 @@
           }, function(res) {
             if (res.code === 200) {
               _this.htmlList = res.data;
+              const keys = Object.keys(_this.htmlList);
+              console.log(keys.length)
+              if (keys.length <= 0) {
+                _this.meesage = res.message;
+                _this.error = res.error;
+                _this.visible = true;
+              } else {
+                _this.visible = false;
+                _this.meesage = '';
+                _this.error = '';
+              }
             } else {
-              _this.msg = res.error;
+              _this.error = res.error;
+              _this.meesage = res.message;
               _this.visible = true;
             }
           }, 'json');
