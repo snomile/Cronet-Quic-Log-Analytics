@@ -201,7 +201,7 @@ def get_packet_send_source():
             colors.append('red')
             tags.append('LOST')
         elif packet['number'] in chlo_dict.keys():
-            colors.append('green')
+            colors.append('yellow')
             tags.append(chlo_dict[packet['number']][0])
         else:
             colors.append('navy')
@@ -233,6 +233,7 @@ def get_packet_receive_source():
     packet_numer_list = []
     tags = []
     infos = []
+    colors = []
     for packet in packet_received_dict.values():
         packet_receive_time_sequence_list.append(int(packet['time']))
         current_total_received_size += packet['length']
@@ -243,17 +244,19 @@ def get_packet_receive_source():
         if packet['number'] in shlo_dict.keys():
             tags.append(shlo_dict[packet['number']][0])
             infos.append(packet['info_str'])
+            colors.append('yellow')
         else:
             tags.append('')
             infos.append('')
+            colors.append('green')
 
     source = ColumnDataSource(data={
         'x': packet_receive_time_sequence_list,
         'y': total_received_size_list,
         'number': packet_numer_list,
-        #'ack_delay': [] * len(packet_receive_time_sequence_list),
-        'size': [5] * len(packet_receive_time_sequence_list),
-        'color': ['green'] * len(packet_receive_time_sequence_list) ,
+        'ack_delay': [''] * len(packet_receive_time_sequence_list),
+        'size': [7] * len(packet_receive_time_sequence_list),
+        'color': colors,
         'info' : infos,
         'tag': tags
     })

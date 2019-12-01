@@ -59,7 +59,7 @@ def show():
     packet_receive_source = helper_data.get_packet_receive_source()
     p.line(x='x', y='y', source=packet_receive_source,line_width=2,
                    alpha=0.4, color='green', legend_label='Total Receive Size', muted_color='green', muted_alpha=0.05)
-    p.circle(x='x', y='y', source=packet_receive_source, size=5,
+    p.circle(x='x', y='y', source=packet_receive_source, size='size',
                    alpha=0.8, color='color', line_color="black", legend_label='Packet Received', muted_color='color', muted_alpha=0.05)
     packet_receive_labels = LabelSet(x="x", y="y", text="tag", y_offset=8,text_font_size="8pt", text_color="#555555", source= packet_receive_source, text_align='center')
     p.add_layout(packet_receive_labels)
