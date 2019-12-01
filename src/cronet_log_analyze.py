@@ -5,7 +5,7 @@ from process import cronet_log_loader
 from visualize import helper_data, helper_graph
 from visualize import graph
 
-file_path = "some_file_name2.json"
+file_path = "1575190014093-some_file_name2.json"
 #file_path = "netlog-2.json"
 
 show_receive_send = True
@@ -66,6 +66,13 @@ def process_show(usable_input_path, argv):
 
 
 if __name__ == '__main__':
+    import datetime
+    print('start at', datetime.datetime.now().strftime('%y%m%d_%H%M%S'))
+    print('args:')
+    for arg in sys.argv:
+        print(arg)
+    print('end')
+
     #check key directory exist
     abs_py_path = os.path.abspath(sys.argv[0])
     project_root = abs_py_path[:abs_py_path.index('/src/cronet_log_analyze.py')]
