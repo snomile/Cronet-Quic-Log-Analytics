@@ -1,27 +1,36 @@
 from process import constant_converter
 
-
-class PacketReceived:
-    def __init__(self, quic_connection, packet_received_event, relate_events):
-        self.relate_events = relate_events.copy()
-        if self.relate_events[0].event_type != 'QUIC_SESSION_UNAUTHENTICATED_PACKET_HEADER_RECEIVED':
-            raise BaseException('QUIC_SESSION_PACKET_RECEIVED event followed by illigal event type: %s' % self.relate_events[0].event_type)
-
-        self.time_int = packet_received_event.time_int
+class Packet:
+    def __init__(self, quic_connection, main_event, relate_events):
+        self.time_int = main_event.time_int
         self.time_elaps = self.time_int - quic_connection.request_start_time_int
-        self.type = 'PacketReceived'
-        self.source_id = packet_received_event.source_id
-        self.peer_address = packet_received_event.other_data['params']['peer_address']
-        self.self_address = packet_received_event.other_data['params']['self_address']
-        self.size = packet_received_event.other_data['params']['size']
+        self.source_id = main_event.source_id
+        self.size = main_event.other_data['params']['size']
+        self.frames = []
+        self.all_event = [main_event]
+        self.all_event.extend(relate_events)
+        for event in self.all_event:
+            if 'packet_number' in event.other_data['params'].keys():
+                self.packet_number = event.other_data['params']['packet_number']
+                break
+        self.info_str = ''.join([event.other_data_str for event in self.all_event])
 
+
+class PacketReceived(Packet):
+    def __init__(self, quic_connection, event, relate_events):
+        Packet.__init__(self, quic_connection, event, relate_events)
+
+        self.type = 'PacketReceived'
+        self.relate_events = relate_events.copy()
         self.connection_id = self.relate_events[0].other_data['params']['connection_id']
-        self.packet_number = self.relate_events[0].other_data['params']['packet_number']
         self.reset_flag = self.relate_events[0].other_data['params']['reset_flag']
         self.version_flag = self.relate_events[0].other_data['params']['version_flag']
-        self.relate_events.pop(0)
+        self.is_shlo = False
+        #self.relate_events.pop(0)
+        for event in self.all_event:
+            if event.event_type == 'QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_RECEIVED':
+                self.is_shlo = True
 
-        self.frames = []
         self.init_frame(self.relate_events)
         for i in range(len(self.frames)):
             frame = self.frames[i]
@@ -46,18 +55,6 @@ class PacketReceived:
             frame = QuicFrame(self.packet_number, self.time_elaps, related_event[index], events_belong_to_frame)
             self.frames.append(frame)
 
-        #
-        # events_buffer = []
-        # last_frame_received_event = None
-        # for event in related_event:
-        #     if 'FRAME_RECEIVED' in event.event_type or event == related_event[-1]: #if current event is the last event, the last QuicFrame must be create before loop end
-        #         if last_frame_received_event != None:
-        #             frame = QuicFrame(self.packet_number, self.time_elaps, last_frame_received_event, events_buffer)
-        #             self.frames.append(frame)
-        #             events_buffer = []
-        #         last_frame_received_event = event
-        #     else:
-        #         events_buffer.append(event)
 
     def get_info_list(self):
         return [
@@ -66,8 +63,6 @@ class PacketReceived:
             self.type,
             self.packet_number,
             self.size,
-            self.peer_address,
-            self.self_address,
             self.connection_id,
             self.reset_flag,
             self.version_flag,
@@ -75,23 +70,24 @@ class PacketReceived:
         ]
 
 
-class PacketSent:
-    def __init__(self, quic_connection, QUIC_SESSION_PACKET_SENT_event, related_event):
-        self.time_int = QUIC_SESSION_PACKET_SENT_event.time_int
-        self.time_elaps = self.time_int - quic_connection.request_start_time_int
-        self.time_elaps_since_session_init = QUIC_SESSION_PACKET_SENT_event.time_elaps
+class PacketSent(Packet):
+    def __init__(self, quic_connection, event, relate_events):
+        Packet.__init__(self, quic_connection, event, relate_events)
+
+        #self.time_elaps_since_session_init = event.time_elaps
         self.type = 'PacketSent'
-        self.source_id = QUIC_SESSION_PACKET_SENT_event.source_id
-        self.packet_number = QUIC_SESSION_PACKET_SENT_event.other_data['params']['packet_number']
-        self.size = QUIC_SESSION_PACKET_SENT_event.other_data['params']['size']
-        self.transmission_type = QUIC_SESSION_PACKET_SENT_event.other_data['params']['transmission_type']
+        self.transmission_type = event.other_data['params']['transmission_type']
         self.ack_by_frame_id = 'N/A'
         self.ack_delay = 0  # ms, init by quic_session.tag_packet_by_ack
         self.ack_delay_server = 0  # ms
         self.is_lost = False
+        self.is_chlo = False
+        #self.relate_events.pop(0)
+        for event in self.all_event:
+            if event.event_type == 'QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_SENT':
+                self.is_chlo = True
 
-        self.frames = []
-        self.init_frame(related_event.copy())
+        self.init_frame(relate_events.copy())
         for i in range(len(self.frames)):
             frame = self.frames[i]
             frame.frame_id = '%s_%s_%s' % (self.type, self.packet_number, i)
@@ -121,14 +117,6 @@ class PacketSent:
         ]
 
 
-class QuicStream:
-    def __init__(self):
-        self.frames = []
-
-    def add_frame(self,frame):
-        self.frames.append(frame)
-
-
 class QuicFrame:
     def __init__(self,packet_number,time_elaps, event, relate_events):
         relate_events = relate_events.copy()
@@ -137,6 +125,10 @@ class QuicFrame:
         self.frame_id = None
         self.packet_number = packet_number
         self.time_elaps = time_elaps
+
+        all_event = [event]
+        all_event.extend(relate_events)
+        self.frame_info_str = ''.join([event.other_data_str for event in all_event])
 
         if event.event_type == 'QUIC_SESSION_STREAM_FRAME_SENT':
             self.frame_type = 'STREAM'

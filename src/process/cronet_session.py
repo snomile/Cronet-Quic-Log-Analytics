@@ -4,9 +4,7 @@ import json
 from process import constant_converter
 from process.quic_session import QuicConnection
 
-IGNORE_DOMAIN_NAME_LIST = ['google.com',
-                           'googleapis.com'
-                           ]
+IGNORE_DOMAIN_NAME_LIST = ['google.com','googleapis.com','doubleclick.net','google-analytics.com']
 
 class CronetSession:
     def __init__(self,session_start_time, data_converted_path , filename_without_ext):

@@ -8,11 +8,12 @@ def show():
     p = get_plot('Time Since Request Begin (ms)','Traffic Size (KB)','Packet Traffic')
     p.hover.tooltips = [
         ('time', '@x'),
-        ('y', '@y'),
+        ('size', '@y'),
         ('packet number', '@number'),
         ('ack_delay', '@ack_delay'),
         ('info', '@info')
     ]
+    p.hover.mode = 'mouse'
 
     #dns
     dns_source = helper_data.get_dns_source()
@@ -20,23 +21,15 @@ def show():
     dns_labels = LabelSet(x="x", y="y", text="name", y_offset=8,text_font_size="8pt", text_color="#555555", source= dns_source, text_align='center')
     p.add_layout(dns_labels)
 
-    #handshake
-    handshake_source = helper_data.get_handshake_source()
-    p.circle("x", "y", source=handshake_source,size=12,color='yellow', line_color="black", fill_alpha=0.7,legend_label='Handshake', muted_color='yellow', muted_alpha=0.05)
-    handshake_labels = LabelSet(x="x", y="y", text="name", y_offset=8,text_font_size="8pt", text_color="#555555", source= handshake_source, text_align='center')
-    p.add_layout(handshake_labels)
-
     #client send packet
-    packet_send_source, packet_lost_source = helper_data.get_packet_send_source()
-    p.circle_cross(x='x', y='y', source=packet_send_source, size='size', #'ack_delay',
-                   alpha=0.8, color='navy', legend_label='Packet Sent(size means ack delay)', muted_color='navy', muted_alpha=0.05)
+    packet_send_source = helper_data.get_packet_send_source()
     p.line(x='x', y='y', source=packet_send_source,line_width=2,
                    alpha=0.4, color='navy', legend_label='Total Send Size', muted_color='navy', muted_alpha=0.05)
+    p.circle(x='x', y='y', source=packet_send_source, size='size', #'ack_delay',
+                   alpha=0.8, color='color', line_color="black", legend_label='Packet Sent(size means ack delay)', muted_color='color', muted_alpha=0.05)
+    packet_send_labels = LabelSet(x="x", y="y", text="tag", y_offset=8,text_font_size="8pt", text_color="#555555", source= packet_send_source, text_align='center')
+    p.add_layout(packet_send_labels)
     y_range_max_packet_send = packet_send_source.data['y'][-1]
-
-    #client send packet lost
-    p.circle_cross(x='x', y='y', source=packet_lost_source, size='size',
-                   alpha=1, color='red', legend_label='Packet Sent Lost', muted_color='red', muted_alpha=0.05)
 
     #server cfcw
     server_cfcw_source = helper_data.get_server_cfcw_source()
@@ -64,10 +57,12 @@ def show():
 
     #client receive
     packet_receive_source = helper_data.get_packet_receive_source()
-    p.circle_cross(x='x', y='y', source=packet_receive_source, size=5,
-                   alpha=0.8, color='green', legend_label='Packet Received', muted_color='green', muted_alpha=0.05)
     p.line(x='x', y='y', source=packet_receive_source,line_width=2,
                    alpha=0.4, color='green', legend_label='Total Receive Size', muted_color='green', muted_alpha=0.05)
+    p.circle(x='x', y='y', source=packet_receive_source, size=5,
+                   alpha=0.8, color='color', line_color="black", legend_label='Packet Received', muted_color='color', muted_alpha=0.05)
+    packet_receive_labels = LabelSet(x="x", y="y", text="tag", y_offset=8,text_font_size="8pt", text_color="#555555", source= packet_receive_source, text_align='center')
+    p.add_layout(packet_receive_labels)
     y_range_max_packet_receive = packet_receive_source.data['y'][-1]
 
     #client cfcw, if the cfcw wasn't a problem ,then no need to display

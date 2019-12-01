@@ -25,22 +25,16 @@ class QuicConnection:
         self.cronet_event_list = [cronet_event for cronet_event in cronet_event_list if cronet_event.event_type not in IGNORE_EVENT_TYPE_LIST]
         self.data_converted_path = data_converted_path
 
+        quic_session_starttime = cronet_event_list[0].time_int
+
+
         #extract general info
-        chlo_event_index = 0
-        shlo_event_index = 0
-        first_chlo_time = 999999999
         last_chlo = None
         last_shlo = None
         for event in self.cronet_event_list:
             if event.event_type == 'QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_SENT':
-                chlo_event_index += 1
-                self.general_info['CHLO%s' % chlo_event_index] = (event.time_int - self.request_start_time_int, event.other_data['params'])
-                if event.time_int < first_chlo_time:
-                    first_chlo_time = event.time_int
                 last_chlo = event.other_data['params']
             elif event.event_type == 'QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_RECEIVED':
-                shlo_event_index += 1
-                self.general_info['SHLO%s' % chlo_event_index] = (event.time_int - self.request_start_time_int, event.other_data['params'])
                 last_shlo = event.other_data['params']
             elif event.event_type == 'QUIC_SESSION_VERSION_NEGOTIATED':
                 self.general_info['Version'] = event.other_data['params']['version']
@@ -65,10 +59,10 @@ class QuicConnection:
                 self.general_info['Server_SFCW'] = int(info.split(': ')[1])
 
         #generate save file path
-        self.fullpath_json_file = '%s%s_%s_%s_quic_connection.json' % (data_converted_path, filename_without_ext, host, first_chlo_time)
-        self.fullpath_quic_frame_csv_file = '%s%s_%s_%s_quic_frame.csv' % (data_converted_path, filename_without_ext, host, first_chlo_time)
-        self.fullpath_quic_packet_csv_file = '%s%s_%s_%s_quic_packet.csv' % (data_converted_path, filename_without_ext, host, first_chlo_time)
-        self.fullpath_quic_session_csv_file = '%s%s_%s_%s_quic_session.csv' % (data_converted_path, filename_without_ext, host, first_chlo_time)
+        self.fullpath_json_file = '%s%s_%s_%s_quic_connection.json' % (data_converted_path, filename_without_ext, host, quic_session_starttime)
+        self.fullpath_quic_frame_csv_file = '%s%s_%s_%s_quic_frame.csv' % (data_converted_path, filename_without_ext, host, quic_session_starttime)
+        self.fullpath_quic_packet_csv_file = '%s%s_%s_%s_quic_packet.csv' % (data_converted_path, filename_without_ext, host, quic_session_starttime)
+        self.fullpath_quic_session_csv_file = '%s%s_%s_%s_quic_session.csv' % (data_converted_path, filename_without_ext, host, quic_session_starttime)
 
         #print general info
         for key,value in self.general_info.items():
@@ -269,10 +263,12 @@ class QuicConnection:
                 'ack_by_frame' : packet.ack_by_frame_id,
                 'ack_delay': packet.ack_delay,
                 'ack_delay_server': packet.ack_delay_server,
-                'info': packet.get_info_list(),
                 'length': packet.size,
                 'frame_ids':[frame.frame_id for frame in packet.frames],
-                'is_lost': packet.is_lost
+                'is_lost': packet.is_lost,
+                'info': packet.get_info_list(),
+                'info_str': packet.info_str,
+                'is_chlo': packet.is_chlo
             }
             json_obj['packets_sent'].append(packet_json_obj)
             json_obj['packet_sent_dict'][packet.packet_number] = packet_json_obj
@@ -284,7 +280,9 @@ class QuicConnection:
                 'number': packet.packet_number,
                 'info': packet.get_info_list(),
                 'length': packet.size,
-                'frame_ids':[frame.frame_id for frame in packet.frames]
+                'frame_ids':[frame.frame_id for frame in packet.frames],
+                'info_str': packet.info_str,
+                'is_shlo': packet.is_shlo
             }
             json_obj['packets_received'].append(packet_json_obj)
             json_obj['packet_received_dict'][packet.packet_number] = packet_json_obj
