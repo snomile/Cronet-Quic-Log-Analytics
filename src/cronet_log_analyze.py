@@ -5,14 +5,14 @@ from process import cronet_log_loader,cronet_session
 from visualize import helper_data, helper_graph
 from visualize import graph
 
-file_path = "netlog-1575253100.json"
+file_path = "netlog-1575103171.json"
 #file_path = "netlog-2.json"
 
 show_all_packet_info = True
 show_receive_send = True
 show_ack_delay = False
 show_size_inflight = False
-ignore_list = []  # ['google.com','googleapis.com','doubleclick.net','google-analytics.com']
+ignore_list = [] # ['google.com','googleapis.com','doubleclick.net','google-analytics.com']
 
 
 def check_key_path(project_root):
@@ -40,16 +40,26 @@ def find_usable_input_path():
             break
     return usable_input_path
 
+def str_to_bool(str):
+    return True if str.lower() == 'true' else False
 
 def process_show(usable_input_path, argv):
     global show_all_packet_info,show_receive_send,show_ack_delay,show_size_inflight,ignore_list
-    if len(argv) == 5:
-        show_all_packet_info = bool(argv[2])
-        show_receive_send = bool(argv[3])
-        show_ack_delay = bool(argv[4])
-        show_size_inflight = bool(argv[5])
+    if len(argv) >= 6:
+        show_all_packet_info = str_to_bool(argv[2])
+        show_receive_send = str_to_bool(argv[3])
+        show_ack_delay = str_to_bool(argv[4])
+        show_size_inflight = str_to_bool(argv[5])
 
+    for i in range(6, len(argv)):
+        ignore_list.append(argv[i])
     cronet_session.IGNORE_DOMAIN_NAME_LIST = ignore_list
+
+    print('show_all_packet_info: ',show_all_packet_info)
+    print('show_receive_send: ', show_receive_send)
+    print('show_ack_delay: ', show_ack_delay)
+    print('show_size_inflight: ', show_size_inflight)
+    print('ignore_list: ',ignore_list)
 
     if usable_input_path:
         print('find file on ', usable_input_path)
@@ -71,7 +81,18 @@ def process_show(usable_input_path, argv):
         print('file %s does not exist, exit now' % file_path)
 
 
+def show_help():
+    print('usage: python3 cronet_log_analyze.py $log_file_path $show_all_packet_info $show_receive_send $show_ack_delay $show_size_inflight $ignore_domain_list')
+    print(
+        'eg: python3 cronet_log_analyze.py /home/me/netlog-2.json False True False False www.google.com googleapi.com doubleclick.net')
+    print('or, simply use: python3 cronet_log_analyze.py /home/me/netlog-2.json, other parameters will take default value')
+    os._exit(0)
+
+
 if __name__ == '__main__':
+    if len(sys.argv) > 1 and sys.argv[1] in ['-h', 'help']:
+        show_help()
+
     abs_program_path = os.path.abspath(sys.argv[0])
     project_root = abs_program_path[:abs_program_path.index('/src/cronet_log_analyze.py')]
     check_key_path(project_root)
