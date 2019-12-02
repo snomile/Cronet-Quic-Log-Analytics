@@ -6,7 +6,7 @@ def show(show_all_packet_info,show_receive_send = True, show_ack_delay = True, s
     if show_receive_send:
         graph_client_receive_send_data.show(show_all_packet_info)
     if show_ack_delay:
-        graph_packet_ack_delay.show()
+        graph_packet_ack_delay.show(show_all_packet_info)
     if show_size_inflight:
         graph_packet_size_inflight.show()
 
