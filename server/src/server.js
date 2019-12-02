@@ -38,7 +38,7 @@ router.post('/upload', async (ctx, next) => {
   var newFilename = myDate.getTime() + '-' + file.name;
   var targetPath = path.join(__dirname, '/upload/' + `${newFilename}`);
   // 写入本身是异步的，这里改为同步方法，防止接下来的执行报错
-  var writeFile = function() {
+  var writeFile = function () {
     return new Promise(function (resolve, reject) {
       // 创建可读流
       const reader = fs.createReadStream(file.path);
@@ -56,8 +56,17 @@ router.post('/upload', async (ctx, next) => {
 });
 
 router.post('/analysis', async (ctx, next) => {
-  const localPath = ctx.request.body.localPath;
-  const shell = 'python3 ' + path.join(__dirname, shellStatic) + ' ' + localPath;
+  const { localPath, show_all_packet_info, show_receive_send, show_ack_delay, show_size_inflight, ignore_domain_name_list } = ctx.request.body;
+  let shell = 'python3 '
+    + path.join(__dirname, shellStatic)
+    + ' ' + localPath
+    + ' ' + show_all_packet_info
+    + ' ' + show_receive_send
+    + ' ' + show_ack_delay
+    + ' ' + show_size_inflight;
+  if (ignore_domain_name_list) {
+    shell = shell + ' ' + ignore_domain_name_list.join(' ');
+  }  
   log('begin shell: ' + shell);
   const res = shelljs.exec(shell);
   const urls = {};
@@ -84,7 +93,7 @@ router.post('/analysis', async (ctx, next) => {
       })
     })
   } else {
-    error(res.stderr);
+    log(res.stderr, 'red');
     return ctx.body = { code: 0, message: res.stdout, error: res.stderr };
   }
   //返回

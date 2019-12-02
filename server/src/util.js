@@ -16,10 +16,10 @@ const log = (msg, color = 'limegreen') => {
   console.log(chalk.keyword(color)(msg))
 }
 // 错误日志
-const error = (msg, e, color = 'orangered ') => {
+const error = (msg, color = 'orangered ') => {
   logger.error(msg)
   // eslint-disable-next-line no-console
-  console.log(chalk.keyword(color)(msg), e)
+  console.log(chalk.keyword(color)(msg))
 }
 
 module.exports = {
