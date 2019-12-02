@@ -181,7 +181,7 @@
       },
       analysisLog() {
         const _this = this;
-        $.post('/analysis', {
+        $.post('./analysis', {
           localPath: _this.localPath,
           show_all_packet_info: _this.form.show_all_packet_info,
           show_receive_send: _this.form.show_receive_send,
