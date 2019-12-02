@@ -26,7 +26,6 @@
       margin-top: 20px;
       color: #67C23A;
     }
-
     .upload, .list {
       display: flex;
       align-items: flex-start;
@@ -34,6 +33,9 @@
     }
     .el-form-item {
       margin-bottom: 0;
+    }
+    .box-card {
+      margin: 20px;
     }
   </style>
 </head>
@@ -46,16 +48,15 @@
         <span>upload log</span>
       </div>
       <div class="upload">
-        <el-card>
+        <el-card class="box-card">
           <el-upload drag action="./upload/" :before-upload="handleBefore" :on-success="handleSuccess"
             :file-list="fileList">
             <i class="el-icon-upload"></i>
             <div class="el-upload__text">Drag the file here, or <em>click upload</em></div>
           </el-upload>
-
           <div class="done" v-if="done">upload done, time: {{end / 1000}}s</div>
         </el-card>
-        <el-card class="box-card" style="margin-left: 20px;">
+        <el-card class="box-card" style="max-width: 600px;">
           <el-form ref="form" :model="form" label-width="200px">
             <el-form-item label="show_all_packet_info">
               <el-radio-group v-model="form.show_all_packet_info">
@@ -93,22 +94,12 @@
         </el-card>
       </div>
     </el-card>
-
-    <el-card class="box-card" style="margin-top: 30px;">
+    <el-card class="box-card">
       <div slot="header" class="clearfix">
-        <span>analysis log</span>
+        <span>analysis result</span>
       </div>
-      <el-card v-if="visible" class="box-card" style="margin-top: 20px;">
-        <div slot="header" class="clearfix">
-          <span>The result is empty. Check the error in the log.</span>
-        </div>
-        <el-tabs value="first">
-          <el-tab-pane label="message" name="first">{{message}}</el-tab-pane>
-          <el-tab-pane label="error" name="second">{{error}}</el-tab-pane>
-        </el-tabs>
-      </el-card>
-      <div v-else class="list">
-        <el-card v-for="(value, name) in htmlList" :key="name" class="box-card" style="margin-right: 20px;margin-bottom: 20px;">
+      <div class="list">
+        <el-card v-for="(value, name) in htmlList" :key="name" class="box-card">
           <div slot="header" class="clearfix">
             <span>{{name}}</span>
           </div>
@@ -119,6 +110,15 @@
           </div>
         </el-card>
       </div>
+    </el-card>
+    <el-card class="box-card">
+      <div slot="header" class="clearfix">
+        <span>analysis log</span>
+      </div>
+      <el-tabs value="first">
+        <el-tab-pane label="message" name="first"><span v-html="message"></span></el-tab-pane>
+        <el-tab-pane label="error" name="second"><span v-html="error"></span></el-tab-pane>
+      </el-tabs>
     </el-card>
   </div>
 </body>
@@ -191,21 +191,9 @@
         }, function (res) {
           if (res.code === 200) {
             _this.htmlList = res.data;
-            const keys = Object.keys(_this.htmlList);
-            if (keys.length <= 0) {
-              _this.message = res.message;
-              _this.error = res.error;
-              _this.visible = true;
-            } else {
-              _this.visible = false;
-              _this.message = '';
-              _this.error = '';
-            }
-          } else {
-            _this.error = res.error;
-            _this.message = res.message;
-            _this.visible = true;
           }
+          _this.message = res.message.replace(/\r\n/g, "<br>").replace(/\n/g, "<br>");
+          _this.error = res.error.replace(/\r\n/g, "<br>").replace(/\n/g, "<br>");
         }, 'json');
       }
     }
