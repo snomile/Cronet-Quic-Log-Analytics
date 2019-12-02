@@ -40,7 +40,7 @@
 
 <body>
   <div id="app">
-    <div class="title">chrome log analysis</div>
+    <div class="title">cronet quic log analytics</div>
     <el-card class="box-card">
       <div slot="header" class="clearfix">
         <span>upload log</span>
@@ -88,9 +88,6 @@
                 <el-checkbox label="doubleclick.net" name="ignore_domain_name_list"></el-checkbox>
                 <el-checkbox label="google-analytics.com" name="ignore_domain_name_list"></el-checkbox>
               </el-checkbox-group>
-              <el-form-item>
-                <el-button type="primary" @click="analysisLog" :disabled="!done">start analysis</el-button>
-              </el-form-item>
             </el-form-item>
           </el-form>
         </el-card>
@@ -179,6 +176,7 @@
         }
         if (response.code === 200) {
           this.localPath = response.data.local;
+          this.analysisLog();
         }
       },
       analysisLog() {
