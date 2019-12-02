@@ -29,12 +29,18 @@ class QuicConnection:
 
 
         #extract general info
+        chlo_event_index = 0
+        shlo_event_index = 0
         last_chlo = None
         last_shlo = None
         for event in self.cronet_event_list:
             if event.event_type == 'QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_SENT':
+                chlo_event_index += 1
+                self.general_info['CHLO%s' % chlo_event_index] = (event.time_int - self.request_start_time_int, event.other_data['params'])
                 last_chlo = event.other_data['params']
             elif event.event_type == 'QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_RECEIVED':
+                shlo_event_index += 1
+                self.general_info['SHLO%s' % chlo_event_index] = (event.time_int - self.request_start_time_int, event.other_data['params'])
                 last_shlo = event.other_data['params']
             elif event.event_type == 'QUIC_SESSION_VERSION_NEGOTIATED':
                 self.general_info['Version'] = event.other_data['params']['version']
