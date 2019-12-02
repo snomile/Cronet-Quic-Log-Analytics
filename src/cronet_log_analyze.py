@@ -12,7 +12,7 @@ show_all_packet_info = True
 show_receive_send = True
 show_ack_delay = False
 show_size_inflight = False
-ignore_list = ['google.com','googleapis.com','doubleclick.net','google-analytics.com']
+ignore_list = []  # ['google.com','googleapis.com','doubleclick.net','google-analytics.com']
 
 
 def check_key_path(project_root):
