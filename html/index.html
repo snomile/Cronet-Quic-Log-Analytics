@@ -6,11 +6,8 @@
   <!-- import CSS -->
   <link rel="stylesheet" href="element-ui.css">
   <link rel="icon" href="data:image/ico;base64,aWNv">
+  <title>cronet quic log analytics</title>
   <style>
-    body {
-      padding: 20px;
-    }
-
     .upload-demo {
       max-width: 700px;
     }
@@ -31,8 +28,8 @@
       align-items: flex-start;
       flex-wrap: wrap;
     }
-    .el-form-item {
-      margin-bottom: 0;
+    .el-form-item, .el-form-item--mini.el-form-item, .el-form-item--small.el-form-item {
+      margin-bottom: 1.2px;
     }
     .box-card {
       margin: 20px;
@@ -42,7 +39,6 @@
 
 <body>
   <div id="app">
-    <div class="title">cronet quic log analytics</div>
     <el-card class="box-card">
       <div slot="header" class="clearfix">
         <span>upload log</span>
@@ -57,7 +53,7 @@
           <div class="done" v-if="done">upload done, time: {{end / 1000}}s</div>
         </el-card>
         <el-card class="box-card" style="max-width: 600px;">
-          <el-form ref="form" :model="form" label-width="200px">
+          <el-form ref="form" :model="form" label-width="200px" size="mini">
             <el-form-item label="show_all_packet_info">
               <el-radio-group v-model="form.show_all_packet_info">
                 <el-radio label="True"></el-radio>
