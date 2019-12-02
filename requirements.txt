@@ -1,4 +1,2 @@
-Cython
-numpy==1.17.4
 scikit-learn==0.21.3
 bokeh==1.4.0
