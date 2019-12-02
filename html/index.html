@@ -10,18 +10,30 @@
     body {
       padding: 20px;
     }
+
     .upload-demo {
       max-width: 700px;
     }
+
     .title {
       margin: 0 auto 20px;
       width: 100%;
       font-size: 30px;
       padding-left: 10px;
     }
+
     .done {
       margin-top: 20px;
       color: #67C23A;
+    }
+
+    .upload, .list {
+      display: flex;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+    .el-form-item {
+      margin-bottom: 0;
     }
   </style>
 </head>
@@ -33,13 +45,58 @@
       <div slot="header" class="clearfix">
         <span>upload log</span>
       </div>
-      <el-upload drag action="/upload/" :before-upload="handleBefore" :on-success="handleSuccess"
-        :file-list="fileList">
-        <i class="el-icon-upload"></i>
-        <div class="el-upload__text">Drag the file here, or <em>click upload</em></div>
-      </el-upload>
-      <div class="done" v-if="done">upload done, time: {{end / 1000}}s</div>
+      <div class="upload">
+        <el-card>
+          <el-upload drag action="/upload/" :before-upload="handleBefore" :on-success="handleSuccess"
+            :file-list="fileList">
+            <i class="el-icon-upload"></i>
+            <div class="el-upload__text">Drag the file here, or <em>click upload</em></div>
+          </el-upload>
+
+          <div class="done" v-if="done">upload done, time: {{end / 1000}}s</div>
+        </el-card>
+        <el-card class="box-card" style="margin-left: 20px;">
+          <el-form ref="form" :model="form" label-width="200px">
+            <el-form-item label="show_all_packet_info">
+              <el-radio-group v-model="form.show_all_packet_info">
+                <el-radio label="True"></el-radio>
+                <el-radio label="False"></el-radio>
+              </el-radio-group>
+            </el-form-item>
+            <el-form-item label="show_receive_send">
+              <el-radio-group v-model="form.show_receive_send">
+                <el-radio label="True"></el-radio>
+                <el-radio label="False"></el-radio>
+              </el-radio-group>
+            </el-form-item>
+            <el-form-item label="show_ack_delay">
+              <el-radio-group v-model="form.show_ack_delay">
+                <el-radio label="True"></el-radio>
+                <el-radio label="False"></el-radio>
+              </el-radio-group>
+            </el-form-item>
+            <el-form-item label="show_size_inflight">
+              <el-radio-group v-model="form.show_size_inflight">
+                <el-radio label="True"></el-radio>
+                <el-radio label="False"></el-radio>
+              </el-radio-group>
+            </el-form-item>
+            <el-form-item label="ignore_domain_name_list">
+              <el-checkbox-group v-model="form.ignore_domain_name_list">
+                <el-checkbox label="google.com" name="ignore_domain_name_list"></el-checkbox>
+                <el-checkbox label="googleapis.com" name="ignore_domain_name_list"></el-checkbox>
+                <el-checkbox label="doubleclick.net" name="ignore_domain_name_list"></el-checkbox>
+                <el-checkbox label="google-analytics.com" name="ignore_domain_name_list"></el-checkbox>
+              </el-checkbox-group>
+              <el-form-item>
+                <el-button type="primary" @click="analysisLog" :disabled="!done">start analysis</el-button>
+              </el-form-item>
+            </el-form-item>
+          </el-form>
+        </el-card>
+      </div>
     </el-card>
+
     <el-card class="box-card" style="margin-top: 30px;">
       <div slot="header" class="clearfix">
         <span>analysis log</span>
@@ -53,15 +110,18 @@
           <el-tab-pane label="error" name="second">{{error}}</el-tab-pane>
         </el-tabs>
       </el-card>
-      <el-card v-else v-for="(value, name) in htmlList" :key="name" class="box-card" style="margin-top: 20px;">
-        <div slot="header" class="clearfix">
-          <span>{{name}}</span>
-        </div>
-        <div v-for="(url, index) in value" :key="url">
-          <el-link v-if="index === 0" type="primary" :href="'echarts.html?json=' + url" target="_blank">custom log analysis by echarts</el-link>
-          <el-link v-else type="primary" :href="'html_output/' + url" target="_blank">{{url}}</el-link>
-        </div>
-      </el-card>
+      <div v-else class="list">
+        <el-card v-for="(value, name) in htmlList" :key="name" class="box-card" style="margin-right: 20px;margin-bottom: 20px;">
+          <div slot="header" class="clearfix">
+            <span>{{name}}</span>
+          </div>
+          <div v-for="(url, index) in value" :key="url">
+            <el-link v-if="index === 0" type="primary" :href="'echarts.html?json=' + url" target="_blank">custom log
+              analysis by echarts</el-link>
+            <el-link v-else type="primary" :href="'html_output/' + url" target="_blank">{{url}}</el-link>
+          </div>
+        </el-card>
+      </div>
     </el-card>
   </div>
 </body>
@@ -74,7 +134,24 @@
   new Vue({
     el: '#app',
     data: function () {
-      return { start: 0, end: 0, fileList: [], done: false, visible: false, message: '', error: '', htmlList: {} }
+      return {
+        start: 0,
+        end: 0,
+        fileList: [],
+        done: false,
+        visible: false,
+        message: '',
+        error: '',
+        htmlList: {},
+        localPath: '',
+        form: {
+          show_all_packet_info: 'True',
+          show_receive_send: 'True',
+          show_ack_delay: 'False',
+          show_size_inflight: 'False',
+          ignore_domain_name_list: ['googleapis.com', 'doubleclick.net', 'google-analytics.com']
+        }
+      }
     },
     methods: {
       clean() {
@@ -101,30 +178,37 @@
           this.start = 0
         }
         if (response.code === 200) {
-          const localPath = response.data.local;
-          const _this = this;
-          $.post('/analysis', {
-            localPath: localPath
-          }, function(res) {
-            if (res.code === 200) {
-              _this.htmlList = res.data;
-              const keys = Object.keys(_this.htmlList);
-              if (keys.length <= 0) {
-                _this.message = res.message;
-                _this.error = res.error;
-                _this.visible = true;
-              } else {
-                _this.visible = false;
-                _this.message = '';
-                _this.error = '';
-              }
-            } else {
-              _this.error = res.error;
-              _this.message = res.message;
-              _this.visible = true;
-            }
-          }, 'json');
+          this.localPath = response.data.local;
         }
+      },
+      analysisLog() {
+        const _this = this;
+        $.post('/analysis', {
+          localPath: _this.localPath,
+          show_all_packet_info: _this.form.show_all_packet_info,
+          show_receive_send: _this.form.show_receive_send,
+          show_ack_delay: _this.form.show_ack_delay,
+          show_size_inflight: _this.form.show_size_inflight,
+          ignore_domain_name_list: _this.form.ignore_domain_name_list
+        }, function (res) {
+          if (res.code === 200) {
+            _this.htmlList = res.data;
+            const keys = Object.keys(_this.htmlList);
+            if (keys.length <= 0) {
+              _this.message = res.message;
+              _this.error = res.error;
+              _this.visible = true;
+            } else {
+              _this.visible = false;
+              _this.message = '';
+              _this.error = '';
+            }
+          } else {
+            _this.error = res.error;
+            _this.message = res.message;
+            _this.visible = true;
+          }
+        }, 'json');
       }
     }
   })
