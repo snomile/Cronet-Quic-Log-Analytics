@@ -8,6 +8,7 @@ from visualize import graph
 #file_path = "1575190014093-some_file_name2.json"
 file_path = "netlog-2.json"
 
+show_all_packet_info = True
 show_receive_send = True
 show_ack_delay = False
 show_size_inflight = False
@@ -41,11 +42,12 @@ def find_usable_input_path():
 
 
 def process_show(usable_input_path, argv):
-    global show_receive_send,show_ack_delay,show_size_inflight
+    global show_all_packet_info,show_receive_send,show_ack_delay,show_size_inflight
     if len(argv) == 5:
-        show_receive_send = bool(argv[2])
-        show_ack_delay = bool(argv[3])
-        show_size_inflight = bool(argv[4])
+        show_all_packet_info = bool(argv[2])
+        show_receive_send = bool(argv[3])
+        show_ack_delay = bool(argv[4])
+        show_size_inflight = bool(argv[5])
 
     if usable_input_path:
         print('find file on ', usable_input_path)
@@ -62,7 +64,7 @@ def process_show(usable_input_path, argv):
             json_file_name_without_ext = json_file[json_file.rfind('/') + 1: -21]
             host_starttime = json_file_name_without_ext.replace(filename_without_ext + '_', '')
             helper_graph.init(project_root, filename_without_ext, host_starttime)
-            graph.show(show_receive_send, show_ack_delay, show_size_inflight)
+            graph.show(show_all_packet_info,show_receive_send, show_ack_delay, show_size_inflight)
     else:
         print('file %s does not exist, exit now' % file_path)
 

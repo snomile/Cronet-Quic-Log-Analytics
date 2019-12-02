@@ -2,9 +2,9 @@ from visualize import graph_client_receive_send_data, helper_data, helper_graph
 from visualize import graph_packet_ack_delay
 from visualize import graph_packet_size_inflight
 
-def show(show_receive_send = True, show_ack_delay = True, show_size_inflight = True):
+def show(show_all_packet_info,show_receive_send = True, show_ack_delay = True, show_size_inflight = True):
     if show_receive_send:
-        graph_client_receive_send_data.show()
+        graph_client_receive_send_data.show(show_all_packet_info)
     if show_ack_delay:
         graph_packet_ack_delay.show()
     if show_size_inflight:
