@@ -48,7 +48,7 @@
         <div slot="header" class="clearfix">
           <span>The result is empty. Check the error in the log.</span>
         </div>
-        <el-tabs>
+        <el-tabs value="first">
           <el-tab-pane label="message" name="first">{{message}}</el-tab-pane>
           <el-tab-pane label="error" name="second">{{error}}</el-tab-pane>
         </el-tabs>
@@ -109,19 +109,18 @@
             if (res.code === 200) {
               _this.htmlList = res.data;
               const keys = Object.keys(_this.htmlList);
-              console.log(keys.length)
               if (keys.length <= 0) {
-                _this.meesage = res.message;
+                _this.message = res.message;
                 _this.error = res.error;
                 _this.visible = true;
               } else {
                 _this.visible = false;
-                _this.meesage = '';
+                _this.message = '';
                 _this.error = '';
               }
             } else {
               _this.error = res.error;
-              _this.meesage = res.message;
+              _this.message = res.message;
               _this.visible = true;
             }
           }, 'json');
