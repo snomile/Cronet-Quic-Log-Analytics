@@ -50,9 +50,8 @@ class CronetSession:
             for cronet_event in event_list:
                 if cronet_event.event_type == 'HOST_RESOLVER_IMPL_JOB' and cronet_event.phase == 'PHASE_BEGIN':
                     host = cronet_event.other_data['params']['host']
-                elif cronet_event.event_type == 'DNS_TRANSACTION' and cronet_event.phase == 'PHASE_BEGIN':
                     dns_begin_time = cronet_event.time_int
-                elif cronet_event.event_type == 'DNS_TRANSACTION' and cronet_event.phase == 'PHASE_END':
+                elif cronet_event.event_type == 'HOST_RESOLVER_IMPL_JOB' and cronet_event.phase == 'PHASE_END':
                     dns_end_time = cronet_event.time_int
 
 

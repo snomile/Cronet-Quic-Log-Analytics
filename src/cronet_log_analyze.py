@@ -5,7 +5,7 @@ from process import cronet_log_loader,cronet_session
 from visualize import helper_data, helper_graph
 from visualize import graph
 
-file_path = "netlog-1575253100.json"
+file_path = "netlog-1575103171.json"
 #file_path = "netlog-2.json"
 
 show_all_packet_info = True
@@ -90,7 +90,7 @@ def show_help():
 
 
 if __name__ == '__main__':
-    if sys.argv[1] in ['-h', 'help']:
+    if len(sys.argv) > 1 and sys.argv[1] in ['-h', 'help']:
         show_help()
 
     abs_program_path = os.path.abspath(sys.argv[0])
