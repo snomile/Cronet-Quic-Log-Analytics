@@ -1,3 +1,5 @@
+#!/bin/sh
+
 cd /opt/cla/Cronet-Quic-Log-Analytics
 git fetch --all
 git reset --hard origin/master
