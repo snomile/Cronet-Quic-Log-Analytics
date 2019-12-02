@@ -33,7 +33,7 @@
       <div slot="header" class="clearfix">
         <span>upload log</span>
       </div>
-      <el-upload drag action="/upload/" :before-upload="handleBefore" :on-success="handleSuccess"
+      <el-upload drag action="./upload/" :before-upload="handleBefore" :on-success="handleSuccess"
         :file-list="fileList">
         <i class="el-icon-upload"></i>
         <div class="el-upload__text">Drag the file here, or <em>click upload</em></div>
@@ -103,7 +103,7 @@
         if (response.code === 200) {
           const localPath = response.data.local;
           const _this = this;
-          $.post('/analysis', {
+          $.post('./analysis', {
             localPath: localPath
           }, function(res) {
             if (res.code === 200) {
