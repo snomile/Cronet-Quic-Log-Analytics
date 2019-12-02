@@ -27,7 +27,7 @@
       color: #67C23A;
     }
 
-    .upload {
+    .upload, .list {
       display: flex;
       align-items: flex-start;
     }
@@ -109,16 +109,18 @@
           <el-tab-pane label="error" name="second">{{error}}</el-tab-pane>
         </el-tabs>
       </el-card>
-      <el-card v-else v-for="(value, name) in htmlList" :key="name" class="box-card" style="margin-top: 20px;">
-        <div slot="header" class="clearfix">
-          <span>{{name}}</span>
-        </div>
-        <div v-for="(url, index) in value" :key="url">
-          <el-link v-if="index === 0" type="primary" :href="'echarts.html?json=' + url" target="_blank">custom log
-            analysis by echarts</el-link>
-          <el-link v-else type="primary" :href="'html_output/' + url" target="_blank">{{url}}</el-link>
-        </div>
-      </el-card>
+      <div class="list">
+        <el-card v-else v-for="(value, name) in htmlList" :key="name" class="box-card" style="margin-right: 20px;">
+          <div slot="header" class="clearfix">
+            <span>{{name}}</span>
+          </div>
+          <div v-for="(url, index) in value" :key="url">
+            <el-link v-if="index === 0" type="primary" :href="'echarts.html?json=' + url" target="_blank">custom log
+              analysis by echarts</el-link>
+            <el-link v-else type="primary" :href="'html_output/' + url" target="_blank">{{url}}</el-link>
+          </div>
+        </el-card>
+      </div>
     </el-card>
   </div>
 </body>
