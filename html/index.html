@@ -201,8 +201,8 @@
           if (res.code === 200) {
             _this.htmlList = res.data;
           }
-          _this.message = res.message.replace(/\r\n/g, "<br>").replace(/\n/g, "<br>").replace(/\s+/g, "&nbsp;&nbsp;&nbsp;&nbsp;");
-          _this.error = res.error.replace(/\r\n/g, "<br>").replace(/\n/g, "<br>").replace(/\s+/g, "&nbsp;&nbsp;&nbsp;&nbsp;");
+          _this.message = res.message.replace(/\r\n/g, "<br>").replace(/\n/g, "<br>").replace(/\s{2,}/g, "&nbsp;&nbsp;&nbsp;&nbsp;");
+          _this.error = res.error.replace(/\r\n/g, "<br>").replace(/\n/g, "<br>").replace(/\s{2,}/g, "&nbsp;&nbsp;&nbsp;&nbsp;");
           loading.close();
         }, 'json');
       }
