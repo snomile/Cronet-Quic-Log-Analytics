@@ -1,7 +1,10 @@
 FROM python:slim
 RUN apt update; apt install wget git tar xz-utils build-essential -y
-#RUN apt update;apt install curl nano iputils-ping net-tools netcat zsh -y;chsh -s /bin/zsh
-#RUN sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)";cd ~;git clone https://github.com/zsh-users/zsh-syntax-highlighting.git;echo "source ~/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" >> ~/.zshrc
+#RUN apt install curl nano iputils-ping net-tools netcat zsh -y \
+#    && chsh -s /bin/zsh \
+#    && sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)" \
+#    && cd ~ && git clone https://github.com/zsh-users/zsh-syntax-highlighting.git \
+#    && echo "source ~/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" >> ~/.zshrc
 RUN cd /opt && wget https://nodejs.org/dist/v12.13.1/node-v12.13.1-linux-x64.tar.xz \
 	&& tar xvf node-v12.13.1-linux-x64.tar.xz \
 	&& rm -f node-v12.13.1-linux-x64.tar.xz \

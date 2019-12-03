@@ -1,6 +1,7 @@
 import csv
 import json
 
+from process import constant_converter
 from process.quic_entity import PacketReceived, PacketSent
 
 IGNORE_EVENT_TYPE_LIST = [
@@ -16,7 +17,6 @@ IGNORE_EVENT_TYPE_LIST = [
     'QUIC_SESSION_CERTIFICATE_VERIFIED'
 ]
 
-
 class QuicConnection:
     def __init__(self, host, dns_begin_time, dns_end_time, cronet_event_list, data_converted_path, filename_without_ext):
         self.general_info = {'Host': host, 'DNS_begin_time': 0, 'DNS_end_time': dns_end_time- dns_begin_time}
@@ -26,7 +26,6 @@ class QuicConnection:
         self.data_converted_path = data_converted_path
 
         quic_session_starttime = cronet_event_list[0].time_int
-
 
         #extract general info
         chlo_event_index = 0
@@ -41,6 +40,13 @@ class QuicConnection:
             elif event.event_type == 'QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_RECEIVED':
                 shlo_event_index += 1
                 self.general_info['SHLO%s' % chlo_event_index] = (event.time_int - self.request_start_time_int, event.other_data['params'])
+                sttl = constant_converter.find_key_value(event.other_data['params']['quic_crypto_handshake_message'],'STTL')
+                if sttl:
+                    self.general_info['STTL'] = sttl
+
+                expy = constant_converter.find_key_value(event.other_data['params']['quic_crypto_handshake_message'],'EXPY')
+                if sttl:
+                    self.general_info['EXPY'] = expy
                 last_shlo = event.other_data['params']
             elif event.event_type == 'QUIC_SESSION_VERSION_NEGOTIATED':
                 self.general_info['Version'] = event.other_data['params']['version']
