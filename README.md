@@ -7,7 +7,7 @@ By this tool, you can
 2) track the client/server CFCW/SFCW/Window_Update/Block related frames, which would be hlepful for analyzing the bottleneck of the throughput.
 3) use the interactive diagram to go through every details of the quic session, including DNS time cost, handshake time cost, which packet is lost, packet size inflight......
 
-Usage:
+Usage
 1) Use online service: https://hk.snomile.ink/cronet/, just upload the log files, and click links at the bottom of the page.
 2) Host service on your own server: clone the project, enter project root, build a docker image by 'docker build -t cla .', start the docker container by 'docker run -idt --name cla -p 80:80 --restart=always cla', then access the service from http://your-ip/
 
