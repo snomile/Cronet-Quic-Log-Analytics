@@ -52,12 +52,28 @@
                             var keys = Object.keys(frameObj);
                             var res = [];
                             keys.forEach(function (key) {
-                                res.push(key + ': ' + frameObj[key]);
+                                var value = frameObj[key];
+                                if (typeof value === 'object' && value.length > 0) {
+                                    var objstr = JSON.stringify(value);
+                                    var maxLen = 40;
+                                    var arr = [];
+                                    for(var i = 0; i < objstr.length; i++) {
+                                        if (i % maxLen === 0) {
+                                            var str = objstr.substr(i, maxLen);
+                                            if (str) {
+                                                arr.push(str);
+                                            }
+                                        }
+                                    }
+                                    value = arr.join('<br />&nbsp;&nbsp;&nbsp;&nbsp;')
+                                }
+                                res.push( key + ': ' + value);
                             })
                             return res.join('<br />');
                         }
                         return null;
-                    }
+                    },
+                    width: 300
                 },
                 dataZoom: [{
                     type: 'slider',

@@ -45,12 +45,11 @@
       </div>
       <div class="upload">
         <el-card class="box-card">
-          <el-upload drag action="./upload/" :before-upload="handleBefore" :on-success="handleSuccess"
+          <el-upload drag action="./upload/" :show-file-list="false" :before-upload="handleBefore" :on-success="handleSuccess"
             :file-list="fileList">
             <i class="el-icon-upload"></i>
             <div class="el-upload__text">Drag the file here, or <em>click upload</em></div>
           </el-upload>
-          <div class="done" v-if="done">upload done, time: {{end / 1000}}s</div>
         </el-card>
         <el-card class="box-card" style="max-width: 600px;">
           <el-form ref="form" :model="form" label-width="200px" size="mini">
@@ -92,7 +91,11 @@
     </el-card>
     <el-card class="box-card">
       <div slot="header" class="clearfix">
-        <span>analysis result</span>
+        <span>analysis result <span class="done" v-if="done">( upload done, time: {{end / 1000}}s )</span></span>
+      </div>
+      <div v-if="httpPath">
+        <el-link type="primary" :href="'netlog-viewer/index.html?json=' + httpPath" target="_blank">chrom netLog dump viewer for {{fileName}}
+        </el-link>
       </div>
       <div class="list">
         <el-card v-for="(value, name) in htmlList" :key="name" class="box-card">
@@ -130,6 +133,7 @@
       return {
         start: 0,
         end: 0,
+        fileName: '',
         fileList: [],
         done: false,
         visible: false,
@@ -165,12 +169,14 @@
             hasUpload = true
           }
         })
+        this.fileName = file.name;
         if (!hasUpload) {
           this.done = true;
           this.end = new Date().getTime() - this.start
           this.start = 0
         }
         if (response.code === 200) {
+          this.httpPath = response.data.url;
           this.localPath = response.data.local;
           this.analysisLog();
         }
@@ -188,8 +194,8 @@
           if (res.code === 200) {
             _this.htmlList = res.data;
           }
-          _this.message = res.message.replace(/\r\n/g, "<br>").replace(/\n/g, "<br>");
-          _this.error = res.error.replace(/\r\n/g, "<br>").replace(/\n/g, "<br>");
+          _this.message = res.message.replace(/\r\n/g, "<br>").replace(/\n/g, "<br>").replace(/\s+/g, "&nbsp;&nbsp;&nbsp;&nbsp;");
+          _this.error = res.error.replace(/\r\n/g, "<br>").replace(/\n/g, "<br>").replace(/\s+/g, "&nbsp;&nbsp;&nbsp;&nbsp;");
         }, 'json');
       }
     }

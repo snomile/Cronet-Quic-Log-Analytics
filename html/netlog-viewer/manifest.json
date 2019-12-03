@@ -1,0 +1,28 @@
+{
+   "background": {
+      "scripts": [ "background.js" ]
+   },
+   "browser_action": {
+      "default_icon": {
+         "128": "images/icon-128.png",
+         "16": "images/icon-16.png",
+         "32": "images/icon-32.png",
+         "48": "images/icon-48.png"
+      },
+      "default_title": "NetLog dump viewer"
+   },
+   "description": "A standalone WebApp for viewing chrome://net-export NetLog dump files",
+   "homepage_url": "https://github.com/axifive/netlog-viewer",
+   "icons": {
+      "128": "images/icon-128.png",
+      "16": "images/icon-16.png",
+      "32": "images/icon-32.png",
+      "48": "images/icon-48.png"
+   },
+   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAh0mq/nVamDqGJGGgsAscOpL9gVfKhD+V3j54e4u8MtrVuCR5nf+yExyDF7XzSltPITUxpul1fxtDVuWwr/PxA/w9zcLL4hRmOBttQbt1vZpO51pLusf4OHhAJc4w/tqswKrlxklJDw0a6gca16YwXnKADkrjlIsTjM8gKz5C3nH4/f9cA6cUS3MKVKwoOJ/zRaiYLkAajpiTvyqp6BRQ5xB9WH9n8mN+rIH2z1b1ZeqDfzenywlS96APU0J8LhWIVpYFHcJfU7/n+amXg7S0OXsvkEPBNljjPRcYt8rcJWl3qU1M0g/CSoqmPMFGv9jcQBMQ0uLVinlb5qQdSasHXwIDAQAB",
+   "manifest_version": 2,
+   "name": "Chromium NetLog dump viewer",
+   "offline_enabled": true,
+   "update_url": "https://clients2.google.com/service/update2/crx",
+   "version": "0.1.2"
+}
