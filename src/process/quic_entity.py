@@ -185,6 +185,11 @@ class QuicFrame:
             self.direction = 'send'
             self.stream_id = 'N/A'
             self.info_list.extend([self.frame_type, self.direction, self.stream_id])
+        elif event.event_type == 'QUIC_SESSION_PING_FRAME_RECEIVED':
+            self.frame_type = 'PING'
+            self.direction = 'receive'
+            self.stream_id = 'N/A'
+            self.info_list.extend([self.frame_type, self.direction, self.stream_id])
         elif event.event_type == 'QUIC_SESSION_CONNECTION_CLOSE_FRAME_SENT':
             self.frame_type = 'CONNECTION_CLOSE'
             self.direction = 'send'
