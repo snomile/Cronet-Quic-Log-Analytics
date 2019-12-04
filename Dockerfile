@@ -17,8 +17,7 @@ RUN mkdir /opt/cla \
 RUN pip install Cython && \
 	pip install numpy && \
 	pip install scikit-learn && \
-    pip install bokeh && \
-	pip install -r /opt/cla/Cronet-Quic-Log-Analytics/requirements.txt
+    pip install bokeh
 RUN cd /opt/cla/Cronet-Quic-Log-Analytics/server && npm i
 
 ENTRYPOINT ["/bin/sh", "/opt/cla/Cronet-Quic-Log-Analytics/server/startup.sh"]
