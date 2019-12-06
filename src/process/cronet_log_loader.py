@@ -36,6 +36,7 @@ def process_chrome_log(fullpath, data_original_path, data_converted_path, filena
     else:
         with open(data_original_path + '/constants.json', 'r') as load_f:
             constants = json.load(load_f)['constants']
+            constants['timeTickOffset'] = load_dict['timeTickOffset']
     log_events = load_dict['events']
     print('load', len(log_events), 'events')
 

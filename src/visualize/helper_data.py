@@ -181,6 +181,7 @@ def get_packet_send_source(show_all_packet_info):
 
     #for normal packet
     packet_sent_time_sequence_list = []
+    packet_sent_time_readable_sequence_list = []
     total_sent_size_list = []
     packet_numbers = []
     ack_delay_total_list = []
@@ -191,6 +192,7 @@ def get_packet_send_source(show_all_packet_info):
 
     #for chlo packet
     chlo_packet_sent_time_sequence_list = []
+    chlo_packet_sent_time_readable_sequence_list = []
     chlo_total_sent_size_list = []
     chlo_packet_numbers = []
     chlo_ack_delay_total_list = []
@@ -201,6 +203,7 @@ def get_packet_send_source(show_all_packet_info):
 
     for packet in packet_sent_dict.values():
         packet_sent_time = int(packet['time'])
+        packet_sent_time_readable = packet['time_h']
         total_sent_size += packet['length']
         current_total_sent_size = total_sent_size / 1024
         ack_delay_total = int(packet['ack_delay'])
@@ -211,6 +214,7 @@ def get_packet_send_source(show_all_packet_info):
 
         if packet['number'] in chlo_dict.keys():
             chlo_packet_sent_time_sequence_list.append(packet_sent_time)
+            chlo_packet_sent_time_readable_sequence_list.append(packet_sent_time_readable)
             chlo_total_sent_size_list.append(current_total_sent_size)
             chlo_packet_numbers.append(packet['number'])
             chlo_ack_delay_total_list.append(ack_delay_total)
@@ -220,6 +224,7 @@ def get_packet_send_source(show_all_packet_info):
             chlo_infos.append(packet['info_str'])
         else:
             packet_sent_time_sequence_list.append(packet_sent_time)
+            packet_sent_time_readable_sequence_list.append(packet_sent_time_readable)
             total_sent_size_list.append(current_total_sent_size)
             packet_numbers.append(packet['number'])
             ack_delay_total_list.append(ack_delay_total)
@@ -245,6 +250,7 @@ def get_packet_send_source(show_all_packet_info):
     packet_send_source = ColumnDataSource(data={
         'x': packet_sent_time_sequence_list,
         'y': total_sent_size_list,
+        'time_h': packet_sent_time_readable_sequence_list,
         'number': packet_numbers,
         'ack_delay': ack_delay_total_list,
         'size': [] if len(ack_delay_total_list) == 0 else preprocessing.minmax_scale(ack_delay_total_list,feature_range=(5, 15)),
@@ -256,6 +262,7 @@ def get_packet_send_source(show_all_packet_info):
     packet_send_chlo_source = ColumnDataSource(data={
         'x': chlo_packet_sent_time_sequence_list,
         'y': chlo_total_sent_size_list,
+        'time_h': chlo_packet_sent_time_readable_sequence_list,
         'number': chlo_packet_numbers,
         'ack_delay': chlo_ack_delay_total_list,
         'size': [10] * len(chlo_packet_sent_time_sequence_list),
@@ -268,7 +275,6 @@ def get_packet_send_source(show_all_packet_info):
 
 def get_packet_receive_source(show_all_packet_info):
     current_total_received_size = 0
-    current_total_received_size_KB = 0
 
     #for all packet
     all_packet_receive_time_sequence_list = []
@@ -276,6 +282,7 @@ def get_packet_receive_source(show_all_packet_info):
 
     #for shlo packet
     shlo_packet_receive_time_sequence_list = []
+    shlo_packet_receive_time_readable_sequence_list = []
     shlo_total_received_size_list = []
     shlo_packet_numer_list = []
     shlo_tags = []
@@ -284,6 +291,7 @@ def get_packet_receive_source(show_all_packet_info):
 
     #for normal packet
     packet_receive_time_sequence_list = []
+    packet_receive_time_readable_sequence_list = []
     total_received_size_list = []
     packet_numer_list = []
     tags = []
@@ -298,6 +306,7 @@ def get_packet_receive_source(show_all_packet_info):
 
         if packet['number'] in shlo_dict.keys():
             shlo_packet_receive_time_sequence_list.append(int(packet['time']))
+            shlo_packet_receive_time_readable_sequence_list.append(packet['time_h'])
             shlo_total_received_size_list.append(current_total_received_size_KB)
             shlo_packet_numer_list.append(packet['number'])
             shlo_tags.append(shlo_dict[packet['number']][0])
@@ -305,6 +314,7 @@ def get_packet_receive_source(show_all_packet_info):
             shlo_colors.append('yellow')
         else:
             packet_receive_time_sequence_list.append(int(packet['time']))
+            packet_receive_time_readable_sequence_list.append(packet['time_h'])
             total_received_size_list.append(current_total_received_size_KB)
             packet_numer_list.append(packet['number'])
             tags.append('')
@@ -322,6 +332,7 @@ def get_packet_receive_source(show_all_packet_info):
     packet_receive_source = ColumnDataSource(data={
         'x': packet_receive_time_sequence_list,
         'y': total_received_size_list,
+        'time_h': packet_receive_time_readable_sequence_list,
         'number': packet_numer_list,
         'ack_delay': [''] * len(packet_receive_time_sequence_list),
         'size': [7] * len(packet_receive_time_sequence_list),
@@ -333,6 +344,7 @@ def get_packet_receive_source(show_all_packet_info):
     packet_receive_shlo_source = ColumnDataSource(data={
         'x': shlo_packet_receive_time_sequence_list,
         'y': shlo_total_received_size_list,
+        'time_h': shlo_packet_receive_time_readable_sequence_list,
         'number': shlo_packet_numer_list,
         'ack_delay': [''] * len(shlo_packet_receive_time_sequence_list),
         'size': [10] * len(shlo_packet_receive_time_sequence_list),

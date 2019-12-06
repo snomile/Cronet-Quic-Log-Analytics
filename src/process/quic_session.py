@@ -270,7 +270,9 @@ class QuicConnection:
         for packet in self.packet_sent_dict.values():
             packet_json_obj = {
                 'direction':'send',
+                'elaps': packet.time_elaps,
                 'time': packet.time_elaps,
+                'time_h': packet.time_readable,
                 'number': packet.packet_number,
                 'ack_by_frame' : packet.ack_by_frame_id,
                 'ack_delay': packet.ack_delay,
@@ -289,6 +291,7 @@ class QuicConnection:
             packet_json_obj = {
                 'direction':'receive',
                 'time': packet.time_elaps,
+                'time_h': packet.time_readable,
                 'number': packet.packet_number,
                 'info': packet.get_info_list(),
                 'length': packet.size,

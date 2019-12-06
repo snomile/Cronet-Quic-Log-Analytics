@@ -5,6 +5,7 @@ class Packet:
     def __init__(self, quic_connection, main_event, relate_events):
         self.time_int = main_event.time_int
         self.time_elaps = self.time_int - quic_connection.request_start_time_int
+        self.time_readable = constant_converter.get_readable_time(self.time_int)
         self.source_id = main_event.source_id
         self.size = main_event.other_data['params']['size']
         self.frames = []

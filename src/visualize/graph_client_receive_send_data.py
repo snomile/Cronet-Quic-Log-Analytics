@@ -9,6 +9,7 @@ def show(show_all_packet_info):
     p.hover.tooltips = [
         ('time', '@x'),
         ('size', '@y'),
+        ('time_h', '@time_h'),
         ('packet number', '@number'),
         ('ack_delay', '@ack_delay'),
         ('info', '@info')
