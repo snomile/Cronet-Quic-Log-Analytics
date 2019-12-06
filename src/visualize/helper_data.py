@@ -247,7 +247,7 @@ def get_packet_send_source(show_all_packet_info):
         'y': total_sent_size_list,
         'number': packet_numbers,
         'ack_delay': ack_delay_total_list,
-        'size': preprocessing.minmax_scale(ack_delay_total_list,feature_range=(5, 15)),
+        'size': [] if len(ack_delay_total_list) == 0 else preprocessing.minmax_scale(ack_delay_total_list,feature_range=(5, 15)),
         'color': colors,
         'info': infos,
         'tag': tags

@@ -1,5 +1,6 @@
 from process import constant_converter
 
+
 class Packet:
     def __init__(self, quic_connection, main_event, relate_events):
         self.time_int = main_event.time_int

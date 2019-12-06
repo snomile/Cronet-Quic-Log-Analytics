@@ -6,15 +6,20 @@ from process.cronet_session import CronetSession, CronetEvent
 
 
 def fix_trunced_file(file_path):
-    filesize = os.path.getsize(file_path)
-    with open(file_path, 'r+') as load_f:
+    with open(file_path, 'rb+') as load_f:
         # fix trunced file
-        load_f.seek(filesize-2, 0)
-        last_char = load_f.read(1)
-        if ',' == last_char:
-            print('file trunced, fixed by appending ]}')
-            load_f.seek(filesize - 2, 0)
-            load_f.write(']}')
+        load_f.seek(-5, 2)
+        last_char = str(load_f.read(5), encoding="utf-8").strip('\r\n')
+        if last_char.endswith('],'):
+            new_last_char = last_char[: last_char.index('],')] + ']}   '
+            print('file trunced, fixed by appending }')
+            load_f.seek(-5, 2)
+            load_f.write(bytes(new_last_char, encoding="utf8"))
+        elif last_char.endswith('},'):
+            new_last_char = last_char[: last_char.index('},')] + '}]}   '
+            print('file trunced, fixed by appending }]}')
+            load_f.seek(-5, 2)
+            load_f.write(bytes(new_last_char, encoding="utf8"))
         else:
             print('no need to fix')
 

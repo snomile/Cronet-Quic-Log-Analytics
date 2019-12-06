@@ -108,3 +108,6 @@ venv.bak/
 /resource/html_output
 /resource/data_converted
 /resource/data_original
+/src_clipper/.idea/
+/src_clipper/out/production/src_clipper/
+/src_clipper/src_clipper.iml

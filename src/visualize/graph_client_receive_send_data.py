@@ -31,7 +31,7 @@ def show(show_all_packet_info):
     p.circle(x='x', y='y', source=packet_send_source, size='size',alpha=0.8, color='color', line_color="black", legend_label='Packet Sent(size means ack delay)', muted_color='color', muted_alpha=0.05)
     packet_send_labels = LabelSet(x="x", y="y", text="tag", y_offset=8,text_font_size="8pt", text_color="#555555", source= packet_send_source, text_align='center')
     p.add_layout(packet_send_labels)
-    y_range_max_packet_send = packet_send_source.data['y'][-1]
+    y_range_max_packet_send = 0 if len(packet_send_source.data['y']) == 0 else packet_send_source.data['y'][-1]
 
 
     #server cfcw
