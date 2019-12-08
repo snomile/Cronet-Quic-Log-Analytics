@@ -148,7 +148,8 @@
           show_ack_delay: 'False',
           show_size_inflight: 'False',
           ignore_domain_name_list: ['googleapis.com', 'doubleclick.net', 'google-analytics.com']
-        }
+        },
+        loading: null,
       }
     },
     methods: {
@@ -159,6 +160,12 @@
         if (this.start > 0) {
           return
         }
+        this.loading = this.$loading({
+          lock: true,
+          text: 'Loading',
+          spinner: 'el-icon-loading',
+          background: 'rgba(0, 0, 0, 0.7)'
+        });
         this.message = '';
         this.error = '';
         this.start = new Date().getTime()
@@ -183,12 +190,6 @@
         }
       },
       analysisLog() {
-        const loading = this.$loading({
-          lock: true,
-          text: 'Loading',
-          spinner: 'el-icon-loading',
-          background: 'rgba(0, 0, 0, 0.7)'
-        });
         const _this = this;
         $.post('./analysis', {
           localPath: _this.localPath,
@@ -203,7 +204,7 @@
           }
           _this.message = res.message.replace(/\r\n/g, "<br>").replace(/\n/g, "<br>").replace(/\s{2,}/g, "&nbsp;&nbsp;&nbsp;&nbsp;");
           _this.error = res.error.replace(/\r\n/g, "<br>").replace(/\n/g, "<br>").replace(/\s{2,}/g, "&nbsp;&nbsp;&nbsp;&nbsp;");
-          loading.close();
+          _this.loading.close();
         }, 'json');
       }
     }
