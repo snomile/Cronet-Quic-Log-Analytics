@@ -170,8 +170,8 @@ class QuicConnection:
                 retransmission_number += 1
             if packet.is_lost:
                 lost_number += 1
-        self.general_info['retransmission_percentage'] = round(float(retransmission_number)/len(self.packet_sent_dict),3)
-        self.general_info['lost_percentage'] = round(float(lost_number) / len(self.packet_sent_dict), 3)
+        self.general_info['retransmission_rate'] = round(float(retransmission_number)/len(self.packet_sent_dict),3)
+        self.general_info['lost_rate'] = round(float(lost_number) / len(self.packet_sent_dict), 3)
 
     def add_packet(self,packet):
         self.packets.append(packet)
