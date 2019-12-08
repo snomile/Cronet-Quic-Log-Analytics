@@ -52,7 +52,7 @@ router.post('/upload', async (ctx, next) => {
     });
   }
   await writeFile();
-  return ctx.body = { code: 200, data: { url: 'http://' + ctx.headers.host + '/' + newFilename, local: targetPath } };
+  return ctx.body = { code: 200, data: { url: '/' + newFilename, local: targetPath } };
 });
 
 router.post('/analysis', async (ctx, next) => {
