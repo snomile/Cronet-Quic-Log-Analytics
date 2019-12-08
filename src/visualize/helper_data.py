@@ -166,9 +166,9 @@ def calculate_client_block_connection_level():
 
 def get_dns_source():
     source = ColumnDataSource(data={
-        'x': [general_info['DNS_begin_time'], general_info['DNS_end_time']],
+        'x': [general_info['dns_begin_time'], general_info['dns_end_time']],
         'y': [-1, -1],
-        'name': ['DNS begin', 'Dns end']
+        'name': ['dns begin', 'dns end']
     })
     return source
 
