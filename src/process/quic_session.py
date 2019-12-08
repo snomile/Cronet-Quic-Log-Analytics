@@ -24,10 +24,27 @@ class QuicConnection:
         self.general_info['Start_time'] = dns_begin_time
         self.cronet_event_list = [cronet_event for cronet_event in cronet_event_list if cronet_event.event_type not in IGNORE_EVENT_TYPE_LIST]
         self.data_converted_path = data_converted_path
+        self.packets = []
+        self.frames = []
+        self.stream_dict = {}
+        self.packet_sent_dict = {}
+        self.packet_received_dict = {}
 
+        #convert event to quic entities
+        self.extract_general_info()
+        self.extract_packet()
+        self.tag_packet_by_ack()
+        self.validate()
+
+        #generate save file path
         quic_session_starttime = cronet_event_list[0].time_int
+        self.fullpath_json_file = '%s%s_%s_%s_quic_connection.json' % (data_converted_path, filename_without_ext, host, quic_session_starttime)
+        self.fullpath_quic_frame_csv_file = '%s%s_%s_%s_quic_frame.csv' % (data_converted_path, filename_without_ext, host, quic_session_starttime)
+        self.fullpath_quic_packet_csv_file = '%s%s_%s_%s_quic_packet.csv' % (data_converted_path, filename_without_ext, host, quic_session_starttime)
+        self.fullpath_quic_session_csv_file = '%s%s_%s_%s_quic_session.csv' % (data_converted_path, filename_without_ext, host, quic_session_starttime)
 
-        #extract general info
+
+    def extract_general_info(self):
         chlo_event_index = 0
         shlo_event_index = 0
         last_chlo = None
@@ -35,28 +52,29 @@ class QuicConnection:
         for event in self.cronet_event_list:
             if event.event_type == 'QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_SENT':
                 chlo_event_index += 1
-                self.general_info['CHLO%s' % chlo_event_index] = (event.time_int - self.request_start_time_int, event.other_data['params'])
+                self.general_info['CHLO%s' % chlo_event_index] = (
+                event.time_int - self.request_start_time_int, event.other_data['params'])
                 last_chlo = event.other_data['params']
             elif event.event_type == 'QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_RECEIVED':
                 shlo_event_index += 1
-                self.general_info['SHLO%s' % chlo_event_index] = (event.time_int - self.request_start_time_int, event.other_data['params'])
-                sttl = constant_converter.find_key_value(event.other_data['params']['quic_crypto_handshake_message'],'STTL')
+                self.general_info['SHLO%s' % chlo_event_index] = (
+                event.time_int - self.request_start_time_int, event.other_data['params'])
+                sttl = constant_converter.find_key_value(event.other_data['params']['quic_crypto_handshake_message'],
+                                                         'STTL')
                 if sttl:
                     self.general_info['STTL'] = sttl
-
-                expy = constant_converter.find_key_value(event.other_data['params']['quic_crypto_handshake_message'],'EXPY')
+                expy = constant_converter.find_key_value(event.other_data['params']['quic_crypto_handshake_message'],
+                                                         'EXPY')
                 if sttl:
                     self.general_info['EXPY'] = expy
                 last_shlo = event.other_data['params']
             elif event.event_type == 'QUIC_SESSION_VERSION_NEGOTIATED':
                 self.general_info['Version'] = event.other_data['params']['version']
-
-        #exact SFCW and CFCW
+        # exact SFCW and CFCW
         self.general_info['Client_CFCW'] = 9999999999  # default a large value so it will not appear on the graph
         self.general_info['Client_SFCW'] = 9999999999
         self.general_info['Server_CFCW'] = 9999999999
         self.general_info['Server_SFCW'] = 9999999999
-
         last_chlo_infos = last_chlo['quic_crypto_handshake_message'].split('\n')
         for info in last_chlo_infos:
             if 'CFCW' in info:
@@ -70,12 +88,6 @@ class QuicConnection:
             if 'SFCW' in info:
                 self.general_info['Server_SFCW'] = int(info.split(': ')[1])
 
-        #generate save file path
-        self.fullpath_json_file = '%s%s_%s_%s_quic_connection.json' % (data_converted_path, filename_without_ext, host, quic_session_starttime)
-        self.fullpath_quic_frame_csv_file = '%s%s_%s_%s_quic_frame.csv' % (data_converted_path, filename_without_ext, host, quic_session_starttime)
-        self.fullpath_quic_packet_csv_file = '%s%s_%s_%s_quic_packet.csv' % (data_converted_path, filename_without_ext, host, quic_session_starttime)
-        self.fullpath_quic_session_csv_file = '%s%s_%s_%s_quic_session.csv' % (data_converted_path, filename_without_ext, host, quic_session_starttime)
-
         #print general info
         for key,value in self.general_info.items():
             if isinstance(value,tuple):  #CHLO and SHLO
@@ -83,17 +95,8 @@ class QuicConnection:
             else:
                 print(key,':',value)
 
-        self.construct_quic_data_structure()
-        self.tag_packet_by_ack()
-        self.validate()
 
-    def construct_quic_data_structure(self):
-        self.packets = []
-        self.frames = []
-        self.stream_dict = {}
-        self.packet_sent_dict = {}
-        self.packet_received_dict = {}
-
+    def extract_packet(self):
         i = 0
         event_list = self.cronet_event_list.copy()
         length = len(event_list)
@@ -282,7 +285,8 @@ class QuicConnection:
                 'is_lost': packet.is_lost,
                 'info': packet.get_info_list(),
                 'info_str': packet.info_str,
-                'is_chlo': packet.is_chlo
+                'is_chlo': packet.is_chlo,
+                'transmission_type': packet.transmission_type
             }
             json_obj['packets_sent'].append(packet_json_obj)
             json_obj['packet_sent_dict'][packet.packet_number] = packet_json_obj

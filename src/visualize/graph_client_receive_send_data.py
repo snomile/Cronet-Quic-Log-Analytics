@@ -81,5 +81,8 @@ def show(show_all_packet_info):
     if y_range_max_client_cfcw <= y_range_max_packet_receive*2: #TODO use window_update event to determain if display the graph
         p.line(x='x', y='y', source=client_cfcw_source, line_width=2,alpha=0.5,
                     color='blue', legend_label='Client CFCW', muted_color='blue', muted_alpha=0.05)
+        p.square_cross(x='x', y='y', source=client_cfcw_source, size=10,
+                 alpha=0.8, color='blue', line_color="black", legend_label='Client CFCW', muted_color='blue',
+                 muted_alpha=0.05)
 
     display(p)

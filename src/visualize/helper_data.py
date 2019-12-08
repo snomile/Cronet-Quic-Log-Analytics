@@ -230,9 +230,13 @@ def get_packet_send_source(show_all_packet_info):
             ack_delay_total_list.append(ack_delay_total)
             ack_delay_server_list.append(ack_delay_server)
 
-            if packet['is_lost']:
+            if packet['is_lost'] :
                 colors.append('red')
                 tags.append('LOST')
+                infos.append(packet['info_str'])
+            elif packet['transmission_type'] != 'NOT_RETRANSMISSION':   #tag retramission type, only normal packet have variety of retramission type, all CHLO packet's retramission type is 'NOT_RETRANSMISSION', so no need to process
+                colors.append('red')
+                tags.append(packet['transmission_type'])
                 infos.append(packet['info_str'])
             else:
                 colors.append('navy')
@@ -241,6 +245,7 @@ def get_packet_send_source(show_all_packet_info):
                     infos.append(packet['info_str'])
                 else:
                     infos.append('')
+
 
     packet_send_line_source = ColumnDataSource(data={
         'x': all_packet_sent_time_sequence_list,
