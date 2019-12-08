@@ -19,9 +19,9 @@ IGNORE_EVENT_TYPE_LIST = [
 
 class QuicConnection:
     def __init__(self, host, dns_begin_time, dns_end_time, cronet_event_list, data_converted_path, filename_without_ext):
-        self.general_info = {'Host': host, 'DNS_begin_time': 0, 'DNS_end_time': dns_end_time- dns_begin_time}
+        self.general_info = {'host': host, 'dns_begin_time': 0, 'dns_end_time': dns_end_time- dns_begin_time}
         self.request_start_time_int = dns_begin_time
-        self.general_info['Start_time'] = dns_begin_time
+        self.general_info['start_time'] = dns_begin_time
         self.cronet_event_list = [cronet_event for cronet_event in cronet_event_list if cronet_event.event_type not in IGNORE_EVENT_TYPE_LIST]
         self.data_converted_path = data_converted_path
         self.packets = []
@@ -31,9 +31,10 @@ class QuicConnection:
         self.packet_received_dict = {}
 
         #convert event to quic entities
-        self.extract_general_info()
         self.extract_packet()
         self.tag_packet_by_ack()
+        self.extract_retransmission_info()
+        self.extract_general_info()
         self.validate()
 
         #generate save file path
@@ -160,6 +161,17 @@ class QuicConnection:
                     for packet_number in frame.missing_packets: # TODO check the consistency with QUIC_SESSION_PACKET_LOST
                         lost_packet = self.packet_sent_dict[packet_number]
                         lost_packet.is_lost = True
+
+    def extract_retransmission_info(self):
+        retransmission_number = 0
+        lost_number = 0
+        for packet in self.packet_sent_dict.values():
+            if packet.transmission_type != 'NOT_RETRANSMISSION':
+                retransmission_number += 1
+            if packet.is_lost:
+                lost_number += 1
+        self.general_info['retransmission_percentage'] = round(float(retransmission_number)/len(self.packet_sent_dict),3)
+        self.general_info['lost_percentage'] = round(float(lost_number) / len(self.packet_sent_dict), 3)
 
     def add_packet(self,packet):
         self.packets.append(packet)
