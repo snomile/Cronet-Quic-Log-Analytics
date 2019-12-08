@@ -5,7 +5,7 @@ from process import cronet_log_loader,cronet_session
 from visualize import helper_data, helper_graph
 from visualize import graph
 
-file_path = "/Users/zhangliang/cache/cache/netlog-1575713102.json"
+file_path = "netlog-1575619680-10.json"
 #file_path = "netlog-2.json"
 
 show_all_packet_info = True
@@ -15,7 +15,7 @@ show_size_inflight = False
 ignore_list = [] # ['google.com','googleapis.com','doubleclick.net','google-analytics.com']
 
 
-def check_key_path(project_root):
+def check_key_path(project_9root):
     key_paths = [project_root + '/resource/html_output',
                  project_root + '/resource/data_original',
                  project_root + '/resource/data_converted'

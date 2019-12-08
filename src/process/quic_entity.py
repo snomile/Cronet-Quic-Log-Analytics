@@ -24,9 +24,9 @@ class PacketReceived(Packet):
 
         self.type = 'PacketReceived'
         self.relate_events = relate_events.copy()
-        self.connection_id = self.relate_events[0].other_data['params']['connection_id']
-        self.reset_flag = self.relate_events[0].other_data['params']['reset_flag']
-        self.version_flag = self.relate_events[0].other_data['params']['version_flag']
+        #self.connection_id = self.relate_events[0].other_data['params']['connection_id']
+        #self.reset_flag = self.relate_events[0].other_data['params']['reset_flag']
+        #self.version_flag = self.relate_events[0].other_data['params']['version_flag']
         self.is_shlo = False
         #self.relate_events.pop(0)
         for event in self.all_event:
@@ -65,9 +65,9 @@ class PacketReceived(Packet):
             self.type,
             self.packet_number,
             self.size,
-            self.connection_id,
-            self.reset_flag,
-            self.version_flag,
+            #self.connection_id,
+#            self.reset_flag,
+#            self.version_flag,
             [frame.get_info_list() for frame in self.frames]
         ]
 
