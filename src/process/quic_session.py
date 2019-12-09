@@ -21,7 +21,7 @@ class QuicConnection:
     def __init__(self, host, dns_begin_time, dns_end_time, cronet_event_list, data_converted_path, filename_without_ext):
         self.general_info = {'host': host, 'dns_begin_time': 0, 'dns_end_time': dns_end_time- dns_begin_time}
         self.request_start_time_int = dns_begin_time
-        self.general_info['start_time'] = dns_begin_time
+        self.general_info['start_time'] = constant_converter.get_readable_time(dns_begin_time)
         self.cronet_event_list = [cronet_event for cronet_event in cronet_event_list if cronet_event.event_type not in IGNORE_EVENT_TYPE_LIST]
         self.data_converted_path = data_converted_path
         self.packets = []

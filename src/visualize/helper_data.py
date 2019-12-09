@@ -235,7 +235,7 @@ def get_packet_send_source(show_all_packet_info):
                 tags.append('LOST')
                 infos.append(packet['info_str'])
             elif packet['transmission_type'] != 'NOT_RETRANSMISSION':   #tag retramission type, only normal packet have variety of retramission type, all CHLO packet's retramission type is 'NOT_RETRANSMISSION', so no need to process
-                colors.append('red')
+                colors.append('hotpink')
                 tags.append(packet['transmission_type'])
                 infos.append(packet['info_str'])
             else:
