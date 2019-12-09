@@ -19,5 +19,8 @@
     "koa-static": "^5.0.0",
     "log4js": "^5.2.2",
     "shelljs": "^0.8.3"
+  },
+  "devDependencies": {
+    "dayjs": "^1.8.17"
   }
 }

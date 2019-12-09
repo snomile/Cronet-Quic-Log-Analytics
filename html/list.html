@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <!-- import CSS -->
+  <link rel="stylesheet" href="element-ui.css">
+  <link rel="icon" href="data:image/ico;base64,aWNv">
+  <title>cronet quic log analytics</title>
+  <style>
+    html, body {
+      margin: 0;
+    }
+    .el-aside {
+      width: 220px;
+      height: 100vh;
+      background-color: #545c64;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <el-container>
+      <el-aside>
+        <el-menu default-active="0" class="el-menu-vertical-demo" @select="select"
+          background-color="#545c64" text-color="#fff" active-text-color="#ffd04b">
+          <template v-for="(day, index) in days">
+            <el-menu-item :key="day" :index="index + ''">
+              <i class="el-icon-date"></i>
+              <span slot="title">{{day}}</span>
+            </el-menu-item>
+          </template>
+        </el-menu>
+      </el-aside>
+      <el-container>
+        <el-main>
+          <el-card>
+            <div slot="header" class="clearfix">
+              <span>File List</span>
+            </div>
+            <el-table :data="list" style="width: 100%">
+              <el-table-column prop="name" label="File Name">
+              </el-table-column>
+              <el-table-column prop="time" label="Upload Time">
+              </el-table-column>
+              <el-table-column label="Operations">
+                <template slot-scope="scope">
+                  <el-button @click="view(scope.row)" type="text">View</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </el-card>
+        </el-main>
+      </el-container>
+    </el-container>
+  </div>
+</body>
+<!-- import Vue before Element -->
+<script src="vue.js"></script>
+<!-- import JavaScript -->
+<script src="element-ui.js"></script>
+<script src="zepto.min.js"></script>
+<script>
+  new Vue({
+    el: '#app',
+    data: function () {
+      return {
+        menus: {},
+        days: [],
+        list: []
+      }
+    },
+    created() {
+      this.getMenus();
+    },
+    methods: {
+      getMenus() {
+        const _this = this;
+        $.get('./list', {}, function (res) {
+          if (res.code === 200) {
+            _this.menus = res.data;
+            _this.days = Object.keys(_this.menus).reverse();
+            if (_this.days.length) {
+              _this.list = _this.menus[_this.days[0]].map(function(item) {
+                const arr = item.split('-');
+                return { name: arr.slice(1).join('-'), time: arr[0].replace('_', ' '), real: item };
+              });
+            }
+          } else {
+            this.$message.error('no data');
+          }
+        }, 'json');
+      },
+      select(index) {
+        this.list = this.menus[this.days[index]].map(function (item) {
+          const arr = item.split('-');
+          return { name: arr.slice(1).join('-'), time: arr[0].replace('_', ' '), real: item };
+        });
+      },
+      view(row) {
+        console.log(row)
+      }
+    }
+  })
+</script>
+
+</html>

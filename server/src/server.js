@@ -5,6 +5,7 @@ const router = require('koa-router')()
 const koaBody = require('koa-body'); //解析上传文件的插件
 const staticFiles = require('koa-static')
 const shelljs = require('shelljs')
+const dayjs = require('dayjs')
 const { log, error } = require('./util')
 const { htmlStatic, pythonStatic, shellStatic, port, maxSize } = require('./config')
 
@@ -30,13 +31,23 @@ app.use(staticFiles(path.join(__dirname + htmlStatic)))
 app.use(staticFiles(path.join(__dirname + pythonStatic)))
 app.use(staticFiles(path.join(__dirname + '/upload/')))
 
-// 搭建上传服务
+// 上传服务
 router.post('/upload', async (ctx, next) => {
   const file = ctx.request.files.file; // 上传的文件在ctx.request.files.file
   // 修改文件的名称
-  var myDate = new Date();
-  var newFilename = myDate.getTime() + '-' + file.name;
-  var targetPath = path.join(__dirname, '/upload/' + `${newFilename}`);
+  var day = dayjs().format('YYYY-MM-DD');
+  var dayPath = path.join(__dirname, '/upload/', day);
+  var hasPath = true;
+  try {
+    hasPath = fs.existsSync(dayPath);
+  } catch(e) {
+    hasPath = false;
+  }
+  if (!hasPath) {
+    fs.mkdirSync(dayPath);
+  }
+  var newFileName = '/' + dayjs().format('YYYY.MM.DD_HH:mm:ss') + '-' + file.name;
+  var targetPath = dayPath + newFileName;
   // 写入本身是异步的，这里改为同步方法，防止接下来的执行报错
   var writeFile = function () {
     return new Promise(function (resolve, reject) {
@@ -52,7 +63,45 @@ router.post('/upload', async (ctx, next) => {
     });
   }
   await writeFile();
-  return ctx.body = { code: 200, data: { url: '/' + newFilename, local: targetPath } };
+  if (file.type.indexOf('zip') >= 0) {
+    const shell = `unzip -o ${targetPath} -d ${dayPath}/`;
+    log(`upload a zip file, begin unzip the file:${shell}`);
+    let zipFileName = '';
+    const res = shelljs.exec(shell);
+    if (res.stdout) {
+      const resLog = res.stdout;
+      resLog.split('\n').forEach(line => {
+        if (line.indexOf('inflating:') >= 0) {
+          zipFileName = line.replace('inflating:', '').trim();
+        }
+      })
+      if (zipFileName) {
+        shelljs.exec(`mv ${zipFileName} ${targetPath.substring(0, targetPath.length - 4)}.json`);
+      }
+    } else {
+      log(res.stderr, 'red');
+      return ctx.body = { code: 400, message: res.stdout, error: res.stderr };
+    }
+  }
+  log('unzip done, delete the zip file');
+  shelljs.exec('rm ' + dayPath + '/*.zip');
+  return ctx.body = { code: 200, data: { url: '/' + day + newFileName, local: targetPath } };
+});
+
+// 上传服务
+router.get('/list', async (ctx, next) => {
+  const data = {};
+  const parent = path.join(__dirname, '/upload/');
+  const dirs = fs.readdirSync(parent);
+  for (let i = 0; i < dirs.length; i++) {
+    try {
+      const childDir = fs.readdirSync(parent + dirs[i]);
+      data[dirs[i]] = childDir;
+    } catch (e) {
+      log(`${dirs[i]} is not a directory, ignore it`, 'red');
+    }
+  }
+  return ctx.body = { code: 200, data };
 });
 
 router.post('/analysis', async (ctx, next) => {
