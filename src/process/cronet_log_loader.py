@@ -23,7 +23,7 @@ def fix_trunced_file(file_path):
         else:
             print('no need to fix')
 
-def process_chrome_log(fullpath, data_original_path, data_converted_path, filename_without_ext):
+def process_chrome_log(fullpath, project_root, data_converted_path, filename_without_ext):
     #fix file
     fix_trunced_file(fullpath)
 
@@ -34,7 +34,7 @@ def process_chrome_log(fullpath, data_original_path, data_converted_path, filena
     if 'constants' in load_dict.keys():
         constants = load_dict['constants']
     else:
-        with open(data_original_path + '/constants.json', 'r') as load_f:
+        with open(project_root + '/resource/constants/constants.json', 'r') as load_f:
             constants = json.load(load_f)['constants']
             constants['timeTickOffset'] = load_dict['timeTickOffset']
     log_events = load_dict['events']

@@ -67,7 +67,7 @@ def process_show(usable_input_path, argv):
         (filename_without_ext, extension) = os.path.splitext(tempfilename)
 
         # process data
-        json_files = cronet_log_loader.process_chrome_log(usable_input_path, project_root + "/resource/data_original/", project_root + "/resource/data_converted/",
+        json_files = cronet_log_loader.process_chrome_log(usable_input_path, project_root, project_root + "/resource/data_converted/",
                                                           filename_without_ext)
 
         # show graph

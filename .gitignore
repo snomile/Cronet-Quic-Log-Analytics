@@ -111,3 +111,6 @@ venv.bak/
 /src_clipper/.idea/
 /src_clipper/out/production/src_clipper/
 /src_clipper/src_clipper.iml
+
+# except for .gitkeep
+!.gitkeep
