@@ -6,7 +6,7 @@ const koaBody = require('koa-body'); //解析上传文件的插件
 const staticFiles = require('koa-static')
 const shelljs = require('shelljs')
 const dayjs = require('dayjs')
-const { log, error } = require('./util')
+const { log, getClientIP } = require('./util')
 const { htmlStatic, pythonStatic, shellStatic, port, maxSize } = require('./config')
 
 // 获取koa实例
@@ -34,6 +34,7 @@ app.use(staticFiles(path.join(__dirname + '/upload/')))
 // 上传服务
 router.post('/upload', async (ctx, next) => {
   const file = ctx.request.files.file; // 上传的文件在ctx.request.files.file
+  log(`${JSON.stringify(getClientIP(ctx.request))}`)
   log(`${JSON.stringify(ctx.request)}`);
   log(`upload file begin: ${JSON.stringify(file)}`);
   if (file.type.indexOf('zip') < 0 && file.type.indexOf('json') < 0) {
