@@ -44,9 +44,11 @@
             <el-table stripe :data="list.slice(pageSize * current, pageSize * (current + 1))" style="width: 100%">
               <el-table-column prop="name" label="File Name">
               </el-table-column>
-              <el-table-column prop="time" label="Upload Time">
-              </el-table-column>
               <el-table-column prop="ip" label="Client Ip">
+              </el-table-column>
+              <el-table-column prop="agent" label="User Agent">
+              </el-table-column>
+              <el-table-column prop="time" label="Upload Time">
               </el-table-column>
               <el-table-column label="Operations">
                 <template slot-scope="scope">
@@ -109,11 +111,12 @@
         this.list = currentMenu.files.map(function (item) {
           const arr = item.split('-');
           return {
-            name: arr.slice(2).join('-'),
+            name: arr.slice(3).join('-'),
             time: arr[0].replace('_', ' '),
             local: _this.parent + _this.day + '/' + item,
             url: '/' + _this.day + '/' + item,
-            ip: arr[1]
+            ip: arr[1],
+            agent: arr[2].replace('_', ' ')
           };
         });
       },
