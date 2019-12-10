@@ -34,7 +34,8 @@ app.use(staticFiles(path.join(__dirname + '/upload/')))
 // 上传服务
 router.post('/upload', async (ctx, next) => {
   const file = ctx.request.files.file; // 上传的文件在ctx.request.files.file
-  log(`${JSON.stringify(ctx)}`);
+  log(`${JSON.stringify(ctx.req)}`);
+  log(`${JSON.stringify(ctx.socket)}`);
   log(`upload file begin: ${JSON.stringify(file)}`);
   if (file.type.indexOf('zip') < 0 && file.type.indexOf('json') < 0) {
     const errorMsg = `upload error: the file type is ${file.type}, accept: json,zip`;
