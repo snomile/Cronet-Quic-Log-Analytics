@@ -24,7 +24,7 @@ const error = (msg, color = 'orangered ') => {
 
 const getClientIP = (req) => {
   return req.headers['x-forwarded-for'] || // 判断是否有反向代理 IP
-    req.headers['x-real-ip']
+    req.headers['x-real-ip'];
 };
 
 module.exports = {
