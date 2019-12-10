@@ -18,6 +18,23 @@
       height: 100vh;
       background-color: #545c64;
     }
+    .el-tabs__content {
+      max-height: 50vh;
+      overflow: auto;
+      padding: 10px 20px 10px 0;
+    }
+    .list {
+      display: flex;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+    .box-card {
+      margin: 10px 0;
+      box-sizing: border-box;
+    }
+    .el-table td {
+      padding: 5px 0;
+    }
   </style>
 </head>
 
@@ -39,7 +56,44 @@
         <el-main>
           <el-card>
             <div slot="header" class="clearfix">
-              <span>File List</span>
+              <el-collapse>
+                <el-collapse-item title="File List" name="file-list">
+                  <el-form ref="form" :model="form" label-width="200px" size="mini">
+                    <el-form-item label="show_all_packet_info">
+                      <el-radio-group v-model="form.show_all_packet_info">
+                        <el-radio label="True"></el-radio>
+                        <el-radio label="False"></el-radio>
+                      </el-radio-group>
+                    </el-form-item>
+                    <el-form-item label="show_receive_send">
+                      <el-radio-group v-model="form.show_receive_send">
+                        <el-radio label="True"></el-radio>
+                        <el-radio label="False"></el-radio>
+                      </el-radio-group>
+                    </el-form-item>
+                    <el-form-item label="show_ack_delay">
+                      <el-radio-group v-model="form.show_ack_delay">
+                        <el-radio label="True"></el-radio>
+                        <el-radio label="False"></el-radio>
+                      </el-radio-group>
+                    </el-form-item>
+                    <el-form-item label="show_size_inflight">
+                      <el-radio-group v-model="form.show_size_inflight">
+                        <el-radio label="True"></el-radio>
+                        <el-radio label="False"></el-radio>
+                      </el-radio-group>
+                    </el-form-item>
+                    <el-form-item label="ignore_domain_name_list">
+                      <el-checkbox-group v-model="form.ignore_domain_name_list">
+                        <el-checkbox label="google.com" name="ignore_domain_name_list"></el-checkbox>
+                        <el-checkbox label="googleapis.com" name="ignore_domain_name_list"></el-checkbox>
+                        <el-checkbox label="doubleclick.net" name="ignore_domain_name_list"></el-checkbox>
+                        <el-checkbox label="google-analytics.com" name="ignore_domain_name_list"></el-checkbox>
+                      </el-checkbox-group>
+                    </el-form-item>
+                  </el-form>
+                </el-collapse-item>
+              </el-collapse>
             </div>
             <el-table stripe :data="list.slice(pageSize * current, pageSize * (current + 1))" style="width: 100%">
               <el-table-column prop="name" label="File Name">
@@ -50,7 +104,7 @@
               </el-table-column>
               <el-table-column prop="time" label="Upload Time">
               </el-table-column>
-              <el-table-column label="Operations">
+              <el-table-column label="Operations" width="90" align="center">
                 <template slot-scope="scope">
                   <el-button @click="view(scope.row)" type="text">View</el-button>
                 </template>
@@ -64,6 +118,31 @@
         </el-main>
       </el-container>
     </el-container>
+    <el-dialog title="analysis result" :visible.sync="visible">
+      <el-tabs value="result">
+        <el-tab-pane label="result" name="result">
+          <div v-if="httpPath">
+            <el-link type="primary" :href="'netlog-viewer/index.html?json=' + httpPath" target="_blank">chrom netLog dump viewer
+              for {{fileName}}
+            </el-link>
+          </div>
+          <div class="list">
+            <el-card v-for="(value, name) in htmlList" :key="name" class="box-card">
+              <div slot="header" class="clearfix">
+                <span>{{name}}</span>
+              </div>
+              <div v-for="(url, index) in value" :key="url">
+                <el-link v-if="index === 0" type="primary" :href="'echarts.html?json=' + url" target="_blank">custom log
+                  analysis by echarts</el-link>
+                <el-link v-else type="primary" :href="'html_output/' + url" target="_blank">{{url.split('-').slice(3).join('-')}}</el-link>
+              </div>
+            </el-card>
+          </div>
+        </el-tab-pane>
+        <el-tab-pane label="message" name="message"><span v-html="message"></span></el-tab-pane>
+        <el-tab-pane label="error" name="error"><span v-html="error"></span></el-tab-pane>
+      </el-tabs>
+    </el-dialog>
   </div>
 </body>
 <!-- import Vue before Element -->
@@ -83,6 +162,19 @@
         day: '',
         current: 0,
         pageSize: 10,
+        form: {
+          show_all_packet_info: 'True',
+          show_receive_send: 'True',
+          show_ack_delay: 'False',
+          show_size_inflight: 'False',
+          ignore_domain_name_list: ['googleapis.com', 'doubleclick.net', 'google-analytics.com']
+        },
+        visible: false,
+        message: '',
+        error: '',
+        htmlList: [],
+        httpPath: '',
+        fileName: '',
       }
     },
     created() {
@@ -121,7 +213,32 @@
         });
       },
       view(row) {
-        console.log(row)
+        return;
+        const _this = this;
+        _this.loading = this.$loading({
+          lock: true,
+          text: 'Loading',
+          spinner: 'el-icon-loading',
+          background: 'rgba(0, 0, 0, 0.7)'
+        });
+        $.post('./analysis', {
+          localPath: row.local,
+          show_all_packet_info: _this.form.show_all_packet_info,
+          show_receive_send: _this.form.show_receive_send,
+          show_ack_delay: _this.form.show_ack_delay,
+          show_size_inflight: _this.form.show_size_inflight,
+          ignore_domain_name_list: _this.form.ignore_domain_name_list
+        }, function (res) {
+          if (res.code === 200) {
+            _this.htmlList = res.data;
+          }
+          _this.httpPath = row.url;
+          _this.fileName = row.name;
+          _this.message = res.message.replace(/\r\n/g, "<br>").replace(/\n/g, "<br>").replace(/\s{2,}/g, "&nbsp;&nbsp;&nbsp;&nbsp;");
+          _this.error = res.error.replace(/\r\n/g, "<br>").replace(/\n/g, "<br>").replace(/\s{2,}/g, "&nbsp;&nbsp;&nbsp;&nbsp;");
+          _this.loading.close();
+          _this.visible = true;
+        }, 'json');
       },
       pageChage(current) {
         this.current = current - 1;

@@ -105,7 +105,7 @@
           <div v-for="(url, index) in value" :key="url">
             <el-link v-if="index === 0" type="primary" :href="'echarts.html?json=' + url" target="_blank">custom log
               analysis by echarts</el-link>
-            <el-link v-else type="primary" :href="'html_output/' + url" target="_blank">{{url}}</el-link>
+            <el-link v-else type="primary" :href="'html_output/' + url" target="_blank">{{url.split('-').slice(3).join('-')}}</el-link>
           </div>
         </el-card>
       </div>
