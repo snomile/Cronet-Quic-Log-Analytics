@@ -12,13 +12,13 @@
   "dependencies": {
     "chalk": "^2.4.2",
     "crypto": "^1.0.1",
+    "dayjs": "^1.8.17",
     "koa": "^2.10.0",
     "koa-body": "^4.1.1",
     "koa-bodyparser": "^4.2.1",
     "koa-router": "^7.4.0",
     "koa-static": "^5.0.0",
     "log4js": "^5.2.2",
-    "shelljs": "^0.8.3",
-    "dayjs": "^1.8.17"
+    "shelljs": "^0.8.3"
   }
 }
