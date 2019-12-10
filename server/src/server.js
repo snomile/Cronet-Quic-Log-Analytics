@@ -34,6 +34,10 @@ app.use(staticFiles(path.join(__dirname + '/upload/')))
 // 上传服务
 router.post('/upload', async (ctx, next) => {
   const file = ctx.request.files.file; // 上传的文件在ctx.request.files.file
+  log(`upload file begin: ${JSON.stringify(file)}`);
+  if (file.type.indexOf('zip') < 0 || file.type.indexOf('json') < 0) {
+    return ctx.body = { code: 400, message: `the file type is ${file.type}, accept: json,zip`, error: 'upload error' };
+  }
   // 修改文件的名称
   var day = dayjs().format('YYYY-MM-DD');
   var dayPath = path.join(__dirname, '/upload/', day);
@@ -77,6 +81,9 @@ router.post('/upload', async (ctx, next) => {
       })
       if (zipFileName) {
         shelljs.exec(`mv ${zipFileName} ${targetPath.substring(0, targetPath.length - 4)}.json`);
+      } else {
+        log(res.stderr, 'red');
+        return ctx.body = { code: 400, message: res.stdout, error: res.stderr };
       }
     } else {
       log(res.stderr, 'red');
