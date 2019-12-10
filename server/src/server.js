@@ -38,6 +38,7 @@ router.post('/upload', async (ctx, next) => {
   if (file.type.indexOf('zip') < 0 && file.type.indexOf('json') < 0) {
     const errorMsg = `upload error: the file type is ${file.type}, accept: json,zip`;
     log(errorMsg,'red');
+    ctx.status = 400;
     return ctx.body = { code: 400, message: errorMsg };
   }
   // 修改文件的名称
@@ -88,10 +89,12 @@ router.post('/upload', async (ctx, next) => {
         shelljs.exec(`mv ${zipFileName} ${lastFileName}`);
       } else {
         log(res.stderr, 'red');
+        ctx.status = 400;
         return ctx.body = { code: 400, message: res.stdout, error: res.stderr };
       }
     } else {
       log(res.stderr, 'red');
+      ctx.status = 400;
       return ctx.body = { code: 400, message: res.stdout, error: res.stderr };
     }
     log('unzip done, delete the zip file');
