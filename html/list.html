@@ -8,9 +8,11 @@
   <link rel="icon" href="data:image/ico;base64,aWNv">
   <title>cronet quic log analytics</title>
   <style>
-    html, body {
+    html,
+    body {
       margin: 0;
     }
+
     .el-aside {
       width: 220px;
       height: 100vh;
@@ -23,8 +25,8 @@
   <div id="app">
     <el-container>
       <el-aside>
-        <el-menu default-active="0" class="el-menu-vertical-demo" @select="select"
-          background-color="#545c64" text-color="#fff" active-text-color="#ffd04b">
+        <el-menu default-active="0" class="el-menu-vertical-demo" @select="select" background-color="#545c64"
+          text-color="#fff" active-text-color="#ffd04b">
           <template v-for="(day, index) in days">
             <el-menu-item :key="day" :index="index + ''">
               <i class="el-icon-date"></i>
@@ -39,7 +41,7 @@
             <div slot="header" class="clearfix">
               <span>File List</span>
             </div>
-            <el-table stripe :data="list" style="width: 100%">
+            <el-table stripe :data="list.slice(pageSize * current, pageSize * (current + 1))" style="width: 100%">
               <el-table-column prop="name" label="File Name">
               </el-table-column>
               <el-table-column prop="time" label="Upload Time">
@@ -50,6 +52,10 @@
                 </template>
               </el-table-column>
             </el-table>
+            <div style="margin-top: 20px;">
+              <el-pagination background layout="prev, pager, next" :total="list.length" @current-change="pageChage"
+                @prev-click="pageChage" @next-click="pageChage"></el-pagination>
+            </div>
           </el-card>
         </el-main>
       </el-container>
@@ -68,7 +74,11 @@
       return {
         menus: {},
         days: [],
-        list: []
+        list: [],
+        parent: '',
+        day: '',
+        current: 0,
+        pageSize: 10,
       }
     },
     created() {
@@ -82,10 +92,7 @@
             _this.menus = res.data;
             _this.days = Object.keys(_this.menus).reverse();
             if (_this.days.length) {
-              _this.list = _this.menus[_this.days[0]].map(function(item) {
-                const arr = item.split('-');
-                return { name: arr.slice(1).join('-'), time: arr[0].replace('_', ' '), real: item };
-              });
+              _this.select(0);
             }
           } else {
             this.$message.error('no data');
@@ -93,13 +100,26 @@
         }, 'json');
       },
       select(index) {
-        this.list = this.menus[this.days[index]].map(function (item) {
+        this.day = this.days[index]
+        const currentMenu = this.menus[this.day];
+        this.parent = currentMenu.parent;
+        const _this = this;
+        this.list = currentMenu.files.map(function (item) {
           const arr = item.split('-');
-          return { name: arr.slice(1).join('-'), time: arr[0].replace('_', ' '), real: item };
+          return {
+            name: arr.slice(1).join('-'),
+            time: arr[0].replace('_', ' '),
+            local: _this.parent + _this.day + '/' + item,
+            url: '/' + _this.day + '/' + item,
+            ip: arr[1]
+          };
         });
       },
       view(row) {
         console.log(row)
+      },
+      pageChage(current) {
+        this.current = current - 1;
       }
     }
   })

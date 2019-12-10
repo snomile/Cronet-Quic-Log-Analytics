@@ -114,8 +114,11 @@ router.get('/list', async (ctx, next) => {
   const dirs = fs.readdirSync(parent);
   for (let i = 0; i < dirs.length; i++) {
     try {
-      const childDir = fs.readdirSync(parent + dirs[i]);
-      data[dirs[i]] = childDir;
+      const files = fs.readdirSync(parent + dirs[i]);
+      data[dirs[i]] = {
+        parent: parent,
+        files,
+      };
     } catch (e) {
       log(`${dirs[i]} is not a directory, ignore it`, 'red');
     }
