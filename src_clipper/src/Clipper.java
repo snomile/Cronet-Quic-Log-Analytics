@@ -66,12 +66,12 @@ public class Clipper {
                         write_cache.append(line);
                     }
                 } else{
-                    source_part = line.substring(Math.max(0, line_length-60));
+                    source_part = line.substring(Math.max(0, line_length-60),Math.max(0, line_length-30));
                     if (source_quic_session.matcher(source_part).find() || source_host_resolver.matcher(source_part).find()) {  //filter quic events
                         if (keep_all_quic) {
                             write_cache.append(line);
                         }else{
-                            event_type_part = source_part.substring(source_part.length()-5);
+                            event_type_part = line.substring(line_length-5);
                             if (event_type_236.matcher(event_type_part).find() ||
                                     event_type_243.matcher(event_type_part).find() ||
                                     event_type_266.matcher(event_type_part).find() ||
@@ -90,9 +90,6 @@ public class Clipper {
 //                                write_cache.append('\n');
                             }
                         }
-                    }
-                    else{
-                        continue;
                     }
                 }
 
@@ -113,7 +110,7 @@ public class Clipper {
     public static void main(String[] args) {
         Clipper clipper = new Clipper();
         long time_start = System.currentTimeMillis();
-        clipper.clip("/Users/zhangliang/PycharmProjects/chrome_quic_log_analytics/resource/data_original/netlog-1575619680.json", false,true,false);
+        clipper.clip("/Users/zhangliang/PycharmProjects/chrome_quic_log_analytics/resource/data_original/some_file_name2.json", false,true,false);
         System.out.println("time cost: " +  String.valueOf(System.currentTimeMillis() - time_start));
     }
 

@@ -1,5 +1,5 @@
 FROM python:slim
-RUN apt update; apt install wget git tar xz-utils build-essential -y
+RUN apt update; apt install wget git tar xz-utils build-essential zip unzip -y
 #RUN apt install curl nano iputils-ping net-tools netcat zsh -y \
 #    && chsh -s /bin/zsh \
 #    && sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)" \

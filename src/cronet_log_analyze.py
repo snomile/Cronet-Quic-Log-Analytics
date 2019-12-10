@@ -5,8 +5,8 @@ from process import cronet_log_loader,cronet_session
 from visualize import helper_data, helper_graph
 from visualize import graph
 
-file_path = "netlog-1575619680-10.json"
-#file_path = "netlog-2.json"
+file_path = "/Users/zhangliang/some_file_name2.json"
+#file_path = "some_file_name2.json"
 
 show_all_packet_info = True
 show_receive_send = True
