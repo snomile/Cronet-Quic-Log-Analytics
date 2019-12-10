@@ -35,8 +35,7 @@ app.use(staticFiles(path.join(__dirname + '/upload/')))
 router.post('/upload', async (ctx, next) => {
   const file = ctx.request.files.file; // 上传的文件在ctx.request.files.file
   const clientIp = getClientIP(ctx.req).replace('::ffff:', '');
-  const userAgent = ctx.request.header['user-agent'];
-  console.log(clientIp, userAgent)
+  const userAgent = ctx.request.header['user-agent'].replace(/\s|\/|\.|\*/igm, '_');
   log(`upload file begin: ${JSON.stringify(file)}`);
   if (file.type.indexOf('zip') < 0 && file.type.indexOf('json') < 0) {
     const errorMsg = `upload error: the file type is ${file.type}, accept: json,zip`;
@@ -56,7 +55,7 @@ router.post('/upload', async (ctx, next) => {
   if (!hasPath) {
     fs.mkdirSync(dayPath);
   }
-  var extName = dayjs().format('YYYY.MM.DD_HH:mm:ss') + '-' + clientIp + '-';
+  var extName = dayjs().format('YYYY.MM.DD_HH:mm:ss') + '-' + clientIp + '-' + userAgent + '-';
   var newFileName = '/' + extName + file.name;
   var targetPath = dayPath + newFileName;
   // 写入本身是异步的，这里改为同步方法，防止接下来的执行报错

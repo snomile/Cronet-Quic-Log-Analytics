@@ -46,6 +46,8 @@
               </el-table-column>
               <el-table-column prop="time" label="Upload Time">
               </el-table-column>
+              <el-table-column prop="ip" label="Client Ip">
+              </el-table-column>
               <el-table-column label="Operations">
                 <template slot-scope="scope">
                   <el-button @click="view(scope.row)" type="text">View</el-button>
@@ -107,7 +109,7 @@
         this.list = currentMenu.files.map(function (item) {
           const arr = item.split('-');
           return {
-            name: arr.slice(1).join('-'),
+            name: arr.slice(2).join('-'),
             time: arr[0].replace('_', ' '),
             local: _this.parent + _this.day + '/' + item,
             url: '/' + _this.day + '/' + item,
