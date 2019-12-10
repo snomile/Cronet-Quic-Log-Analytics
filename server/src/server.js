@@ -100,7 +100,8 @@ router.post('/upload', async (ctx, next) => {
     }
     log('unzip done, delete the zip file');
     shelljs.exec('rm ' + dayPath + '/*.zip');
-    return ctx.body = { code: 200, data: { local: lastFileName } };
+
+    return ctx.body = { code: 200, data: { url: '/' + lastFileName.substring(lastFileName.indexOf(day), lastFileName.length), local: lastFileName } };
   } else {
     return ctx.body = { code: 200, data: { url: '/' + day + newFileName, local: targetPath } };
   }
