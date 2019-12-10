@@ -5,7 +5,7 @@ const router = require('koa-router')()
 const koaBody = require('koa-body'); //解析上传文件的插件
 const staticFiles = require('koa-static')
 const shelljs = require('shelljs')
-const dayjs = require('dayjs')
+const dayjs = {}
 const { log, error } = require('./util')
 const { htmlStatic, pythonStatic, shellStatic, port, maxSize } = require('./config')
 
