@@ -35,8 +35,10 @@ app.use(staticFiles(path.join(__dirname + '/upload/')))
 router.post('/upload', async (ctx, next) => {
   const file = ctx.request.files.file; // 上传的文件在ctx.request.files.file
   log(`upload file begin: ${JSON.stringify(file)}`);
-  if (file.type.indexOf('zip') < 0 || file.type.indexOf('json') < 0) {
-    return ctx.body = { code: 400, message: `the file type is ${file.type}, accept: json,zip`, error: 'upload error' };
+  if (file.type.indexOf('zip') < 0 && file.type.indexOf('json') < 0) {
+    const errorMsg = `upload error: the file type is ${file.type}, accept: json,zip`;
+    log(errorMsg,'red');
+    return ctx.body = { code: 400, message: errorMsg };
   }
   // 修改文件的名称
   var day = dayjs().format('YYYY-MM-DD');
@@ -50,7 +52,8 @@ router.post('/upload', async (ctx, next) => {
   if (!hasPath) {
     fs.mkdirSync(dayPath);
   }
-  var newFileName = '/' + dayjs().format('YYYY.MM.DD_HH:mm:ss') + '-' + file.name;
+  var extName = dayjs().format('YYYY.MM.DD_HH:mm:ss') + '-';
+  var newFileName = '/' + extName + file.name;
   var targetPath = dayPath + newFileName;
   // 写入本身是异步的，这里改为同步方法，防止接下来的执行报错
   var writeFile = function () {
@@ -71,6 +74,7 @@ router.post('/upload', async (ctx, next) => {
     const shell = `unzip -o ${targetPath} -d ${dayPath}/`;
     log(`upload a zip file, begin unzip the file:${shell}`);
     let zipFileName = '';
+    let lastFileName = ''
     const res = shelljs.exec(shell);
     if (res.stdout) {
       const resLog = res.stdout;
@@ -80,7 +84,8 @@ router.post('/upload', async (ctx, next) => {
         }
       })
       if (zipFileName) {
-        shelljs.exec(`mv ${zipFileName} ${targetPath.substring(0, targetPath.length - 4)}.json`);
+        lastFileName = `${zipFileName.replace(`${dayPath}/`, `${dayPath}/${extName}`)}`;
+        shelljs.exec(`mv ${zipFileName} ${lastFileName}`);
       } else {
         log(res.stderr, 'red');
         return ctx.body = { code: 400, message: res.stdout, error: res.stderr };
@@ -89,10 +94,12 @@ router.post('/upload', async (ctx, next) => {
       log(res.stderr, 'red');
       return ctx.body = { code: 400, message: res.stdout, error: res.stderr };
     }
+    log('unzip done, delete the zip file');
+    shelljs.exec('rm ' + dayPath + '/*.zip');
+    return ctx.body = { code: 200, data: { local: lastFileName } };
+  } else {
+    return ctx.body = { code: 200, data: { url: '/' + day + newFileName, local: targetPath } };
   }
-  log('unzip done, delete the zip file');
-  shelljs.exec('rm ' + dayPath + '/*.zip');
-  return ctx.body = { code: 200, data: { url: '/' + day + newFileName, local: targetPath } };
 });
 
 // 上传服务
