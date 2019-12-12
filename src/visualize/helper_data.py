@@ -108,6 +108,28 @@ def calculate_packet_size_on_the_fly():
 
     return packet_sent_time_sequence_list,on_the_fly_packet_size_list
 
+def get_ack_size_source():
+    ack_receive_time_sequence_list = []
+    total_acked_size_list = []
+    total_ack_size = 0
+    for frame in frame_dict.values():
+        if frame['frame_type'] == 'ACK' and frame['direction'] == 'receive':
+            ack_packet_number_list = frame['ack_packet_number_list']
+            for ack_packet_number in ack_packet_number_list:
+                ack_packet = packet_sent_dict[str(ack_packet_number)]
+                ack_packet_length = ack_packet['length']
+                total_ack_size += ack_packet_length/1024
+            total_acked_size_list.append(total_ack_size)
+            ack_receive_time_sequence_list.append(frame['time_elaps'])
+
+    ack_size_source = ColumnDataSource(data={
+        'x': ack_receive_time_sequence_list,
+        'y': total_acked_size_list,
+    })
+    return ack_size_source
+
+
+
 def calculate_server_cfcw():
     #init by default server cfcw
     cfcw_timestamp = [0]

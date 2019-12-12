@@ -5,8 +5,8 @@ import java.util.zip.ZipOutputStream;
 
 public class Clipper {
 
-    private static final int save_batch = 1000;
-    private static final int expect_clip_size = 5;
+    private static final int save_batch = 500;
+    private static final int expect_average_row_length = 220;
 
     private static final Pattern source_quic_session = Pattern.compile(".*e\":10.*"); // "QUIC_SESSION":10
     private static final Pattern source_host_resolver = Pattern.compile(".*e\":13.*"); // "HOST_RESOLVER_IMPL_JOB":13
@@ -46,7 +46,7 @@ public class Clipper {
             String line;
             boolean has_constants = true;
             int cache_line_counter = 0;
-            StringBuilder write_cache = new StringBuilder((int)origin_file.length()/expect_clip_size);
+            StringBuilder write_cache = new StringBuilder(save_batch * expect_average_row_length);
             String event_type_part ;
             String source_part;
             int line_length;
