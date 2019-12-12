@@ -61,7 +61,7 @@ public class Clipper {
                     has_constants = false; //save processor power by avoiding repeatly enter this section
                     if (clip_constants) {
                         String base_time = getBaseTime(line, line_length);
-                        write_cache.append("{" + base_time + ",\"events\": [");
+                        write_cache.append("{" + base_time + ",\"events\": [\n");
                     } else {
                         write_cache.append(line);
                     }
@@ -87,7 +87,7 @@ public class Clipper {
 //                            }
                             else{
                                 write_cache.append(line);
-//                                write_cache.append('\n');
+                                write_cache.append('\n');
                             }
                         }
                     }
@@ -110,7 +110,7 @@ public class Clipper {
     public static void main(String[] args) {
         Clipper clipper = new Clipper();
         long time_start = System.currentTimeMillis();
-        clipper.clip("/Users/zhangliang/PycharmProjects/chrome_quic_log_analytics/resource/data_original/some_file_name2.json", false,true,false);
+        clipper.clip("/Users/zhangliang/PycharmProjects/chrome_quic_log_analytics/src_clipper/src/netlog-1576034028.json", false,true,false);
         System.out.println("time cost: " +  String.valueOf(System.currentTimeMillis() - time_start));
     }
 

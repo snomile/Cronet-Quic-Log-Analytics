@@ -5,7 +5,7 @@ from process import cronet_log_loader,cronet_session
 from visualize import helper_data, helper_graph
 from visualize import graph
 
-file_path = "/Users/zhangliang/some_file_name2.json"
+file_path = "/Users/zhangliang/Downloads/2019.12.12_10:00:25-10.0.63.174-TestQuic_Redmi_Note_5A-netlog-1576115599.json"
 #file_path = "some_file_name2.json"
 
 show_all_packet_info = True

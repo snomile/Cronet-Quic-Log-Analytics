@@ -76,18 +76,22 @@ class QuicConnection:
         self.general_info['Client_SFCW'] = 9999999999
         self.general_info['Server_CFCW'] = 9999999999
         self.general_info['Server_SFCW'] = 9999999999
-        last_chlo_infos = last_chlo['quic_crypto_handshake_message'].split('\n')
-        for info in last_chlo_infos:
-            if 'CFCW' in info:
-                self.general_info['Client_CFCW'] = int(info.split(': ')[1])
-            if 'SFCW' in info:
-                self.general_info['Client_SFCW'] = int(info.split(': ')[1])
-        last_shlo_infos = last_shlo['quic_crypto_handshake_message'].split('\n')
-        for info in last_shlo_infos:
-            if 'CFCW' in info:
-                self.general_info['Server_CFCW'] = int(info.split(': ')[1])
-            if 'SFCW' in info:
-                self.general_info['Server_SFCW'] = int(info.split(': ')[1])
+
+        if last_chlo and 'quic_crypto_handshake_message' in last_chlo.keys():
+            last_chlo_infos = last_chlo['quic_crypto_handshake_message'].split('\n')
+            for info in last_chlo_infos:
+                if 'CFCW' in info:
+                    self.general_info['Client_CFCW'] = int(info.split(': ')[1])
+                if 'SFCW' in info:
+                    self.general_info['Client_SFCW'] = int(info.split(': ')[1])
+
+        if last_shlo and 'quic_crypto_handshake_message' in last_shlo.keys():
+            last_shlo_infos = last_shlo['quic_crypto_handshake_message'].split('\n')
+            for info in last_shlo_infos:
+                if 'CFCW' in info:
+                    self.general_info['Server_CFCW'] = int(info.split(': ')[1])
+                if 'SFCW' in info:
+                    self.general_info['Server_SFCW'] = int(info.split(': ')[1])
 
         #print general info
         for key,value in self.general_info.items():
