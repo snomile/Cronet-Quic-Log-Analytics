@@ -118,7 +118,7 @@ def get_ack_size_source():
             for ack_packet_number in ack_packet_number_list:
                 ack_packet = packet_sent_dict[str(ack_packet_number)]
                 ack_packet_length = ack_packet['length']
-                total_ack_size += ack_packet_length/1024
+                total_ack_size += round(ack_packet_length/1024.0,2)
             total_acked_size_list.append(total_ack_size)
             ack_receive_time_sequence_list.append(frame['time_elaps'])
 
@@ -227,7 +227,7 @@ def get_packet_send_source(show_all_packet_info):
         packet_sent_time = int(packet['time'])
         packet_sent_time_readable = packet['time_h']
         total_sent_size += packet['length']
-        current_total_sent_size = total_sent_size / 1024
+        current_total_sent_size = round(total_sent_size / 1024.0,2)
         ack_delay_total = int(packet['ack_delay'])
         ack_delay_server = int(packet['ack_delay_server'])
 
