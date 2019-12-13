@@ -32,7 +32,7 @@ public class Clipper {
     }
 
 
-    public void clip(String origin_file_path, boolean keep_all, boolean clip_constants, boolean keep_all_quic) {
+    public void clip(String origin_file_path, boolean keep_all, boolean keep_constants, boolean keep_all_quic) {
         try{
             File origin_file = new File(origin_file_path);
             String tmp_file_path = origin_file_path + ".zip";
@@ -44,28 +44,31 @@ public class Clipper {
             zipOut.putNextEntry(new ZipEntry(origin_file.getName()));
 
             String line;
-            boolean has_constants = true;
             int cache_line_counter = 0;
             StringBuilder write_cache = new StringBuilder(save_batch * expect_average_row_length);
-            String event_type_part ;
+            String event_type_part;
             String source_part;
             int line_length;
             while((line=reader.readLine())!=null)
             {
                 line_length = line.length();
-                cache_line_counter++;
-                if (keep_all){
-                    write_cache.append(line);
-                }
-                else if(has_constants && line.startsWith("{\"constants\":{\"")) {  //filter constants
-                    has_constants = false; //save processor power by avoiding repeatly enter this section
-                    if (clip_constants) {
+                if (cache_line_counter == 0) {  // first line is constants
+                    if (keep_constants) {
+                        write_cache.append(line);
+                        write_cache.append("\"events\": [\n");
+                    } else {
                         String base_time = getBaseTime(line, line_length);
                         write_cache.append("{" + base_time + ",\"events\": [\n");
-                    } else {
-                        write_cache.append(line);
                     }
-                } else{
+
+                    // skip second line
+                    reader.readLine();
+                    cache_line_counter++;
+                }
+                else if (keep_all){
+                    write_cache.append(line);
+                }
+                else {
                     source_part = line.substring(Math.max(0, line_length-60),Math.max(0, line_length-30));
                     if (source_quic_session.matcher(source_part).find() || source_host_resolver.matcher(source_part).find()) {  //filter quic events
                         if (keep_all_quic) {
@@ -93,10 +96,12 @@ public class Clipper {
                     }
                 }
 
-                if (cache_line_counter > save_batch){
+                if (cache_line_counter % save_batch == 0){
                     zipOut.write((write_cache.toString()).getBytes("UTF-8"));
                     write_cache.delete( 0, write_cache.length() );
                 }
+
+                cache_line_counter++;
             }
             zipOut.write((write_cache.toString()).getBytes("UTF-8"));
             reader.close();
@@ -110,7 +115,7 @@ public class Clipper {
     public static void main(String[] args) {
         Clipper clipper = new Clipper();
         long time_start = System.currentTimeMillis();
-        clipper.clip("/Users/zhangliang/PycharmProjects/chrome_quic_log_analytics/src_clipper/src/netlog-1576034028.json", false,true,false);
+        clipper.clip("/Users/zhangliang/PycharmProjects/chrome_quic_log_analytics/src_clipper/src/netlog-1576034028.json", false,false,false);
         System.out.println("time cost: " +  String.valueOf(System.currentTimeMillis() - time_start));
     }
 
