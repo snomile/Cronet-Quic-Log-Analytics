@@ -55,8 +55,8 @@ def show(show_all_packet_info):
     p.line(x='x', y='y', source=ack_size_source, line_width=2, alpha=0.4, color='deepskyblue',
            legend_label='Total Acked Send Size', muted_color='deepskyblue', muted_alpha=0.05)
 
-    #client send close
-    client_send_connection_close_source = helper_data.get_client_send_connection_close_source()
+    #connection close_frame
+    client_send_connection_close_source = helper_data.get_connection_close_source()
     p.circle("x", "y", source=client_send_connection_close_source, size=12, color='brown', line_color="black", fill_alpha=0.7, legend_label='Connection Close',
              muted_color='pink', muted_alpha=0.05)
     send_connection_close_labels = LabelSet(x="x", y="y", text="name", y_offset=8, text_font_size="8pt", text_color="#555555",

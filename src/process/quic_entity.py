@@ -199,6 +199,13 @@ class QuicFrame:
             self.details = event.other_data['params']['details']
             self.quic_error = constant_converter.get_quic_error(event.other_data['params']['quic_error'])
             self.info_list.extend([self.frame_type, self.direction, self.stream_id,self.details,self.quic_error])
+        elif event.event_type == 'QUIC_SESSION_CONNECTION_CLOSE_FRAME_RECEIVED':
+            self.frame_type = 'CONNECTION_CLOSE'
+            self.direction = 'receive'
+            self.stream_id = 'N/A'
+            self.details = event.other_data['params']['details']
+            self.quic_error = constant_converter.get_quic_error(event.other_data['params']['quic_error'])
+            self.info_list.extend([self.frame_type, self.direction, self.stream_id, self.details, self.quic_error])
         elif event.event_type == 'QUIC_SESSION_RST_STREAM_FRAME_SENT':
             self.frame_type = 'RST'
             self.direction = 'send'
