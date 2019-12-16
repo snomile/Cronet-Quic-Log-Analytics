@@ -61,26 +61,28 @@ class CronetSession:
 
         quic_session_dict = {}  # key: host, value: tuple(source id, quic session event)
         for source_id, event_list in self.source_quic_dict.items():
-            host = event_list[0].other_data['params']['host']
+            try:
+                host = event_list[0].other_data['params']['host']
+                #check ignore list
+                ignore = False
+                for ignore_host in IGNORE_DOMAIN_NAME_LIST:
+                    if ignore_host in host:
+                        ignore = True
+                        break
+                if ignore:
+                    print('WARN: quic session source id', source_id, 'host', host, 'was ignored due to IGNORE list')
+                    continue
 
-            #check ignore list
-            ignore = False
-            for ignore_host in IGNORE_DOMAIN_NAME_LIST:
-                if ignore_host in host:
-                    ignore = True
-                    break
-            if ignore:
-                print('WARN: quic session source id', source_id, 'host', host, 'was ignored due to IGNORE list')
-                continue
-
-            if host not in dns_dict.keys():
-                print('WARN: quic session source id', source_id,'has no dns record, add dummy one')
-                dns_dict[host] = (event_list[0].time_int, event_list[0].time_int)
-            source_id =  event_list[0].source_id
-            if host in quic_session_dict.keys():
-                quic_session_dict[host].append((source_id, event_list))
-            else:
-                quic_session_dict[host] = [(source_id, event_list)]
+                if host not in dns_dict.keys():
+                    print('WARN: quic session source id', source_id,'has no dns record, add dummy one')
+                    dns_dict[host] = (event_list[0].time_int, event_list[0].time_int)
+                source_id =  event_list[0].source_id
+                if host in quic_session_dict.keys():
+                    quic_session_dict[host].append((source_id, event_list))
+                else:
+                    quic_session_dict[host] = [(source_id, event_list)]
+            except BaseException as e:
+                print('processing session ( source id =', source_id,') failed with exception:"', e.message , '", session skipped')
 
         return dns_dict, quic_session_dict
 

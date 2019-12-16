@@ -129,27 +129,6 @@ def get_ack_size_source():
     return ack_size_source
 
 
-
-def calculate_server_cfcw():
-    #init by default server cfcw
-    cfcw_timestamp = [0]
-    cfcw_list = [general_info['Server_CFCW']/1024]
-
-    #add server window_update info
-    for frame in frame_dict.values():
-        if frame['frame_type'] == 'WINDOW_UPDATE' and frame['direction'] == 'receive' and frame['stream_id'] == 0:
-            byte_offset = frame['byte_offset']
-            cfcw_list.append(byte_offset/1024)
-            cfcw_timestamp.append(frame['time_elaps'])
-
-    #add last point
-    last_receive_packet = list(packet_received_dict.values())[-1]
-    last_receive_time = int(last_receive_packet['time'])
-    cfcw_timestamp.append(last_receive_time)
-    cfcw_list.append(cfcw_list[-1])
-
-    return cfcw_timestamp,cfcw_list
-
 def calculate_client_cfcw():
     #init by default client cfcw
     cfcw_timestamp = [0]
@@ -392,10 +371,27 @@ def get_client_cfcw_source():
     return source
 
 def get_server_cfcw_source():
-    server_cfcw_timestamp, server_cfcw_list = calculate_server_cfcw()
+    #init by default server cfcw
+    cfcw_timestamp = [0]
+    cfcw_list = [general_info['Server_CFCW']/1024]
+
+    if len(packet_received_dict) > 0:
+        #add server window_update info
+        for frame in frame_dict.values():
+            if frame['frame_type'] == 'WINDOW_UPDATE' and frame['direction'] == 'receive' and frame['stream_id'] == 0:
+                byte_offset = frame['byte_offset']
+                cfcw_list.append(byte_offset/1024)
+                cfcw_timestamp.append(frame['time_elaps'])
+
+        #add last point
+        last_receive_packet = list(packet_received_dict.values())[-1]
+        last_receive_time = int(last_receive_packet['time'])
+        cfcw_timestamp.append(last_receive_time)
+        cfcw_list.append(cfcw_list[-1])
+
     source = ColumnDataSource(data={
-        'x': server_cfcw_timestamp,
-        'y': server_cfcw_list,
+        'x': cfcw_timestamp,
+        'y': cfcw_list,
     })
     return source
 

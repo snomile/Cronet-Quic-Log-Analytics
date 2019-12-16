@@ -64,30 +64,31 @@ def show(show_all_packet_info):
     p.add_layout(send_connection_close_labels)
 
 
-    #client receive
-    packet_receive_line_source, packet_receive_source, packet_receive_shlo_source = helper_data.get_packet_receive_source(show_all_packet_info)
-    p.line(x='x', y='y', source=packet_receive_line_source,line_width=2,
-                   alpha=0.4, color='green', legend_label='Total Receive Size', muted_color='green', muted_alpha=0.05)
-    p.circle(x='x', y='y', source=packet_receive_shlo_source, size='size',
-             alpha=0.8, color='color', line_color="black", legend_label='SHLO', muted_color='color', muted_alpha=0.05)
-    packet_send_labels = LabelSet(x="x", y="y", text="tag", y_offset=8, text_font_size="8pt", text_color="#555555",
-                                  source=packet_receive_shlo_source, text_align='center')
-    p.add_layout(packet_send_labels)
-    p.circle(x='x', y='y', source=packet_receive_source, size='size',
-                   alpha=0.8, color='color', line_color="black", legend_label='Packet Received', muted_color='color', muted_alpha=0.05)
-    packet_receive_labels = LabelSet(x="x", y="y", text="tag", y_offset=8,text_font_size="8pt", text_color="#555555", source= packet_receive_source, text_align='center')
-    p.add_layout(packet_receive_labels)
-    y_range_max_packet_receive = packet_receive_source.data['y'][-1]
+    if len(helper_data.packet_received_dict) > 0:  #in case of there're no received packet
+        # client receive graph
+        packet_receive_line_source, packet_receive_source, packet_receive_shlo_source = helper_data.get_packet_receive_source(show_all_packet_info)
+        p.line(x='x', y='y', source=packet_receive_line_source,line_width=2,
+                       alpha=0.4, color='green', legend_label='Total Receive Size', muted_color='green', muted_alpha=0.05)
+        p.circle(x='x', y='y', source=packet_receive_shlo_source, size='size',
+                 alpha=0.8, color='color', line_color="black", legend_label='SHLO', muted_color='color', muted_alpha=0.05)
+        packet_send_labels = LabelSet(x="x", y="y", text="tag", y_offset=8, text_font_size="8pt", text_color="#555555",
+                                      source=packet_receive_shlo_source, text_align='center')
+        p.add_layout(packet_send_labels)
+        p.circle(x='x', y='y', source=packet_receive_source, size='size',
+                       alpha=0.8, color='color', line_color="black", legend_label='Packet Received', muted_color='color', muted_alpha=0.05)
+        packet_receive_labels = LabelSet(x="x", y="y", text="tag", y_offset=8,text_font_size="8pt", text_color="#555555", source= packet_receive_source, text_align='center')
+        p.add_layout(packet_receive_labels)
+        y_range_max_packet_receive = packet_receive_source.data['y'][-1]
 
 
-    #client cfcw, if the cfcw wasn't a problem ,then no need to display
-    client_cfcw_source = helper_data.get_client_cfcw_source()
-    y_range_max_client_cfcw = client_cfcw_source.data['y'][-1]
-    if y_range_max_client_cfcw <= y_range_max_packet_receive*2: #TODO use window_update event to determain if display the graph
-        p.line(x='x', y='y', source=client_cfcw_source, line_width=2,alpha=0.5,
-                    color='blue', legend_label='Client CFCW', muted_color='blue', muted_alpha=0.05)
-        p.square_cross(x='x', y='y', source=client_cfcw_source, size=10,
-                 alpha=0.8, color='blue', line_color="black", legend_label='Client CFCW', muted_color='blue',
-                 muted_alpha=0.05)
+        #client cfcw graph, if the cfcw wasn't a problem ,then no need to display
+        client_cfcw_source = helper_data.get_client_cfcw_source()
+        y_range_max_client_cfcw = client_cfcw_source.data['y'][-1]
+        if y_range_max_client_cfcw <= y_range_max_packet_receive*2: #TODO use window_update event to determain if display the graph
+            p.line(x='x', y='y', source=client_cfcw_source, line_width=2,alpha=0.5,
+                        color='blue', legend_label='Client CFCW', muted_color='blue', muted_alpha=0.05)
+            p.square_cross(x='x', y='y', source=client_cfcw_source, size=10,
+                     alpha=0.8, color='blue', line_color="black", legend_label='Client CFCW', muted_color='blue',
+                     muted_alpha=0.05)
 
     display(p)
