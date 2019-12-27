@@ -132,7 +132,7 @@ def get_ack_size_source():
 def calculate_client_cfcw():
     #init by default client cfcw
     cfcw_timestamp = [0]
-    cfcw_list = [general_info['Client_CFCW']/1024]
+    cfcw_list = [general_info['client_cfcw']/1024]
 
     #add server window_update info
     for frame in frame_dict.values():
@@ -167,7 +167,7 @@ def calculate_client_block_connection_level():
 
 def get_dns_source():
     source = ColumnDataSource(data={
-        'x': [general_info['dns_begin_time'], general_info['dns_end_time']],
+        'x': [general_info['dns_begin_time'], general_info['dns_duration']],
         'y': [-1, -1],
         'name': ['dns begin', 'dns end']
     })
@@ -373,7 +373,7 @@ def get_client_cfcw_source():
 def get_server_cfcw_source():
     #init by default server cfcw
     cfcw_timestamp = [0]
-    cfcw_list = [general_info['Server_CFCW']/1024]
+    cfcw_list = [general_info['server_cfcw']/1024]
 
     if len(packet_received_dict) > 0:
         #add server window_update info

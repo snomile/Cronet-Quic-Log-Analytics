@@ -1,6 +1,7 @@
 import datetime
-
 from bokeh.plotting import figure, show, save, output_file
+import warnings
+warnings.filterwarnings('ignore')
 
 project_root = None
 filename = None
