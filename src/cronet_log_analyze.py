@@ -8,16 +8,6 @@ from process import cronet_log_loader,cronet_session
 from visualize import helper_data, helper_graph
 from visualize import graph
 
-def check_key_path(project_root,output_path):
-    key_paths = [project_root + '/resource/html_output',
-                 project_root + '/resource/data_original',
-                 project_root + '/resource/data_converted',
-                 output_path
-                 ]
-    for key_path in key_paths:
-        if not os.path.exists(key_path):
-            os.makedirs(key_path)
-
 def find_usable_input_path(file_path):
     cur_abs_path = os.path.abspath(os.curdir)
     paths = [file_path,
@@ -29,8 +19,6 @@ def find_usable_input_path(file_path):
             break
     return usable_input_path
 
-def str_to_bool(str):
-    return True if str.lower() == 'true' else False
 
 def process_show(usable_input_path,args):
     print('find file on ', usable_input_path)
@@ -47,8 +35,6 @@ def process_show(usable_input_path,args):
         host_starttime = json_file_name_without_ext.replace(filename_without_ext + '_', '')
         helper_graph.init(args.output_path, filename_without_ext, host_starttime)
         graph.show(args.show_all_packet_info,args.show_receive_send, args.show_ack_delay, args.show_size_inflight)
-
-
 
 
 def generate_event_session_result(output_path):
@@ -86,7 +72,8 @@ if __name__ == '__main__':
     print(args)
 
     #process data
-    check_key_path(project_root,args.output_path)
+    if not os.path.exists(args.output_path):
+        os.makedirs(args.output_path)
     usable_input_path = find_usable_input_path(args.log_path)
     if usable_input_path:
         process_show(usable_input_path,args)
