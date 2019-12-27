@@ -1,6 +1,6 @@
 Cronet log is important for QUIC client and server developers, which including detailed Quic Connection/Stream/Frame logs.
 
-But reading the log by netlog-viewer(https://netlog-viewer.appspot.com/) is painful, so I decided to make my own tool to speed up the process.
+But reading the log by netlog-viewer(https://netlog-viewer.appspot.com/) is painful, so I decided to make my own tools to speed up the process.
 
 By this tool, you can
 1) read cronet log on the packet/frame/stream level, each packet would be tagged by important info(eg. ack_delay, if_lost, etc.), along with the content of the packet itself.
