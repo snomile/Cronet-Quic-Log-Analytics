@@ -95,4 +95,3 @@ if __name__ == '__main__':
     usable_input_path = find_usable_input_path(args.log_path,args.output_path)
     process_show(usable_input_path,args)
     generate_event_session_result(args.output_path)
-
