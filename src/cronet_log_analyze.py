@@ -31,7 +31,7 @@ def find_usable_input_path(file_path,output_path):
                 for fileM in files_in_zip:
                     zFile.extract(fileM, output_path)
                 zFile.close();
-                usable_input_path = output_path + files_in_zip[0]
+                usable_input_path = os.path.join(output_path, files_in_zip[0])
         print('find file on ', usable_input_path)
         return usable_input_path
     else:
