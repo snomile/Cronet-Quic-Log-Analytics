@@ -13,8 +13,8 @@ from visualize import graph
 def find_usable_input_path(file_path,output_path):
     cur_abs_path = os.path.abspath(os.curdir)
     paths = [file_path,
-             cur_abs_path + '/' + file_path,
-             project_root + '/resource/data_original/' + file_path]
+             os.path.join(cur_abs_path, file_path),
+             os.path.join(project_root, 'resource/data_original', file_path)]
     usable_input_path = None
     for usable_input_path in paths:
         if os.path.exists(usable_input_path):
