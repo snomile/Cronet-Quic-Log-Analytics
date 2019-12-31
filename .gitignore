@@ -115,3 +115,4 @@ venv.bak/
 # except for .gitkeep
 !.gitkeep
 /src_clipper/src/netlog-1576034028.json
+/venv3/
