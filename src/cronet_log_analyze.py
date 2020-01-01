@@ -77,8 +77,8 @@ if __name__ == '__main__':
     project_root = abs_program_path[:abs_program_path.index('/src/cronet_log_analyze.py')]
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--log_path", help="absloute path of the log file", default = 'file_1577096051.zip')
-    parser.add_argument("--output_path", help="absloute path of the output files", default= "%s/resource/data_converted/%s/" % (project_root, time.time()))
+    parser.add_argument("--log_path", help="absloute path of the log file", default='file_1577096051.zip')
+    parser.add_argument("--output_path", help="absloute path of the output files", default="%s/resource/data_converted/%s/" % (project_root, time.time()))
     parser.add_argument("--show_all_packet_info", help="show_all_packet_info", default=True)
     parser.add_argument("--show_receive_send", help="show_receive_send", default=True)
     parser.add_argument("--show_ack_delay", help="show_ack_delay", default=False)

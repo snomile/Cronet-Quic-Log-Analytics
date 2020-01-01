@@ -5,7 +5,7 @@ from visualize.helper_graph import *
 
 
 def show(show_all_packet_info):
-    p = get_plot('Time Since Request Begin (ms)','Traffic Size (KB)','Packet Size Traffic')
+    p = get_plot('Time Since Request Begin (ms)','Packet Number','Packet Number Traffic')
     p.hover.tooltips = [
         ('time', '@x'),
         ('size', '@y'),
@@ -24,23 +24,15 @@ def show(show_all_packet_info):
 
     #client send packet
     packet_send_line_source, packet_send_source, packet_send_chlo_source = helper_data.get_packet_send_source(show_all_packet_info)
-    p.circle(x='x', y='y', source=packet_send_chlo_source, size='size',
+    p.circle(x='x', y='number', source=packet_send_chlo_source, size='size',
                    alpha=0.8, color='color', line_color="black", legend_label='CHLO', muted_color='color', muted_alpha=0.05)
-    packet_send_labels = LabelSet(x="x", y="y", text="tag", y_offset=8,text_font_size="8pt", text_color="#555555", source= packet_send_chlo_source, text_align='center')
+    packet_send_labels = LabelSet(x="x", y="number", text="tag", y_offset=8,text_font_size="8pt", text_color="#555555", source= packet_send_chlo_source, text_align='center')
     p.add_layout(packet_send_labels)
-    p.line(x='x', y='y', source=packet_send_line_source,line_width=2,alpha=0.4, color='navy', legend_label='Total Send Size', muted_color='navy', muted_alpha=0.05)
-    p.circle(x='x', y='y', source=packet_send_source, size='size',alpha=0.8, color='color', line_color="black", legend_label='Packet Sent(size means ack delay)', muted_color='color', muted_alpha=0.05)
-    packet_send_labels = LabelSet(x="x", y="y", text="tag", y_offset=8,text_font_size="8pt", text_color="#555555", source= packet_send_source, text_align='center')
+    p.line(x='x', y='number', source=packet_send_source,line_width=2,alpha=0.4, color='navy', legend_label='Packet Number', muted_color='navy', muted_alpha=0.05)
+    p.circle(x='x', y='number', source=packet_send_source, size='size',alpha=0.8, color='color', line_color="black", legend_label='Packet Sent(size means ack delay)', muted_color='color', muted_alpha=0.05)
+    packet_send_labels = LabelSet(x="x", y="number", text="tag", y_offset=8,text_font_size="8pt", text_color="#555555", source= packet_send_source, text_align='center')
     p.add_layout(packet_send_labels)
-    y_range_max_packet_send = 0 if len(packet_send_source.data['y']) == 0 else packet_send_source.data['y'][-1]
 
-
-    #server cfcw
-    server_cfcw_source = helper_data.get_server_cfcw_source()
-    y_range_max_server_cfcw = server_cfcw_source.data['y'][-1]
-    if y_range_max_server_cfcw <= y_range_max_packet_send*2:  #TODO use window_update event to determain if display the graph
-        p.line(x='x', y='y', source=server_cfcw_source, line_width=2,alpha=0.5,
-                    color='blue', legend_label='Server CFCW', muted_color='blue', muted_alpha=0.05)
 
     #client send block
     client_send_block_source = helper_data.get_client_block_connection_level_source()
@@ -50,10 +42,10 @@ def show(show_all_packet_info):
 
     #client congestion
 
-    #client ack size
-    ack_size_source = helper_data.get_ack_size_source()
-    p.line(x='x', y='y', source=ack_size_source, line_width=2, alpha=0.4, color='deepskyblue',
-           legend_label='Total Acked Send Size', muted_color='deepskyblue', muted_alpha=0.05)
+    #client ack size #TODO ack number
+    # ack_size_source = helper_data.get_ack_size_source()
+    # p.line(x='x', y='y', source=ack_size_source, line_width=2, alpha=0.4, color='deepskyblue',
+    #        legend_label='Total Acked Send Size', muted_color='deepskyblue', muted_alpha=0.05)
 
     #connection close_frame
     client_send_connection_close_source = helper_data.get_connection_close_source()
@@ -67,28 +59,16 @@ def show(show_all_packet_info):
     if len(helper_data.packet_received_dict) > 0:  #in case of there're no received packet
         # client receive graph
         packet_receive_line_source, packet_receive_source, packet_receive_shlo_source = helper_data.get_packet_receive_source(show_all_packet_info)
-        p.line(x='x', y='y', source=packet_receive_line_source,line_width=2,
+        p.line(x='x', y='number', source=packet_receive_source,line_width=2,
                        alpha=0.4, color='green', legend_label='Total Receive Size', muted_color='green', muted_alpha=0.05)
-        p.circle(x='x', y='y', source=packet_receive_shlo_source, size='size',
+        p.circle(x='x', y='number', source=packet_receive_shlo_source, size='size',
                  alpha=0.8, color='color', line_color="black", legend_label='SHLO', muted_color='color', muted_alpha=0.05)
-        packet_send_labels = LabelSet(x="x", y="y", text="tag", y_offset=8, text_font_size="8pt", text_color="#555555",
+        packet_send_labels = LabelSet(x="x", y="number", text="tag", y_offset=8, text_font_size="8pt", text_color="#555555",
                                       source=packet_receive_shlo_source, text_align='center')
         p.add_layout(packet_send_labels)
-        p.circle(x='x', y='y', source=packet_receive_source, size='size',
+        p.circle(x='x', y='number', source=packet_receive_source, size='size',
                        alpha=0.8, color='color', line_color="black", legend_label='Packet Received', muted_color='color', muted_alpha=0.05)
-        packet_receive_labels = LabelSet(x="x", y="y", text="tag", y_offset=8,text_font_size="8pt", text_color="#555555", source= packet_receive_source, text_align='center')
+        packet_receive_labels = LabelSet(x="x", y="number", text="tag", y_offset=8,text_font_size="8pt", text_color="#555555", source= packet_receive_source, text_align='center')
         p.add_layout(packet_receive_labels)
-        y_range_max_packet_receive = packet_receive_source.data['y'][-1]
-
-
-        #client cfcw graph, if the cfcw wasn't a problem ,then no need to display
-        client_cfcw_source = helper_data.get_client_cfcw_source()
-        y_range_max_client_cfcw = client_cfcw_source.data['y'][-1]
-        if y_range_max_client_cfcw <= y_range_max_packet_receive*2: #TODO use window_update event to determain if display the graph
-            p.line(x='x', y='y', source=client_cfcw_source, line_width=2,alpha=0.5,
-                        color='blue', legend_label='Client CFCW', muted_color='blue', muted_alpha=0.05)
-            p.square_cross(x='x', y='y', source=client_cfcw_source, size=10,
-                     alpha=0.8, color='blue', line_color="black", legend_label='Client CFCW', muted_color='blue',
-                     muted_alpha=0.05)
 
     display(p)
