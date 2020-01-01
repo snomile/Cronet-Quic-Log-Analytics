@@ -36,7 +36,10 @@ router.post('/upload', async (ctx, next) => {
   try {
     const file = ctx.request.files.file; // 上传的文件在ctx.request.files.file
     const clientIp = getClientIP(ctx.req).replace('::ffff:', '');
-    const userAgent = ctx.request.header['user-agent'].replace(/\s|\/|\.|\*|\(|\)|,|;/igm, '_');
+    let userAgent = ctx.request.header['user-agent'].replace(/\s|\/|\.|\*|\(|\)|,|;/igm, '_');
+    if (userAgent.indexOf('Chrome') >= 0) {
+      userAgent = 'pc-web';
+    }
     log(`upload file begin: ${JSON.stringify(file)}`);
     if (file.type.indexOf('zip') < 0 && file.type.indexOf('json') < 0) {
       const errorMsg = `upload error: the file type is ${file.type}, accept: json,zip`;
@@ -135,38 +138,23 @@ router.post('/analysis', async (ctx, next) => {
   const { localPath, show_all_packet_info, show_receive_send, show_ack_delay, show_size_inflight, ignore_domain_name_list } = ctx.request.body;
   let shell = 'python3 '
     + path.join(__dirname, shellStatic)
-    + ' ' + localPath
-    + ' ' + show_all_packet_info
-    + ' ' + show_receive_send
-    + ' ' + show_ack_delay
-    + ' ' + show_size_inflight;
+    + ' --log_path=' + localPath
+    + ' --show_all_packet_info=' + show_all_packet_info
+    + ' --show_receive_send=' + show_receive_send
+    + ' --show_ack_delay=' + show_ack_delay
+    + ' --show_size_inflight=' + show_size_inflight;
   if (ignore_domain_name_list) {
-    shell = shell + ' ' + ignore_domain_name_list.join(' ');
+    shell = shell + ' --ignore=' + ignore_domain_name_list.join(',');
   }  
   log('begin shell: ' + shell);
   const res = shelljs.exec(shell);
-  const urls = {};
-  const htmls = [];
+  let result = '';
   if (res.stdout) {
     const resLog = res.stdout;
     resLog.split('\n').forEach(line => {
-      if (line.indexOf('generate json at') >= 0) {
-        const json = line.split('/data_converted/')[1];
-        const keyArray = json.split('_').reverse();
-        const key = keyArray[3] + '_' + keyArray[2];
-        urls[key] = [json];
+      if (line.indexOf('generate event session info') >= 0) {
+        result = line.split('/data_converted/')[1];
       }
-      if (line.indexOf('generate html at') >= 0) {
-        htmls.push(line.split('/html_output/')[1]);
-      }
-    })
-    const keys = Object.keys(urls);
-    keys.forEach(key => {
-      htmls.forEach(html => {
-        if (html.indexOf(key) >= 0) {
-          urls[key].push(html);
-        }
-      })
     })
   } else {
     log(res.stderr, 'red');
@@ -174,7 +162,7 @@ router.post('/analysis', async (ctx, next) => {
     return ctx.body = { code: 400, message: res.stdout, error: res.stderr };
   }
   //返回
-  return ctx.body = { code: 200, data: urls, message: res.stdout, error: res.stderr };
+  return ctx.body = { code: 200, data: result, message: res.stdout, error: res.stderr };
 });
 
 // 添加路由配置

@@ -103,9 +103,9 @@
             <span>{{name}}</span>
           </div>
           <div v-for="(url, index) in value" :key="url">
-            <el-link v-if="index === 0" type="primary" :href="'echarts.html?json=' + url" target="_blank">custom log
+            <el-link v-if="url.indexOf('.json') >= 0" type="primary" :href="'echarts.html?json=' + htmlPath + url" target="_blank">custom log
               analysis by echarts</el-link>
-            <el-link v-else type="primary" :href="'html_output/' + url" target="_blank">{{url.split('-').slice(3).join('-')}}</el-link>
+            <el-link v-else type="primary" :href="htmlPath + url" target="_blank">{{url.split('-').slice(3).join('-')}}</el-link>
           </div>
         </el-card>
       </div>
@@ -142,6 +142,7 @@
         htmlList: {},
         localPath: '',
         httpPath: '',
+        htmlPath: '',
         form: {
           show_all_packet_info: 'True',
           show_receive_send: 'True',
@@ -200,7 +201,10 @@
           ignore_domain_name_list: _this.form.ignore_domain_name_list
         }, function (res) {
           if (res.code === 200) {
-            _this.htmlList = res.data;
+            _this.htmlPath = './data_converted/' + res.data.split('/')[0] + '/';
+            $.getJSON('./data_converted/' + res.data, function (data) {
+              _this.htmlList = data;
+            });
           }
           _this.message = res.message.replace(/\r\n/g, "<br>").replace(/\n/g, "<br>").replace(/\s{2,}/g, "&nbsp;&nbsp;&nbsp;&nbsp;");
           _this.error = res.error.replace(/\r\n/g, "<br>").replace(/\n/g, "<br>").replace(/\s{2,}/g, "&nbsp;&nbsp;&nbsp;&nbsp;");

@@ -31,7 +31,7 @@
             var r = window.location.search.substr(1).match(reg);//匹配目标参数
             if (r != null) return unescape(r[2]); return null;//返回参数值
         }
-        $.getJSON('./data_converted/' + getUrlParam('json'), function (data) {
+        $.getJSON(getUrlParam('json'), function (data) {
             // 解析数据
             var stream_dict = data.stream_dict;
             var frame_dict = data.frame_dict;
@@ -53,19 +53,21 @@
                             var res = [];
                             keys.forEach(function (key) {
                                 var value = frameObj[key];
-                                if (typeof value === 'object' && value.length > 0) {
-                                    var objstr = JSON.stringify(value);
-                                    var maxLen = 40;
+                                if (typeof value === 'object') {
+                                    value = JSON.stringify(value);
+                                }
+                                var maxLen = 40;
+                                if (value && value.length > maxLen) {
                                     var arr = [];
-                                    for(var i = 0; i < objstr.length; i++) {
+                                    for (var i = 0; i < value.length; i++) {
                                         if (i % maxLen === 0) {
-                                            var str = objstr.substr(i, maxLen);
+                                            var str = value.substr(i, maxLen);
                                             if (str) {
                                                 arr.push(str);
                                             }
                                         }
                                     }
-                                    value = arr.join('<br />&nbsp;&nbsp;&nbsp;&nbsp;')
+                                    value = '<br />&nbsp;&nbsp;&nbsp;&nbsp;' + arr.join('<br />&nbsp;&nbsp;&nbsp;&nbsp;')
                                 }
                                 res.push( key + ': ' + value);
                             })
