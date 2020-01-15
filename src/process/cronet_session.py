@@ -91,6 +91,8 @@ class CronetSession:
         json_files = []
 
         dns_dict, quic_session_dict = self.match_dns_quic_session()
+        if len(quic_session_dict)==0:
+            print('no quic session found')
         for host, quic_session_group_list in quic_session_dict.items():
             dns_begin_time, dns_end_time = dns_dict[host]
             for (source_id, event_list) in quic_session_group_list:

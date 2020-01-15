@@ -10,6 +10,7 @@ public class Clipper {
 
     private static final Pattern source_quic_session = Pattern.compile(".*e\":10.*"); // "QUIC_SESSION":10
     private static final Pattern source_host_resolver = Pattern.compile(".*e\":13.*"); // "HOST_RESOLVER_IMPL_JOB":13
+    private static final Pattern source_http_stream_job_controller = Pattern.compile(".*e\":23.*");//"HTTP_STREAM_JOB_CONTROLLER":23,
     private static final Pattern event_type_236 = Pattern.compile(".*236.*"); //"QUIC_SESSION_CERTIFICATE_VERIFIED":236,
     private static final Pattern event_type_242 = Pattern.compile(".*242.*"); //"QUIC_SESSION_UNAUTHENTICATED_PACKET_HEADER_RECEIVED":242,
     private static final Pattern event_type_243 = Pattern.compile(".*243.*"); //"QUIC_SESSION_PACKET_AUTHENTICATED":243
@@ -23,6 +24,12 @@ public class Clipper {
     private String getBaseTime(String line, int length){
         int time_base_index = line.lastIndexOf("\"timeTickOffset",length);
         return line.substring(time_base_index, line.length()-2);
+    }
+
+    private String getProxyServer(String line){
+        int index_proxy_server = line.indexOf("proxy_server");
+        int next_comma_index = line.indexOf(",", index_proxy_server);
+        return line.substring(index_proxy_server+15, next_comma_index-2);
     }
 
     private String getPacketNumber(String line){
@@ -70,9 +77,16 @@ public class Clipper {
                 }
                 else {
                     source_part = line.substring(Math.max(0, line_length-60),Math.max(0, line_length-30));
-                    if (source_quic_session.matcher(source_part).find() || source_host_resolver.matcher(source_part).find()) {  //filter quic events
+                    if (source_http_stream_job_controller.matcher(source_part).find()) {  //filter http stream job
+                        write_cache.append(line);
+                        write_cache.append('\n');
+                        if (line.contains("proxy_server")){
+                            System.out.println(getProxyServer(line));
+                        }
+                    } else if (source_quic_session.matcher(source_part).find() || source_host_resolver.matcher(source_part).find()) {  //filter quic events
                         if (keep_all_quic) {
                             write_cache.append(line);
+                            write_cache.append('\n');
                         }else{
                             event_type_part = line.substring(line_length-5);
                             if (event_type_236.matcher(event_type_part).find() ||
@@ -113,10 +127,16 @@ public class Clipper {
     }
 
     public static void main(String[] args) {
-        Clipper clipper = new Clipper();
+        Clipper clipperTest = new Clipper();
         long time_start = System.currentTimeMillis();
-        clipper.clip("/Users/zhangliang/PycharmProjects/chrome_quic_log_analytics/src_clipper/src/netlog-1576034028.json", false,false,false);
+        clipperTest.clip("/Users/zhangliang/PycharmProjects/chrome_quic_log_analytics/src_clipper/resource/cronet357.json", false,false,false);
         System.out.println("time cost: " +  String.valueOf(System.currentTimeMillis() - time_start));
+
+//测试getProxyServer
+//        Clipper clipper = new Clipper();
+//        line = "{\"params\":{\"proxy_server\":\"PROXY 172.19.19.112:8888\"},\"phase\":0,\"source\":{\"id\":14,\"type\":23},\"time\":\"174846934\",\"type\":156},";
+//        System.out.println(clipper.getProxyServer(line));
     }
+
 
 }
