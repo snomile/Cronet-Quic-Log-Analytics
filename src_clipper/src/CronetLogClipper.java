@@ -1,5 +1,3 @@
-package com.star.util.cronet;
-
 import com.star.util.Logger;
 import java.io.*;
 import java.util.regex.Pattern;
@@ -183,7 +181,7 @@ public class CronetLogClipper {
     }
 
     public interface ClipperCallback{
-        void onClipper(ClipperResult result, byte [] logFile);
+        void onClipper(ClipperResult result, byte[] logFile);
     }
 
     public static final int CLIPERR_FILEIO     = -1;
@@ -248,9 +246,14 @@ public class CronetLogClipper {
     }
 
     public static void main(String[] args) {
-        Clipper clipper = new Clipper();
+        CronetLogClipper clipper = new CronetLogClipper();
         long time_start = System.currentTimeMillis();
-        clipper.clip("/Users/zhangliang/PycharmProjects/chrome_quic_log_analytics/src_clipper/resource/cronet357.json", false,false,false);
+        ClipperResult result = clipper.clip("/Users/zhangliang/PycharmProjects/chrome_quic_log_analytics/src_clipper/resource/cronet357.json", false,false,false);
         System.out.println("time cost: " +  String.valueOf(System.currentTimeMillis() - time_start));
-
+        System.out.println(result.clipLen);
+        System.out.println(result.error);
+        System.out.println(result.fileLen);
+        System.out.println(result.proxy);
+        System.out.println(result.ret);
     }
+}
