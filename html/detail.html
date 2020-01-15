@@ -57,10 +57,10 @@
             <span>{{name}}</span>
           </div>
           <div v-for="(url, index) in value" :key="url">
-            <el-link v-if="url.indexOf('.json') >= 0" type="primary" :href="'echarts.html?json=' + htmlPath + url"
+            <el-link v-if="url.indexOf('quic_connection.json') >= 0" type="primary" :href="'echarts.html?json=' + htmlPath + url"
               target="_blank">custom log
               analysis by echarts</el-link>
-            <el-link v-if="url.indexOf('.html') >= 0" type="primary" :href="htmlPath + url" target="_blank">{{url}}
+            <el-link v-else type="primary" :href="htmlPath + url" target="_blank">{{url}}
             </el-link>
           </div>
         </el-card>
