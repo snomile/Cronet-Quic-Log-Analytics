@@ -84,7 +84,7 @@ var mainVue = new Vue({
     },
     showLog(url) {
       var _this = this;
-      $.getJSON('./data_converted/' + url, function (data) {
+      $.getJSON(url, function (data) {
         _this.htmlList = data;
       });
     }
