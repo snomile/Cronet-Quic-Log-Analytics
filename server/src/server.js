@@ -144,7 +144,7 @@ router.post('/analysis', async (ctx, next) => {
     + ' --show_ack_delay=' + show_ack_delay
     + ' --show_size_inflight=' + show_size_inflight;
   if (ignore_domain_name_list) {
-    shell = shell + ' --ignore=' + ignore_domain_name_list.join(',');
+    shell = shell + ' --ignore="' + ignore_domain_name_list.join(',') + '"';
   }
   log('begin shell: ' + shell);
   const res = shelljs.exec(shell);
