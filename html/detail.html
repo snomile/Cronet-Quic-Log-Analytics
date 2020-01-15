@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <!-- import CSS -->
+  <link rel="stylesheet" href="element-ui.css">
+  <link rel="icon" href="data:image/ico;base64,aWNv">
+  <title>cronet quic log analytics</title>
+  <style>
+    .upload-demo {
+      max-width: 700px;
+    }
+
+    .title {
+      margin: 0 auto 20px;
+      width: 100%;
+      font-size: 30px;
+      padding-left: 10px;
+    }
+
+    .done {
+      margin-top: 20px;
+      color: #67C23A;
+    }
+
+    .upload,
+    .list {
+      display: flex;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .el-form-item,
+    .el-form-item--mini.el-form-item,
+    .el-form-item--small.el-form-item {
+      margin-bottom: 1.2px;
+    }
+
+    .box-card {
+      margin: 20px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <el-card class="box-card">
+      <div v-if="httpPath" style="padding-left: 20px;">
+        <el-link type="primary" :href="'netlog-viewer/index.html?json=' + httpPath" target="_blank">chrom netLog dump
+          viewer for {{fileName}}
+        </el-link>
+      </div>
+      <div class="list">
+        <el-card v-for="(value, name) in htmlList" :key="name" class="box-card">
+          <div slot="header" class="clearfix">
+            <span>{{name}}</span>
+          </div>
+          <div v-for="(url, index) in value" :key="url">
+            <el-link v-if="url.indexOf('.json') >= 0" type="primary" :href="'echarts.html?json=' + htmlPath + url"
+              target="_blank">custom log
+              analysis by echarts</el-link>
+            <el-link v-else type="primary" :href="htmlPath + url" target="_blank">{{url.split('-').slice(3).join('-')}}
+            </el-link>
+          </div>
+        </el-card>
+      </div>
+    </el-card>
+  </div>
+</body>
+<!-- import Vue before Element -->
+<script src="vue.js"></script>
+<!-- import JavaScript -->
+<script src="element-ui.js"></script>
+<script src="zepto.min.js"></script>
+<script src="index.js"></script>
+<script>
+function getUrlParam(name) {
+  var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");//构造一个含有目标参数的正则表达式对象
+  var r = window.location.search.substr(1).match(reg);//匹配目标参数
+  if (r != null) return unescape(r[2]); return null;//返回参数值
+}
+mainVue.showLog(getUrlParam('json'));
+</script>
+</html>
