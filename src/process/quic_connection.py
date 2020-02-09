@@ -63,7 +63,7 @@ class QuicConnection:
 
         for event in self.cronet_event_list:
             if event.event_type in ['QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_SENT', 'QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_RECEIVED']:
-                if self.general_info['session_type'] is None and event.event_type is 'QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_SENT':
+                if self.general_info['session_type'] is None and event.event_type == 'QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_SENT':
                     self.general_info['session_type'] = 'client'
                 else:
                     self.general_info['session_type'] = 'server'
