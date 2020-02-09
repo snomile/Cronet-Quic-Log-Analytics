@@ -54,6 +54,7 @@ def process_chrome_log(fullpath, project_root, data_converted_path, filename_wit
     start_time = int(log_events[0]['time'])
 
     logtype = get_netlog_type(load_dict['events']);
+    print('netlog type is', logtype)
     if logtype == 'client':
         quic_session = ClientQuicSession(start_time, data_converted_path, filename_without_ext)
     else:
