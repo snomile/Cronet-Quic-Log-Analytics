@@ -30,4 +30,8 @@ def display(plot):
     output_filepath = "%s/%s.html" % (html_output_path,output_filename)
     output_file(output_filepath)
     print('generate html at', output_filepath)
+    print(safe_filename)
+    print(output_filename)
+    print(output_filepath)
+    print(plot.title.text.replace(" ", "").lower())
     show(plot)
