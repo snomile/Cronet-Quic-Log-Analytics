@@ -59,9 +59,15 @@ class QuicConnection:
         last_shlo = None
         handshake_start_time = 0
         handshake_end_time = 0
+        self.general_info['session_type'] = None
 
         for event in self.cronet_event_list:
-            if event.event_type in ['QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_SENT', 'QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_RECEIVED'] :
+            if event.event_type in ['QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_SENT', 'QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_RECEIVED']:
+                if self.general_info['session_type'] is None and event.event_type is 'QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_SENT':
+                    self.general_info['session_type'] = 'client'
+                else:
+                    self.general_info['session_type'] = 'server'
+
                 if 'CHLO' in event.other_data_str:
                     if chlo_event_index == 0:
                         handshake_start_time = event.time_int

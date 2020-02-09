@@ -85,13 +85,13 @@ def show(show_all_packet_info):
         y_range_max_packet_receive = packet_receive_source.data['y'][-1]
 
 
-        #client cfcw graph, if the cfcw wasn't a problem ,then no need to display
-        client_cfcw_source = helper_data.get_client_cfcw_source()
-        y_range_max_client_cfcw = client_cfcw_source.data['y'][-1]
+        #peer cfcw graph, if the cfcw wasn't a problem ,then no need to display
+        peer_cfcw_source = helper_data.get_peer_cfcw_source()
+        y_range_max_client_cfcw = peer_cfcw_source.data['y'][-1]
         if y_range_max_client_cfcw <= y_range_max_packet_receive*2: #TODO use window_update event to determain if display the graph
-            p.line(x='x', y='y', source=client_cfcw_source, line_width=2,alpha=0.5,
+            p.line(x='x', y='y', source=peer_cfcw_source, line_width=2,alpha=0.5,
                         color='blue', legend_label='Client CFCW', muted_color='blue', muted_alpha=0.05)
-            p.square_cross(x='x', y='y', source=client_cfcw_source, size=10,
+            p.square_cross(x='x', y='y', source=peer_cfcw_source, size=10,
                      alpha=0.8, color='blue', line_color="black", legend_label='Client CFCW', muted_color='blue',
                      muted_alpha=0.05)
 

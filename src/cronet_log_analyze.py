@@ -77,12 +77,12 @@ if __name__ == '__main__':
     project_root = abs_program_path[:abs_program_path.index('/src/cronet_log_analyze.py')]
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--log_path", help="absloute path of the log file", default ='netlog_3866dbd9fcbebc23.json')
+    parser.add_argument("--log_path", help="absloute path of the log file", default ='netlog_qss_3866dbd9fcbebc23.json')  #some_file_name4
     parser.add_argument("--output_path", help="absloute path of the output files", default="%s/resource/data_converted/%s/" % (project_root, time.time()))
     parser.add_argument("--show_all_packet_info", help="show_all_packet_info", default=True)
     parser.add_argument("--show_receive_send", help="show_receive_send", default=True)
     parser.add_argument("--show_ack_delay", help="show_ack_delay", default=False)
-    parser.add_argument("--show_size_inflight", help="show_size_inflight", default=True)
+    parser.add_argument("--show_size_inflight", help="show_size_inflight", default=False)
     parser.add_argument("--ignore", help="domain ignored", default='google.com;googleapis.com;doubleclick.net;google-analytics.com')
 
     args = parser.parse_args()

@@ -109,25 +109,7 @@ def get_ack_size_source():
     return ack_size_source
 
 
-def calculate_client_cfcw():
-    #init by default client cfcw
-    cfcw_timestamp = [0]
-    cfcw_list = [general_info['client_cfcw']/1024]
 
-    #add server window_update info
-    for frame in frame_dict.values():
-        if frame['frame_type'] == 'WINDOW_UPDATE' and frame['direction'] == 'send' and frame['stream_id'] == 0:
-            byte_offset = frame['byte_offset']
-            cfcw_list.append(byte_offset/1024)
-            cfcw_timestamp.append(frame['time_elaps'])
-
-    #add last point
-    last_send_packet = list(packet_sent_dict.values())[-1]
-    last_send_time = int(last_send_packet['time'])
-    cfcw_timestamp.append(last_send_time)
-    cfcw_list.append(cfcw_list[-1])
-
-    return cfcw_timestamp,cfcw_list
 
 def calculate_client_block():
     block_timestamp = []
@@ -374,16 +356,37 @@ def get_packet_receive_source(show_all_packet_info):
         'tag': tags
     })
 
-
-
     return packet_receive_line_source, packet_receive_source
 
 
-def get_client_cfcw_source():
-    client_cfcw_timestamp, client_cfcw_list = calculate_client_cfcw()
+def get_peer_cfcw_source():
+    # init by default peer cfcw
+    cfcw_timestamp = [0]
+    if general_info['session_type'] == 'client':
+        cfcw_list = [general_info['client_cfcw'] / 1024]
+        for frame in frame_dict.values():
+            if frame['frame_type'] == 'WINDOW_UPDATE' and frame['direction'] == 'send' and frame['stream_id'] == 0:
+                byte_offset = frame['byte_offset']
+                cfcw_list.append(byte_offset / 1024)
+                cfcw_timestamp.append(frame['time_elaps'])
+    else:
+        cfcw_list = [general_info['server_cfcw'] / 1024]
+        for frame in frame_dict.values():
+            if frame['frame_type'] == 'WINDOW_UPDATE' and frame['direction'] == 'receive' and frame[
+                'stream_id'] == 0:
+                byte_offset = frame['byte_offset']
+                cfcw_list.append(byte_offset / 1024)
+                cfcw_timestamp.append(frame['time_elaps'])
+
+    # add last point
+    last_send_packet = list(packet_sent_dict.values())[-1]
+    last_send_time = int(last_send_packet['time'])
+    cfcw_timestamp.append(last_send_time)
+    cfcw_list.append(cfcw_list[-1])
+
     source = ColumnDataSource(data={
-        'x': client_cfcw_timestamp,
-        'y': client_cfcw_list,
+        'x': cfcw_timestamp,
+        'y': cfcw_list,
     })
     return source
 

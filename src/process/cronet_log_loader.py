@@ -23,6 +23,15 @@ def fix_trunced_file(file_path):
         else:
             print('no need to fix')
 
+#use first handshake message type to judge the log type
+def get_netlog_type(events):
+    for event in events:
+        if event['type'] == 268:  # "QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_RECEIVED":268,
+            return 'server'
+        if event['type'] == 269:  # "QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_SENT":269,
+            return 'client'
+
+
 def process_chrome_log(fullpath, project_root, data_converted_path, filename_without_ext):
     #fix file
     fix_trunced_file(fullpath)
@@ -43,7 +52,13 @@ def process_chrome_log(fullpath, project_root, data_converted_path, filename_wit
     #convert and save chrome event log
     constant_converter.init(constants)
     start_time = int(log_events[0]['time'])
-    quic_session = ServerQuicSession(start_time, data_converted_path, filename_without_ext)  #判断应该创建server或client session
+
+    logtype = get_netlog_type(load_dict['events']);
+    if logtype == 'client':
+        quic_session = ClientQuicSession(start_time, data_converted_path, filename_without_ext)
+    else:
+        quic_session = ServerQuicSession(start_time, data_converted_path, filename_without_ext)
+
     for log_event in log_events:
         c_event = NetlogEvent(log_event)
         quic_session.add_event(c_event)
