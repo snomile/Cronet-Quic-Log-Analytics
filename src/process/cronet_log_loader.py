@@ -1,8 +1,8 @@
 import json
-import os
 
 from process import constant_converter
-from process.cronet_session import CronetSession, CronetEvent
+from process.quic_session import QuicSession, ClientQuicSession, ServerQuicSession
+from process.netlog_event import NetlogEvent
 
 
 def fix_trunced_file(file_path):
@@ -43,13 +43,13 @@ def process_chrome_log(fullpath, project_root, data_converted_path, filename_wit
     #convert and save chrome event log
     constant_converter.init(constants)
     start_time = int(log_events[0]['time'])
-    cronet_session = CronetSession(start_time, data_converted_path , filename_without_ext)
+    quic_session = ServerQuicSession(start_time, data_converted_path, filename_without_ext)  #判断应该创建server或client session
     for log_event in log_events:
-        c_event = CronetEvent(log_event)
-        cronet_session.add_event(c_event)
+        c_event = NetlogEvent(log_event)
+        quic_session.add_event(c_event)
 
-    cronet_session.save()
-    json_files = cronet_session.create_quic_session()
+    quic_session.save()
+    json_files = quic_session.create_quic_connection()
     print('log file process finished')
 
     return json_files

@@ -27,11 +27,15 @@ class PacketReceived(Packet):
         #self.connection_id = self.relate_events[0].other_data['params']['connection_id']
         #self.reset_flag = self.relate_events[0].other_data['params']['reset_flag']
         #self.version_flag = self.relate_events[0].other_data['params']['version_flag']
+        self.is_chlo = False
         self.is_shlo = False
         #self.relate_events.pop(0)
         for event in self.all_event:
             if event.event_type == 'QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_RECEIVED':
-                self.is_shlo = True
+                if event.other_data_str.find('CHLO') != -1:
+                    self.is_chlo = True
+                else:
+                    self.is_shlo = True
 
         self.init_frame(self.relate_events)
         for i in range(len(self.frames)):
@@ -84,10 +88,14 @@ class PacketSent(Packet):
         self.ack_delay_server = 0  # ms
         self.is_lost = False
         self.is_chlo = False
+        self.is_shlo = False
         #self.relate_events.pop(0)
         for event in self.all_event:
             if event.event_type == 'QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_SENT':
-                self.is_chlo = True
+                if event.other_data_str.find('CHLO') != -1:
+                    self.is_chlo = True
+                else:
+                    self.is_shlo = True
 
         self.init_frame(relate_events.copy())
         for i in range(len(self.frames)):
@@ -220,6 +228,12 @@ class QuicFrame:
             self.offset = event.other_data['params']['offset']
             self.quic_rst_stream_error = constant_converter.get_quic_rst_error(event.other_data['params']['quic_rst_stream_error'])
             self.info_list.extend([self.frame_type, self.direction, self.stream_id, self.offset, self.quic_rst_stream_error])
+        elif event.event_type == 'QUIC_SESSION_STOP_WAITING_FRAME_SENT':
+            self.frame_type = 'STOP_WAITING'
+            self.direction = 'send'
+            self.stream_id = 'N/A'
+            self.unacked = event.other_data['params']
+            self.info_list.extend([self.frame_type, self.direction, self.stream_id, ])
         else:
             print('WARN: unhandled frame',event.event_type)
 

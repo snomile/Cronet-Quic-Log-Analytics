@@ -23,16 +23,25 @@ def show(show_all_packet_info):
     p.add_layout(dns_labels)
 
     #client send packet
-    packet_send_line_source, packet_send_source, packet_send_chlo_source = helper_data.get_packet_send_source(show_all_packet_info)
-    p.circle(x='x', y='number', source=packet_send_chlo_source, size='size',
-                   alpha=0.8, color='color', line_color="black", legend_label='CHLO', muted_color='color', muted_alpha=0.05)
-    packet_send_labels = LabelSet(x="x", y="number", text="tag", y_offset=8,text_font_size="8pt", text_color="#555555", source= packet_send_chlo_source, text_align='center')
-    p.add_layout(packet_send_labels)
-    p.line(x='x', y='number', source=packet_send_source,line_width=2,alpha=0.4, color='navy', legend_label='Packet Number', muted_color='navy', muted_alpha=0.05)
+    packet_send_line_source, packet_send_source = helper_data.get_packet_send_source(show_all_packet_info)
+
+    p.line(x='x', y='number', source=packet_send_source,line_width=2,alpha=0.4, color='navy', legend_label='Packet Sent', muted_color='navy', muted_alpha=0.05)
     p.circle(x='x', y='number', source=packet_send_source, size='size',alpha=0.8, color='color', line_color="black", legend_label='Packet Sent(size means ack delay)', muted_color='color', muted_alpha=0.05)
     packet_send_labels = LabelSet(x="x", y="number", text="tag", y_offset=8,text_font_size="8pt", text_color="#555555", source= packet_send_source, text_align='center')
     p.add_layout(packet_send_labels)
 
+    #chlo and shlo
+    chlo_source, shlo_source = helper_data.get_handshake_source()
+    p.circle(x='x', y='number', source=chlo_source, size='size',
+                   alpha=0.8, color='color', line_color="black", legend_label='CHLO', muted_color='color', muted_alpha=0.05)
+    packet_chlo_labels = LabelSet(x="x", y="number", text="tag", y_offset=8,text_font_size="8pt", text_color="#555555", source= chlo_source, text_align='center')
+    p.add_layout(packet_chlo_labels)
+
+    p.circle(x='x', y='number', source=shlo_source, size='size',
+             alpha=0.8, color='color', line_color="black", legend_label='SHLO', muted_color='color', muted_alpha=0.05)
+    packet_shlo_labels = LabelSet(x="x", y="number", text="tag", y_offset=8, text_font_size="8pt", text_color="#555555",
+                                  source=shlo_source, text_align='center')
+    p.add_layout(packet_shlo_labels)
 
     #client send block
     client_send_block_source = helper_data.get_client_block_connection_level_source()
@@ -58,14 +67,10 @@ def show(show_all_packet_info):
 
     if len(helper_data.packet_received_dict) > 0:  #in case of there're no received packet
         # client receive graph
-        packet_receive_line_source, packet_receive_source, packet_receive_shlo_source = helper_data.get_packet_receive_source(show_all_packet_info)
+        packet_receive_line_source, packet_receive_source = helper_data.get_packet_receive_source(show_all_packet_info)
         p.line(x='x', y='number', source=packet_receive_source,line_width=2,
-                       alpha=0.4, color='green', legend_label='Total Receive Size', muted_color='green', muted_alpha=0.05)
-        p.circle(x='x', y='number', source=packet_receive_shlo_source, size='size',
-                 alpha=0.8, color='color', line_color="black", legend_label='SHLO', muted_color='color', muted_alpha=0.05)
-        packet_send_labels = LabelSet(x="x", y="number", text="tag", y_offset=8, text_font_size="8pt", text_color="#555555",
-                                      source=packet_receive_shlo_source, text_align='center')
-        p.add_layout(packet_send_labels)
+                       alpha=0.4, color='green', legend_label='Packet Receive', muted_color='green', muted_alpha=0.05)
+
         p.circle(x='x', y='number', source=packet_receive_source, size='size',
                        alpha=0.8, color='color', line_color="black", legend_label='Packet Received', muted_color='color', muted_alpha=0.05)
         packet_receive_labels = LabelSet(x="x", y="number", text="tag", y_offset=8,text_font_size="8pt", text_color="#555555", source= packet_receive_source, text_align='center')

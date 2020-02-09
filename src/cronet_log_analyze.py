@@ -5,7 +5,7 @@ import argparse
 import time
 import zipfile
 
-from process import cronet_log_loader,cronet_session
+from process import cronet_log_loader,quic_session
 from visualize import helper_data, helper_graph
 from visualize import graph
 
@@ -77,7 +77,7 @@ if __name__ == '__main__':
     project_root = abs_program_path[:abs_program_path.index('/src/cronet_log_analyze.py')]
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--log_path", help="absloute path of the log file", default ='cronet357.json.zip')
+    parser.add_argument("--log_path", help="absloute path of the log file", default ='netlog_f78368216f5bbf57.json')
     parser.add_argument("--output_path", help="absloute path of the output files", default="%s/resource/data_converted/%s/" % (project_root, time.time()))
     parser.add_argument("--show_all_packet_info", help="show_all_packet_info", default=True)
     parser.add_argument("--show_receive_send", help="show_receive_send", default=True)
@@ -86,7 +86,7 @@ if __name__ == '__main__':
     parser.add_argument("--ignore", help="domain ignored", default='google.com;googleapis.com;doubleclick.net;google-analytics.com')
 
     args = parser.parse_args()
-    cronet_session.IGNORE_DOMAIN_NAME_LIST = args.ignore.split(';')
+    quic_session.IGNORE_DOMAIN_NAME_LIST = args.ignore.split(';')
     print(args)
 
     #process data

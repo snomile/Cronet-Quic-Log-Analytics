@@ -29,26 +29,6 @@ def init(file_path):
     print('load stream_dict: ', len(stream_dict))
     print('load frame_dict: ', len(frame_dict))
 
-    #init CHLO and SHLO
-    handshake_frame_ids = stream_dict['1']
-    chlo_index = 1
-    shlo_index = 1
-    for frame_id in handshake_frame_ids:
-        frame = frame_dict[frame_id]
-        packet_number = frame['packet_number']
-        if frame['direction'] == 'send':
-            packet = packet_sent_dict[str(packet_number)]
-            if packet['is_chlo']:
-                handshake_type = 'CHLO' + str(chlo_index)
-                chlo_dict[packet_number] = (handshake_type, frame['frame_info_str'])
-                chlo_index += 1
-        else:
-            packet = packet_received_dict[str(packet_number)]
-            if packet['is_shlo']:
-                handshake_type = 'SHLO' + str(shlo_index)
-                shlo_dict[packet_number] = (handshake_type, frame['info_list'])
-                shlo_index += 1
-
 
 def calculate_packet_ack_delay():
     packet_sent_time_sequence_list = []
@@ -166,17 +146,116 @@ def calculate_client_block_connection_level():
     return block_timestamp
 
 def get_dns_source():
-    source = ColumnDataSource(data={
-        'x': [general_info['dns_begin_time'], general_info['dns_duration']],
-        'y': [-1, -1],
-        'name': ['dns begin', 'dns end']
-    })
+    if general_info['dns_begin_time'] != general_info['dns_duration']:
+        source = ColumnDataSource(data={
+            'x': [general_info['dns_begin_time'], general_info['dns_duration']],
+            'y': [-1, -1],
+            'name': ['dns begin', 'dns end']
+        })
+    else:
+        source = ColumnDataSource(data={
+            'x': [],
+            'y': [],
+            'name': []
+        })
     return source
+
+def get_handshake_source():
+    #chlo
+    chlo_packet_sent_time_sequence_list = []
+    chlo_packet_sent_time_readable_sequence_list = []
+    chlo_packet_number_list = []
+    chlo_ack_delay_total_list = []
+    chlo_ack_delay_server_list = []
+    chlo_colors = []
+    chlo_tags = []
+    chlo_infos = []
+
+    #shlo
+    shlo_packet_receive_time_sequence_list = []
+    shlo_packet_receive_time_readable_sequence_list = []
+    shlo_packet_numer_list = []
+    shlo_ack_delay_total_list = []
+    shlo_ack_delay_server_list = []
+    shlo_colors = []
+    shlo_tags = []
+    shlo_infos = []
+
+
+    #init CHLO and SHLO
+    handshake_frame_ids = stream_dict['1']
+    chlo_index = 0
+    shlo_index = 0
+    for frame_id in handshake_frame_ids:
+        frame = frame_dict[frame_id]
+        packet_number = frame['packet_number']
+        if frame['direction'] == 'send':
+            packet = packet_sent_dict[str(packet_number)]
+        else:
+            packet = packet_received_dict[str(packet_number)]
+        packet_sent_time = int(packet['time'])
+        packet_sent_time_readable = packet['time_h']
+
+        if packet['direction'] == 'send':
+            ack_delay_total = int(packet['ack_delay'])
+            ack_delay_server = int(packet['ack_delay_server'])
+        else:
+            ack_delay_total = 0
+            ack_delay_server = 0
+
+        if packet['is_chlo']:
+            chlo_index += 1
+            chlo_packet_sent_time_sequence_list.append(packet_sent_time)
+            chlo_packet_sent_time_readable_sequence_list.append(packet_sent_time_readable)
+            chlo_packet_number_list.append(packet['number'])
+            chlo_ack_delay_total_list.append(ack_delay_total)
+            chlo_ack_delay_server_list.append(ack_delay_server)
+            chlo_colors.append('yellow')
+            chlo_tags.append('CHLO' + str(chlo_index))
+            chlo_infos.append(packet['info_str'])
+        elif packet['is_shlo']:
+            shlo_index += 1
+            shlo_packet_receive_time_sequence_list.append(int(packet['time']))
+            shlo_packet_receive_time_readable_sequence_list.append(packet['time_h'])
+            shlo_packet_numer_list.append(packet['number'])
+            shlo_ack_delay_total_list.append(ack_delay_total)
+            shlo_ack_delay_server_list.append(ack_delay_server)
+            shlo_colors.append('yellow')
+            shlo_tags.append('SHLO' + str(shlo_index))
+            shlo_infos.append(packet['info_str'])
+
+    chlo_source = ColumnDataSource(data={
+        'x': chlo_packet_sent_time_sequence_list,
+        'y': [-1] * len(chlo_packet_sent_time_sequence_list),
+        'time_h': chlo_packet_sent_time_readable_sequence_list,
+        'number': chlo_packet_number_list,
+        'ack_delay': chlo_ack_delay_total_list,
+        'size': [10] * len(chlo_packet_sent_time_sequence_list),
+        'color': chlo_colors,
+        'info': chlo_infos,
+        'tag': chlo_tags
+    })
+
+    shlo_source = ColumnDataSource(data={
+        'x': shlo_packet_receive_time_sequence_list,
+        'y': [-1] * len(chlo_packet_sent_time_sequence_list),
+        'time_h': shlo_packet_receive_time_readable_sequence_list,
+        'number': shlo_packet_numer_list,
+        'ack_delay': [''] * len(shlo_packet_receive_time_sequence_list),
+        'size': [10] * len(shlo_packet_receive_time_sequence_list),
+        'color': shlo_colors,
+        'info' : shlo_infos,
+        'tag': shlo_tags
+    })
+
+    return chlo_source, shlo_source
+
+
 
 def get_packet_send_source(show_all_packet_info):
     total_sent_size = 0
 
-    #for all packet
+    #for all packet  #TODO remove this
     all_packet_sent_time_sequence_list = []
     all_total_sent_size_list = []
 
@@ -191,17 +270,6 @@ def get_packet_send_source(show_all_packet_info):
     tags = []
     infos = []
 
-    #for chlo packet
-    chlo_packet_sent_time_sequence_list = []
-    chlo_packet_sent_time_readable_sequence_list = []
-    chlo_total_sent_size_list = []
-    chlo_packet_numbers = []
-    chlo_ack_delay_total_list = []
-    chlo_ack_delay_server_list = []
-    chlo_colors = []
-    chlo_tags = []
-    chlo_infos = []
-
     for packet in packet_sent_dict.values():
         packet_sent_time = int(packet['time'])
         packet_sent_time_readable = packet['time_h']
@@ -213,39 +281,28 @@ def get_packet_send_source(show_all_packet_info):
         all_packet_sent_time_sequence_list.append(packet_sent_time)
         all_total_sent_size_list.append(current_total_sent_size)
 
-        if packet['number'] in chlo_dict.keys():
-            chlo_packet_sent_time_sequence_list.append(packet_sent_time)
-            chlo_packet_sent_time_readable_sequence_list.append(packet_sent_time_readable)
-            chlo_total_sent_size_list.append(current_total_sent_size)
-            chlo_packet_numbers.append(packet['number'])
-            chlo_ack_delay_total_list.append(ack_delay_total)
-            chlo_ack_delay_server_list.append(ack_delay_server)
-            chlo_colors.append('yellow')
-            chlo_tags.append(chlo_dict[packet['number']][0])
-            chlo_infos.append(packet['info_str'])
-        else:
-            packet_sent_time_sequence_list.append(packet_sent_time)
-            packet_sent_time_readable_sequence_list.append(packet_sent_time_readable)
-            total_sent_size_list.append(current_total_sent_size)
-            packet_numbers.append(packet['number'])
-            ack_delay_total_list.append(ack_delay_total)
-            ack_delay_server_list.append(ack_delay_server)
+        packet_sent_time_sequence_list.append(packet_sent_time)
+        packet_sent_time_readable_sequence_list.append(packet_sent_time_readable)
+        total_sent_size_list.append(current_total_sent_size)
+        packet_numbers.append(packet['number'])
+        ack_delay_total_list.append(ack_delay_total)
+        ack_delay_server_list.append(ack_delay_server)
 
-            if packet['is_lost'] :
-                colors.append('red')
-                tags.append('LOST')
-                infos.append(packet['info_str'])
-            elif packet['transmission_type'] != 'NOT_RETRANSMISSION':   #tag retramission type, only normal packet have variety of retramission type, all CHLO packet's retramission type is 'NOT_RETRANSMISSION', so no need to process
-                colors.append('hotpink')
-                tags.append(packet['transmission_type'])
+        if packet['is_lost'] :
+            colors.append('red')
+            tags.append('LOST')
+            infos.append(packet['info_str'])
+        elif packet['transmission_type'] != 'NOT_RETRANSMISSION':   #tag retramission type, only normal packet have variety of retramission type, all CHLO packet's retramission type is 'NOT_RETRANSMISSION', so no need to process
+            colors.append('hotpink')
+            tags.append(packet['transmission_type'])
+            infos.append(packet['info_str'])
+        else:
+            colors.append('navy')
+            tags.append('')
+            if show_all_packet_info:
                 infos.append(packet['info_str'])
             else:
-                colors.append('navy')
-                tags.append('')
-                if show_all_packet_info:
-                    infos.append(packet['info_str'])
-                else:
-                    infos.append('')
+                infos.append('')
 
 
     packet_send_line_source = ColumnDataSource(data={
@@ -265,19 +322,7 @@ def get_packet_send_source(show_all_packet_info):
         'tag': tags
     })
 
-    packet_send_chlo_source = ColumnDataSource(data={
-        'x': chlo_packet_sent_time_sequence_list,
-        'y': chlo_total_sent_size_list,
-        'time_h': chlo_packet_sent_time_readable_sequence_list,
-        'number': chlo_packet_numbers,
-        'ack_delay': chlo_ack_delay_total_list,
-        'size': [10] * len(chlo_packet_sent_time_sequence_list),
-        'color': chlo_colors,
-        'info' : chlo_infos,
-        'tag': chlo_tags
-    })
-
-    return packet_send_line_source, packet_send_source, packet_send_chlo_source
+    return packet_send_line_source, packet_send_source
 
 def get_packet_receive_source(show_all_packet_info):
     current_total_received_size = 0
@@ -285,15 +330,6 @@ def get_packet_receive_source(show_all_packet_info):
     #for all packet
     all_packet_receive_time_sequence_list = []
     all_total_received_size_list = []
-
-    #for shlo packet
-    shlo_packet_receive_time_sequence_list = []
-    shlo_packet_receive_time_readable_sequence_list = []
-    shlo_total_received_size_list = []
-    shlo_packet_numer_list = []
-    shlo_tags = []
-    shlo_infos = []
-    shlo_colors = []
 
     #for normal packet
     packet_receive_time_sequence_list = []
@@ -310,25 +346,16 @@ def get_packet_receive_source(show_all_packet_info):
         all_packet_receive_time_sequence_list.append(int(packet['time']))
         all_total_received_size_list.append(current_total_received_size_KB)
 
-        if packet['number'] in shlo_dict.keys():
-            shlo_packet_receive_time_sequence_list.append(int(packet['time']))
-            shlo_packet_receive_time_readable_sequence_list.append(packet['time_h'])
-            shlo_total_received_size_list.append(current_total_received_size_KB)
-            shlo_packet_numer_list.append(packet['number'])
-            shlo_tags.append(shlo_dict[packet['number']][0])
-            shlo_infos.append(packet['info_str'])
-            shlo_colors.append('yellow')
+        packet_receive_time_sequence_list.append(int(packet['time']))
+        packet_receive_time_readable_sequence_list.append(packet['time_h'])
+        total_received_size_list.append(current_total_received_size_KB)
+        packet_numer_list.append(packet['number'])
+        tags.append('')
+        if show_all_packet_info:
+            infos.append(packet['info_str'])
         else:
-            packet_receive_time_sequence_list.append(int(packet['time']))
-            packet_receive_time_readable_sequence_list.append(packet['time_h'])
-            total_received_size_list.append(current_total_received_size_KB)
-            packet_numer_list.append(packet['number'])
-            tags.append('')
-            if show_all_packet_info:
-                infos.append(packet['info_str'])
-            else:
-                infos.append('')
-            colors.append('green')
+            infos.append('')
+        colors.append('green')
 
     packet_receive_line_source = ColumnDataSource(data={
         'x': all_packet_receive_time_sequence_list,
@@ -347,19 +374,9 @@ def get_packet_receive_source(show_all_packet_info):
         'tag': tags
     })
 
-    packet_receive_shlo_source = ColumnDataSource(data={
-        'x': shlo_packet_receive_time_sequence_list,
-        'y': shlo_total_received_size_list,
-        'time_h': shlo_packet_receive_time_readable_sequence_list,
-        'number': shlo_packet_numer_list,
-        'ack_delay': [''] * len(shlo_packet_receive_time_sequence_list),
-        'size': [10] * len(shlo_packet_receive_time_sequence_list),
-        'color': shlo_colors,
-        'info' : shlo_infos,
-        'tag': shlo_tags
-    })
 
-    return packet_receive_line_source, packet_receive_source, packet_receive_shlo_source
+
+    return packet_receive_line_source, packet_receive_source
 
 
 def get_client_cfcw_source():
