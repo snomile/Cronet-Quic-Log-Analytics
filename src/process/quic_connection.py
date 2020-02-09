@@ -61,25 +61,26 @@ class QuicConnection:
         handshake_end_time = 0
 
         for event in self.cronet_event_list:
-            if event.event_type == 'QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_SENT':
-                if chlo_event_index == 0:
-                    handshake_start_time = event.time_int
-                chlo_event_index += 1
-                self.general_info['CHLO%s' % chlo_event_index] = (
-                event.time_int - self.request_start_time_int, event.other_data['params'])
-                last_chlo = event.other_data['params']
-            elif event.event_type == 'QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_RECEIVED':
-                handshake_end_time = event.time_int
-                shlo_event_index += 1
-                self.general_info['SHLO%s' % chlo_event_index] = (
-                event.time_int - self.request_start_time_int, event.other_data['params'])
-                sttl = constant_converter.find_key_value(event.other_data['params']['quic_crypto_handshake_message'],'STTL')
-                if sttl:
-                    self.general_info['STTL'] = sttl
-                expy = constant_converter.find_key_value(event.other_data['params']['quic_crypto_handshake_message'],'EXPY')
-                if sttl:
-                    self.general_info['EXPY'] = expy
-                last_shlo = event.other_data['params']
+            if event.event_type in ['QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_SENT', 'QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_RECEIVED'] :
+                if 'CHLO' in event.other_data_str:
+                    if chlo_event_index == 0:
+                        handshake_start_time = event.time_int
+                    chlo_event_index += 1
+                    self.general_info['CHLO%s' % chlo_event_index] = (
+                    event.time_int - self.request_start_time_int, event.other_data['params'])
+                    last_chlo = event.other_data['params']
+                else:
+                    handshake_end_time = event.time_int
+                    shlo_event_index += 1
+                    self.general_info['SHLO%s' % chlo_event_index] = (
+                    event.time_int - self.request_start_time_int, event.other_data['params'])
+                    sttl = constant_converter.find_key_value(event.other_data['params']['quic_crypto_handshake_message'],'STTL')
+                    if sttl:
+                        self.general_info['STTL'] = sttl
+                    expy = constant_converter.find_key_value(event.other_data['params']['quic_crypto_handshake_message'],'EXPY')
+                    if sttl:
+                        self.general_info['EXPY'] = expy
+                    last_shlo = event.other_data['params']
             elif event.event_type == 'QUIC_SESSION_VERSION_NEGOTIATED':
                 self.general_info['version'] = event.other_data['params']['version']
 
