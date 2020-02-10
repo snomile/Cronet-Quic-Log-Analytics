@@ -1,6 +1,5 @@
 from bokeh.models import ColumnDataSource
 
-from visualize import helper_data
 from visualize.helper_data import calculate_packet_ack_delay, calculate_rtt
 from visualize.helper_graph import *
 
@@ -14,8 +13,6 @@ def show(show_all_packet_info):
         'x': packet_sent_time_sequence_list,
         'y': ack_delay_total_list,
     })
-
-    packet_send_line_source, packet_send_source, packet_send_chlo_source = helper_data.get_packet_send_source(show_all_packet_info)
 
     rtt_source = ColumnDataSource(data={
         'x': rtt_timestamp,
