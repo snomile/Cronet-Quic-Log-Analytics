@@ -31,8 +31,7 @@ def display(plot):
     plot.legend.click_policy = "mute"
     safe_filename = filename.replace(':','_')  # convert : to _ to avoid corrupting the file system
 
-    #output_filename = safe_filename + '_' + plot.title.text.replace(" ", "").lower()    #TODO trim plot tilte info
-    output_filename = plot.title.text.replace(" ", "").lower()
+    output_filename = safe_filename + '_' + plot.title.text.replace(" ", "").lower()
 
     # print('plot title: ', plot.title.text.replace(" ", "").lower())
     # print('safe filename: ', safe_filename)
