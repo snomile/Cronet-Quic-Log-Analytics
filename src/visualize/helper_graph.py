@@ -20,6 +20,10 @@ def get_plot(x_label,y_label,title):
     p.xaxis.axis_label = x_label
     p.yaxis.axis_label = y_label
     p.title.text = host + '_' + title
+
+    print('title: ',title)
+    print('host: ',host)
+
     return p
 
 def display(plot):

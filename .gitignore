@@ -117,3 +117,5 @@ venv.bak/
 /src_clipper/src/*.json
 /src_clipper/src/*.zip
 /venv3/
+/src_clipper/resource/*.zip
+/src_clipper/resource/*.json
