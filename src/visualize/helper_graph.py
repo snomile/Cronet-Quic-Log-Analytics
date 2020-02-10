@@ -27,6 +27,11 @@ def display(plot):
     plot.legend.click_policy = "mute"
     safe_filename = filename.replace(':','_')  # convert : to _ to avoid corrupting the file system
     output_filename = safe_filename + '_' + plot.title.text.replace(" ", "").lower()
+
+    print('plot title: ', plot.title.text.replace(" ", "").lower())
+    print('safe filename: ', safe_filename)
+    print('html output path: ', html_output_path)
+
     output_filepath = "%s/%s.html" % (html_output_path,output_filename)
     output_file(output_filepath)
     print('generate html at', output_filepath)
