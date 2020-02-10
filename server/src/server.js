@@ -6,6 +6,7 @@ const koaBody = require('koa-body'); //解析上传文件的插件
 const staticFiles = require('koa-static')
 const shelljs = require('shelljs')
 const dayjs = require('dayjs')
+const parser = require('ua-parser-js')
 const { log, getClientIP } = require('./util')
 const { htmlStatic, pythonStatic, shellStatic, port, maxSize } = require('./config')
 
@@ -36,9 +37,19 @@ router.post('/upload', async (ctx, next) => {
   try {
     const file = ctx.request.files.file; // 上传的文件在ctx.request.files.file
     const clientIp = getClientIP(ctx.req).replace('::ffff:', '');
-    let userAgent = ctx.request.header['user-agent'].replace(/\s|\/|\.|\*|\(|\)|,|;/igm, '_');
-    if (userAgent.indexOf('Chrome') >= 0) {
-      userAgent = 'pc-web';
+    const userAgent = ctx.request.header['user-agent'];
+    log(`user agent is:${userAgent}`);
+    let uaMap = {
+      os: { name: '' },
+      browser: { name: ''}
+    };
+    if (userAgent.length > 50) {
+      uaMap = parser(userAgent);
+    } else {
+      uaMap = {
+        os: { name: userAgent },
+        browser: { name: '' }
+      }
     }
     log(`upload file begin: ${JSON.stringify(file)}`);
     if (file.type.indexOf('zip') < 0 && file.type.indexOf('json') < 0) {
@@ -59,7 +70,7 @@ router.post('/upload', async (ctx, next) => {
     if (!hasPath) {
       fs.mkdirSync(dayPath);
     }
-    var extName = dayjs().format('YYYY.MM.DD_HH:mm:ss') + '-' + clientIp + '-' + userAgent + '-';
+    var extName = dayjs().format('YYYY.MM.DD_HH:mm:ss') + '-' + clientIp + '-' + uaMap.os.name + '-' + uaMap.browser.name + '-';
     var newFileName = '/' + extName + file.name;
     var targetPath = dayPath + newFileName;
     // 写入本身是异步的，这里改为同步方法，防止接下来的执行报错
