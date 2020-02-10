@@ -70,7 +70,7 @@ router.post('/upload', async (ctx, next) => {
     if (!hasPath) {
       fs.mkdirSync(dayPath);
     }
-    var extName = dayjs().format('YYYY.MM.DD_HH:mm:ss') + '-' + clientIp + '-' + uaMap.os.name + '-' + uaMap.browser.name + '-';
+    var extName = dayjs().format('YYYY.MM.DD_HH:mm:ss') + '-' + clientIp + '-' + uaMap.os.name.replace(/\s|\/|\.|\*|\(|\)|,|;/igm, '_') + '-' + uaMap.browser.name.replace(/\s|\/|\.|\*|\(|\)|,|;/igm, '_') + '-';
     var newFileName = '/' + extName + file.name;
     var targetPath = dayPath + newFileName;
     // 写入本身是异步的，这里改为同步方法，防止接下来的执行报错
