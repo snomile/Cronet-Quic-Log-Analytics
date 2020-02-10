@@ -21,8 +21,8 @@ def get_plot(x_label,y_label,title):
     p.yaxis.axis_label = y_label
     p.title.text = host + '_' + title
 
-    print('title: ',title)
-    print('host: ',host)
+    # print('title: ',title)
+    # print('host: ',host)
 
     return p
 
@@ -30,11 +30,13 @@ def display(plot):
     plot.legend.location = "top_left"
     plot.legend.click_policy = "mute"
     safe_filename = filename.replace(':','_')  # convert : to _ to avoid corrupting the file system
-    output_filename = safe_filename + '_' + plot.title.text.replace(" ", "").lower()
 
-    print('plot title: ', plot.title.text.replace(" ", "").lower())
-    print('safe filename: ', safe_filename)
-    print('html output path: ', html_output_path)
+    #output_filename = safe_filename + '_' + plot.title.text.replace(" ", "").lower()    #TODO trim plot tilte info
+    output_filename = plot.title.text.replace(" ", "").lower()
+
+    # print('plot title: ', plot.title.text.replace(" ", "").lower())
+    # print('safe filename: ', safe_filename)
+    # print('html output path: ', html_output_path)
 
     output_filepath = "%s/%s.html" % (html_output_path,output_filename)
     output_file(output_filepath)
