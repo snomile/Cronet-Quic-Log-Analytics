@@ -43,12 +43,12 @@ class QuicConnection:
         #generate save file path
         quic_session_starttime = cronet_event_list[0].time_int
         safe_filename_without_ext = filename_without_ext.replace(':', '_')  #convert : to _ to avoid corrupting the file system
-        self.fullpath_json_file = '%s%s_%s_%s_quic_connection.json' % (data_converted_path, safe_filename_without_ext, host, quic_session_starttime)
-        self.general_info['json_name'] = '%s_%s_%s_quic_connection.json' % (safe_filename_without_ext, host, quic_session_starttime)
-        self.fullpath_general_info_json_file = '%s%s_%s_%s_general_info.json' % (data_converted_path, safe_filename_without_ext, host, quic_session_starttime)
-        self.fullpath_quic_frame_csv_file = '%s%s_%s_%s_quic_frame.csv' % (data_converted_path, safe_filename_without_ext, host, quic_session_starttime)
-        self.fullpath_quic_packet_csv_file = '%s%s_%s_%s_quic_packet.csv' % (data_converted_path, safe_filename_without_ext, host, quic_session_starttime)
-        self.fullpath_quic_session_csv_file = '%s%s_%s_%s_quic_session.csv' % (data_converted_path, safe_filename_without_ext, host, quic_session_starttime)
+        self.fullpath_json_file = '%s%s_%s_quic_connection.json' % (data_converted_path, host, quic_session_starttime)
+        self.general_info['json_name'] = '%s_%s_quic_connection.json' % (host, quic_session_starttime)
+        self.fullpath_general_info_json_file = '%s%s_%s_general_info.json' % (data_converted_path, host, quic_session_starttime)
+        self.fullpath_quic_frame_csv_file = '%s%s_%s_quic_frame.csv' % (data_converted_path, host, quic_session_starttime)
+        self.fullpath_quic_packet_csv_file = '%s%s_%s_quic_packet.csv' % (data_converted_path, host, quic_session_starttime)
+        self.fullpath_quic_session_csv_file = '%s%s_%s_quic_session.csv' % (data_converted_path, host, quic_session_starttime)
 
 
 
