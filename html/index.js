@@ -88,7 +88,8 @@ var mainVue = new Vue({
       var _this = this;
       $.getJSON(url, function (data) {
         _this.htmlPath = url.replace('event_session_info.json', '');
-        _this.htmlList = data;
+        _this.netlog = data.netlog;
+        _this.htmlList = data.connections;
       });
     }
   }
