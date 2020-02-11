@@ -93,8 +93,8 @@
       <div slot="header" class="clearfix">
         <span>analysis result <span class="done" v-if="done">( upload done, time: {{end / 1000}}s )</span></span>
       </div>
-      <div v-if="httpPath" style="padding-left: 20px;">
-        <el-link type="primary" :href="'netlog-viewer/index.html?json=' + httpPath" target="_blank">chrom netLog dump viewer for {{fileName}}
+      <div v-if="netlog" style="padding-left: 20px;">
+        <el-link type="primary" :href="'netlog-viewer/index.html?json=' + htmlPath + netlog" target="_blank">chrom netLog dump viewer for {{fileName}}
         </el-link>
       </div>
       <div class="list">
@@ -105,8 +105,6 @@
           <div v-for="(url, index) in value" :key="url">
             <el-link v-if="url.indexOf('quic_connection.json') >= 0" type="primary" :href="'echarts.html?json=' + htmlPath + url" target="_blank">custom log
               analysis by echarts</el-link>
-            <el-link v-else-if="url.indexOf('cronet.log') >= 0" type="primary" :href="'netlog-viewer/index.html?json=' + htmlPath + url"
-                target="_blank">chrome netlog viewer</el-link>
             <el-link v-else type="primary" :href="htmlPath + url" target="_blank">{{url}}</el-link>
           </div>
         </el-card>

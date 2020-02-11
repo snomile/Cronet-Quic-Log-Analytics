@@ -10,6 +10,7 @@ var mainVue = new Vue({
       visible: false,
       message: '',
       error: '',
+      netlog: '',
       htmlList: {},
       localPath: '',
       httpPath: '',
@@ -74,7 +75,8 @@ var mainVue = new Vue({
         if (res.code === 200) {
           _this.htmlPath = './data_converted/' + res.data.split('/')[0] + '/';
           $.getJSON('./data_converted/' + res.data, function (data) {
-            _this.htmlList = data;
+            _this.netlog = data.netlog;
+            _this.htmlList = data.connections;
           });
         }
         _this.message = res.message.replace(/\r\n/g, "<br>").replace(/\n/g, "<br>").replace(/\s{2,}/g, "&nbsp;&nbsp;&nbsp;&nbsp;");
