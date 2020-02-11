@@ -94,7 +94,7 @@
         <span>analysis result <span class="done" v-if="done">( upload done, time: {{end / 1000}}s )</span></span>
       </div>
       <div v-if="netlog" style="padding-left: 20px;">
-        <el-link type="primary" :href="'netlog-viewer/index.html?json=' + htmlPath + netlog" target="_blank">chrom netLog dump viewer for {{fileName}}
+        <el-link type="primary" :href="'netlog-viewer/index.html?json=../' + htmlPath + netlog" target="_blank">chrom netLog dump viewer for {{fileName}}
         </el-link>
       </div>
       <div class="list">
