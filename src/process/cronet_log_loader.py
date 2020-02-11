@@ -23,6 +23,8 @@ def fix_trunced_file(file_path):
         else:
             print('no need to fix')
 
+
+
 #use first handshake message type to judge the log type
 def get_netlog_type(events):
     for event in events:
@@ -32,7 +34,7 @@ def get_netlog_type(events):
             return 'client'
 
 
-def process_chrome_log(fullpath, project_root, data_converted_path, filename_without_ext):
+def process_netlog(fullpath, project_root, data_converted_path, filename_without_ext):
     #fix file
     fix_trunced_file(fullpath)
 
@@ -43,9 +45,16 @@ def process_chrome_log(fullpath, project_root, data_converted_path, filename_wit
     if 'constants' in load_dict.keys():
         constants = load_dict['constants']
     else:
+        #append clipped constants
         with open(project_root + '/resource/constants/constants.json', 'r') as load_f:
             constants = json.load(load_f)['constants']
             constants['timeTickOffset'] = load_dict['timeTickOffset']
+
+            #save to log file
+            load_dict['constants'] = constants
+            with open(fullpath, "w") as f:
+                json.dump(load_dict, f)
+
     log_events = load_dict['events']
     print('load', len(log_events), 'events')
 
@@ -73,4 +82,4 @@ def process_chrome_log(fullpath, project_root, data_converted_path, filename_wit
 
 if __name__ == '__main__':
     file_path = "../resource/data_original/netlog-2.json"
-    process_chrome_log(file_path)
+    process_netlog(file_path)

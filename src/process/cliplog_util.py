@@ -8,5 +8,5 @@ def resore_file(zip_path):
         print(line)
 
 if __name__ == '__main__':
-    zip_path = '/Users/zhangliang/PycharmProjects/chrome_quic_log_analytics/src_clipper/src/netlog-1576034028.json.zip'
+    zip_path = '/Users/zhangliang/PycharmProjects/chrome_quic_log_analytics/resource/data_original/netlog-1575619680.json.zip'
     resore_file(zip_path)
