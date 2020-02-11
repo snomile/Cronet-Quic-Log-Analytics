@@ -46,10 +46,9 @@ class QuicConnection:
         self.fullpath_json_file = '%s%s_%s_quic_connection.json' % (data_converted_path, host, quic_session_starttime)
         self.general_info['json_name'] = '%s_%s_quic_connection.json' % (host, quic_session_starttime)
         self.fullpath_general_info_json_file = '%s%s_%s_general_info.json' % (data_converted_path, host, quic_session_starttime)
-        self.fullpath_quic_frame_csv_file = '%s%s_%s_quic_frame.csv' % (data_converted_path, host, quic_session_starttime)
-        self.fullpath_quic_packet_csv_file = '%s%s_%s_quic_packet.csv' % (data_converted_path, host, quic_session_starttime)
-        self.fullpath_quic_session_csv_file = '%s%s_%s_quic_session.csv' % (data_converted_path, host, quic_session_starttime)
-
+        # self.fullpath_quic_frame_csv_file = '%s%s_%s_quic_frame.csv' % (data_converted_path, host, quic_session_starttime)
+        # self.fullpath_quic_packet_csv_file = '%s%s_%s_quic_packet.csv' % (data_converted_path, host, quic_session_starttime)
+        # self.fullpath_quic_session_csv_file = '%s%s_%s_quic_session.csv' % (data_converted_path, host, quic_session_starttime)
 
 
     def extract_general_info(self):
@@ -288,29 +287,29 @@ class QuicConnection:
 
 
     def save(self):
-        with open(self.fullpath_quic_session_csv_file, 'wt') as f:
-            cw = csv.writer(f)
-            for event in self.cronet_event_list:
-                cw.writerow(event.get_info_list())
-
-        with open(self.fullpath_quic_packet_csv_file, 'wt') as f:
-            cw = csv.writer(f)
-            cw.writerow(['Time', 'Time Elaps', 'Type', 'Packet Number','Size'])
-            for packet in self.packets:
-                cw.writerow(packet.get_info_list())
-
-        with open(self.fullpath_quic_frame_csv_file, 'wt') as f:
-            cw = csv.writer(f)
-            cw.writerow(['Time Elaps','Packet Number','ACK delay', 'Frame type', 'Direction','Stream_id'])
-            for frame in self.frames:
-                if frame.direction == 'receive':
-                    packet = self.packet_received_dict[frame.packet_number]
-                    csv_info = [packet.time_elaps, packet.packet_number, 'N/A']
-                else:
-                    packet = self.packet_sent_dict[frame.packet_number]
-                    csv_info = [packet.time_elaps,packet.packet_number,packet.ack_delay]
-                csv_info.extend(frame.get_info_list())
-                cw.writerow(csv_info)
+        # with open(self.fullpath_quic_session_csv_file, 'wt') as f:
+        #     cw = csv.writer(f)
+        #     for event in self.cronet_event_list:
+        #         cw.writerow(event.get_info_list())
+        #
+        # with open(self.fullpath_quic_packet_csv_file, 'wt') as f:
+        #     cw = csv.writer(f)
+        #     cw.writerow(['Time', 'Time Elaps', 'Type', 'Packet Number','Size'])
+        #     for packet in self.packets:
+        #         cw.writerow(packet.get_info_list())
+        #
+        # with open(self.fullpath_quic_frame_csv_file, 'wt') as f:
+        #     cw = csv.writer(f)
+        #     cw.writerow(['Time Elaps','Packet Number','ACK delay', 'Frame type', 'Direction','Stream_id'])
+        #     for frame in self.frames:
+        #         if frame.direction == 'receive':
+        #             packet = self.packet_received_dict[frame.packet_number]
+        #             csv_info = [packet.time_elaps, packet.packet_number, 'N/A']
+        #         else:
+        #             packet = self.packet_sent_dict[frame.packet_number]
+        #             csv_info = [packet.time_elaps,packet.packet_number,packet.ack_delay]
+        #         csv_info.extend(frame.get_info_list())
+        #         cw.writerow(csv_info)
 
         #construct json obj
         print('generate json at', self.fullpath_json_file)
