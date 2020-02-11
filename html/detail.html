@@ -46,9 +46,9 @@
 <body>
   <div id="app">
     <el-card class="box-card">
-      <div v-if="httpPath" style="padding-left: 20px;">
-        <el-link type="primary" :href="'netlog-viewer/index.html?json=' + httpPath" target="_blank">chrom netLog dump
-          viewer for {{fileName}}
+      <div v-if="netlog" style="padding-left: 20px;">
+        <el-link type="primary" :href="'netlog-viewer/index.html?json=../' + htmlPath + netlog" target="_blank">chrom netLog
+          dump viewer for {{fileName}}
         </el-link>
       </div>
       <div class="list">
