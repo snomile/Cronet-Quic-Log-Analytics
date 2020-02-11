@@ -4,13 +4,14 @@ import sys
 import argparse
 import time
 import zipfile
+import shutil
 
 from process import cronet_log_loader,quic_session
 from visualize import helper_data, helper_graph
 from visualize import graph
 
 
-def find_usable_input_path(file_path,output_path):
+def find_usable_logfile_path(file_path,output_path):
     cur_abs_path = os.path.abspath(os.curdir)
     paths = [file_path,
              os.path.join(cur_abs_path, file_path),
@@ -21,6 +22,8 @@ def find_usable_input_path(file_path,output_path):
             break
 
     if usable_input_path:
+        usable_logfile_path = os.path.join(output_path, 'netlog.json')
+
         if usable_input_path.endswith('zip'):
             zFile = zipfile.ZipFile(usable_input_path, "r")
             files_in_zip = zFile.namelist()
@@ -31,9 +34,14 @@ def find_usable_input_path(file_path,output_path):
                 for fileM in files_in_zip:
                     zFile.extract(fileM, output_path)
                 zFile.close();
-                usable_input_path = os.path.join(output_path, files_in_zip[0])
-        print('find file on ', usable_input_path)
-        return usable_input_path
+                #rename log filename to netlog.json
+                shutil.move(os.path.join(output_path, files_in_zip[0]), usable_logfile_path)
+        else:
+            #copy and rename the filename to netlog.json
+            shutil.copy(usable_input_path, os.path.join(output_path, 'netlog.json'))
+
+        print('find file on ', usable_logfile_path)
+        return usable_logfile_path
     else:
         print('file %s does not exist, exit now' % usable_input_path)
         sys.exit(-1)
@@ -44,7 +52,7 @@ def process_show(usable_input_path,args):
     (filename_without_ext, extension) = os.path.splitext(tempfilename)
 
     # process data
-    json_files = cronet_log_loader.process_chrome_log(usable_input_path, project_root, args.output_path,filename_without_ext)
+    json_files = cronet_log_loader.process_netlog(usable_input_path, project_root, args.output_path, filename_without_ext)
 
     # show graph
     for json_file in json_files:
@@ -57,12 +65,12 @@ def process_show(usable_input_path,args):
 
 def generate_event_session_result(output_path):
     files = os.listdir(output_path)
-    event_session_dict = {}
+    event_session_dict = {'netlog':'netlog.json', 'connections':{}}
     for file in files:
         if file.endswith('_general_info.json'):
             event_session_name = file[:file.index('_general_info.json')]
             event_session_files = [event_session_file for event_session_file in files if event_session_file.startswith(event_session_name)]
-            event_session_dict[event_session_name]=event_session_files
+            event_session_dict['connections'][event_session_name]=event_session_files
 
     event_session_info_name = output_path + 'event_session_info.json'
     with open(event_session_info_name, "w") as f:
@@ -92,6 +100,6 @@ if __name__ == '__main__':
     #process data
     if not os.path.exists(args.output_path):
         os.makedirs(args.output_path)
-    usable_input_path = find_usable_input_path(args.log_path,args.output_path)
+    usable_input_path = find_usable_logfile_path(args.log_path,args.output_path)
     process_show(usable_input_path,args)
     generate_event_session_result(args.output_path)
