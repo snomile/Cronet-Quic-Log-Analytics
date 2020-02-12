@@ -1312,7 +1312,7 @@ td .reporting-content-detail {
       }
       window.onload = function () {
         var filename = getUrlParam('json')
-        var urlPath = filename;
+        var urlPath = filename.replace('//', '/');
         fetch(urlPath).then(function (response) {
           response.text().then(function (data) {
             var importView = ImportView.getInstance();
