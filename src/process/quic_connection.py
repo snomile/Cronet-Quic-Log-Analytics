@@ -92,7 +92,10 @@ class QuicConnection:
 
         #extract stat info
         self.general_info['handshake_round'] = shlo_event_index
-        self.general_info['handshake_duration'] = handshake_end_time - handshake_start_time
+        if handshake_end_time == 0:
+            self.general_info['handshake_duration'] = -1
+        else:
+            self.general_info['handshake_duration'] = handshake_end_time - handshake_start_time
         self.general_info['handshake_retransmission_count'] = 0 #TODO
         self.general_info['packet_sent_count'] = len(self.packet_sent_dict)
         self.general_info['packet_receive_count'] = len(self.packet_received_dict)
@@ -101,10 +104,10 @@ class QuicConnection:
         self.general_info['frame_receive_count'] = len(self.frame_received_dict)
         self.general_info['first_byte_duration'] = 0 #TODO
         self.general_info['first_byte_duration_after_handshake'] = 0  # TODO
-        if last_quic_session_packet_received_time != 0:
-            self.general_info['download_duration'] = last_quic_session_packet_received_time - handshake_start_time
-        else:
+        if last_quic_session_packet_received_time == 0:
             self.general_info['download_duration'] = -1
+        else:
+            self.general_info['download_duration'] = last_quic_session_packet_received_time - handshake_start_time
         self.general_info['body'] = '' #TODO
 
         # exact SFCW and CFCW
