@@ -203,15 +203,20 @@ class QuicConnection:
                         lost_packet.is_lost = True
 
     def extract_retransmission_info(self):
-        retransmission_number = 0
-        lost_number = 0
-        for packet in self.packet_sent_dict.values():
-            if packet.transmission_type != 'NOT_RETRANSMISSION':
-                retransmission_number += 1
-            if packet.is_lost:
-                lost_number += 1
-        self.general_info['retransmission_rate'] = round(float(retransmission_number)/len(self.packet_sent_dict),3)
-        self.general_info['lost_rate'] = round(float(lost_number) / len(self.packet_sent_dict), 3)
+        total_send_packet_number = len(self.packet_sent_dict)
+        if total_send_packet_number == 0:
+            self.general_info['retransmission_rate'] = 0
+            self.general_info['lost_rate'] = 0
+        else:
+            retransmission_number = 0
+            lost_number = 0
+            for packet in self.packet_sent_dict.values():
+                if packet.transmission_type != 'NOT_RETRANSMISSION':
+                    retransmission_number += 1
+                if packet.is_lost:
+                    lost_number += 1
+            self.general_info['retransmission_rate'] = round(float(retransmission_number)/total_send_packet_number,3)
+            self.general_info['lost_rate'] = round(float(lost_number) / total_send_packet_number, 3)
 
     def add_packet(self,packet):
         self.packets.append(packet)

@@ -57,10 +57,13 @@ def process_show(usable_input_path,args):
     # show graph
     for json_file in json_files:
         helper_data.init(json_file)
-        json_file_name_without_ext = json_file[json_file.rfind('/') + 1: -21]
-        host_starttime = json_file_name_without_ext.replace(filename_without_ext + '_', '')
-        helper_graph.init(args.output_path, filename_without_ext, host_starttime)
-        graph.show(args.show_all_packet_info,args.show_receive_send, args.show_ack_delay, args.show_size_inflight)
+        if helper_data.check_valid():
+            json_file_name_without_ext = json_file[json_file.rfind('/') + 1: -21]
+            host_starttime = json_file_name_without_ext.replace(filename_without_ext + '_', '')
+            helper_graph.init(args.output_path, filename_without_ext, host_starttime)
+            graph.show(args.show_all_packet_info,args.show_receive_send, args.show_ack_delay, args.show_size_inflight)
+        else:
+            print('invalid data in %s, pass...' % json_file)
 
 
 def generate_event_session_result(output_path):
@@ -85,7 +88,7 @@ if __name__ == '__main__':
     project_root = abs_program_path[:abs_program_path.index('/src/cronet_log_analyze.py')]
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--log_path", help="absloute path of the log file", default ='some_file_name2.json')  #some_file_name4
+    parser.add_argument("--log_path", help="absloute path of the log file", default ='netlog.json')  #some_file_name4
     parser.add_argument("--output_path", help="absloute path of the output files", default="%s/resource/data_converted/%s/" % (project_root, time.time()))
     parser.add_argument("--show_all_packet_info", help="show_all_packet_info", default=True)
     parser.add_argument("--show_receive_send", help="show_receive_send", default=True)

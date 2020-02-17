@@ -29,6 +29,12 @@ def init(file_path):
     print('load stream_dict: ', len(stream_dict))
     print('load frame_dict: ', len(frame_dict))
 
+def check_valid():
+    if general_info['session_type'] == 'client' and len(packet_sent_dict) == 0:
+        return False
+    else:
+        return True
+
 
 def calculate_packet_ack_delay():
     packet_sent_time_sequence_list = []
