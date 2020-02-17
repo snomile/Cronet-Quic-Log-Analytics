@@ -58,6 +58,7 @@ class QuicConnection:
         last_shlo = None
         handshake_start_time = 0
         handshake_end_time = 0
+        last_quic_session_packet_received_time = 0
         self.general_info['session_type'] = None
 
         for event in self.cronet_event_list:
@@ -86,6 +87,8 @@ class QuicConnection:
                     last_shlo = event.other_data['params']
             elif event.event_type == 'QUIC_SESSION_VERSION_NEGOTIATED':
                 self.general_info['version'] = event.other_data['params']['version']
+            elif event.event_type == 'QUIC_SESSION_PACKET_RECEIVED':
+                last_quic_session_packet_received_time = event.time_int
 
         #extract stat info
         self.general_info['handshake_round'] = shlo_event_index
@@ -98,7 +101,10 @@ class QuicConnection:
         self.general_info['frame_receive_count'] = len(self.frame_received_dict)
         self.general_info['first_byte_duration'] = 0 #TODO
         self.general_info['first_byte_duration_after_handshake'] = 0  # TODO
-        self.general_info['download_duration'] = 0  # TODO
+        if last_quic_session_packet_received_time != 0:
+            self.general_info['download_duration'] = last_quic_session_packet_received_time - handshake_start_time
+        else:
+            self.general_info['download_duration'] = -1
         self.general_info['body'] = '' #TODO
 
         # exact SFCW and CFCW
