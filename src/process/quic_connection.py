@@ -38,6 +38,15 @@ class QuicConnection:
         self.tag_packet_by_ack()
         self.extract_retransmission_info()
         self.extract_general_info()
+        self.extract_download_time()
+
+        #print general info
+        for key,value in self.general_info.items():
+            if isinstance(value,dict):  #CHLO and SHLO
+                 print(key,':', value['quic_crypto_handshake_message'])
+            else:
+                print(key,':',value)
+
         self.validate()
 
         #generate save file path
@@ -58,7 +67,7 @@ class QuicConnection:
         last_shlo = None
         handshake_start_time = 0
         handshake_end_time = 0
-        last_quic_session_packet_received_time = 0
+
         self.general_info['session_type'] = None
 
         for event in self.cronet_event_list:
@@ -71,6 +80,7 @@ class QuicConnection:
                 if 'CHLO' in event.other_data_str:
                     if chlo_event_index == 0:
                         handshake_start_time = event.time_int
+                        self.general_info['handshake_start_time'] = handshake_start_time
                     chlo_event_index += 1
                     self.general_info['CHLO%s' % chlo_event_index] = event.other_data['params']
                     last_chlo = event.other_data['params']
@@ -87,8 +97,6 @@ class QuicConnection:
                     last_shlo = event.other_data['params']
             elif event.event_type == 'QUIC_SESSION_VERSION_NEGOTIATED':
                 self.general_info['version'] = event.other_data['params']['version']
-            elif event.event_type == 'QUIC_SESSION_PACKET_RECEIVED':
-                last_quic_session_packet_received_time = event.time_int
 
         #extract stat info
         self.general_info['handshake_round'] = shlo_event_index
@@ -104,10 +112,6 @@ class QuicConnection:
         self.general_info['frame_receive_count'] = len(self.frame_received_dict)
         self.general_info['first_byte_duration'] = 0 #TODO
         self.general_info['first_byte_duration_after_handshake'] = 0  # TODO
-        if last_quic_session_packet_received_time == 0:
-            self.general_info['download_duration'] = -1
-        else:
-            self.general_info['download_duration'] = last_quic_session_packet_received_time - handshake_start_time
         self.general_info['body'] = '' #TODO
 
         # exact SFCW and CFCW
@@ -132,12 +136,18 @@ class QuicConnection:
                 if 'SFCW' in info:
                     self.general_info['server_sfcw'] = int(info.split(': ')[1])
 
-        #print general info
-        for key,value in self.general_info.items():
-            if isinstance(value,tuple):  #CHLO and SHLO
-                 print(key,':', value[1]['quic_crypto_handshake_message'])
-            else:
-                print(key,':',value)
+
+
+
+    def extract_download_time(self):
+        last_quic_session_packet_received_time = 0
+        for frame_id, frame in self.frame_received_dict.items():
+            if frame.stream_id != 'N/A' and self.packet_received_dict[frame.packet_number].time_int > last_quic_session_packet_received_time:
+                last_quic_session_packet_received_time = self.packet_received_dict[frame.packet_number].time_int
+        if last_quic_session_packet_received_time == 0:
+            self.general_info['download_duration'] = -1
+        else:
+            self.general_info['download_duration'] = last_quic_session_packet_received_time - self.general_info['handshake_start_time']
 
 
     def extract_packet(self):
