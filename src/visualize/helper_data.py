@@ -171,46 +171,47 @@ def get_handshake_source():
 
 
     #init CHLO and SHLO
-    handshake_frame_ids = stream_dict['1']
-    chlo_index = 0
-    shlo_index = 0
-    for frame_id in handshake_frame_ids:
-        frame = frame_dict[frame_id]
-        packet_number = frame['packet_number']
-        if frame['direction'] == 'send':
-            packet = packet_sent_dict[str(packet_number)]
-        else:
-            packet = packet_received_dict[str(packet_number)]
-        packet_sent_time = int(packet['time'])
-        packet_sent_time_readable = packet['time_h']
+    if '1' in stream_dict.keys():
+        handshake_frame_ids = stream_dict['1']
+        chlo_index = 0
+        shlo_index = 0
+        for frame_id in handshake_frame_ids:
+            frame = frame_dict[frame_id]
+            packet_number = frame['packet_number']
+            if frame['direction'] == 'send':
+                packet = packet_sent_dict[str(packet_number)]
+            else:
+                packet = packet_received_dict[str(packet_number)]
+            packet_sent_time = int(packet['time'])
+            packet_sent_time_readable = packet['time_h']
 
-        if packet['direction'] == 'send':
-            ack_delay_total = int(packet['ack_delay'])
-            ack_delay_server = int(packet['ack_delay_server'])
-        else:
-            ack_delay_total = 0
-            ack_delay_server = 0
+            if packet['direction'] == 'send':
+                ack_delay_total = int(packet['ack_delay'])
+                ack_delay_server = int(packet['ack_delay_server'])
+            else:
+                ack_delay_total = 0
+                ack_delay_server = 0
 
-        if packet['is_chlo']:
-            chlo_index += 1
-            chlo_packet_sent_time_sequence_list.append(packet_sent_time)
-            chlo_packet_sent_time_readable_sequence_list.append(packet_sent_time_readable)
-            chlo_packet_number_list.append(packet['number'])
-            chlo_ack_delay_total_list.append(ack_delay_total)
-            chlo_ack_delay_server_list.append(ack_delay_server)
-            chlo_colors.append('yellow')
-            chlo_tags.append('CHLO' + str(chlo_index))
-            chlo_infos.append(packet['info_str'])
-        elif packet['is_shlo']:
-            shlo_index += 1
-            shlo_packet_receive_time_sequence_list.append(int(packet['time']))
-            shlo_packet_receive_time_readable_sequence_list.append(packet['time_h'])
-            shlo_packet_numer_list.append(packet['number'])
-            shlo_ack_delay_total_list.append(ack_delay_total)
-            shlo_ack_delay_server_list.append(ack_delay_server)
-            shlo_colors.append('yellow')
-            shlo_tags.append('SHLO' + str(shlo_index))
-            shlo_infos.append(packet['info_str'])
+            if packet['is_chlo']:
+                chlo_index += 1
+                chlo_packet_sent_time_sequence_list.append(packet_sent_time)
+                chlo_packet_sent_time_readable_sequence_list.append(packet_sent_time_readable)
+                chlo_packet_number_list.append(packet['number'])
+                chlo_ack_delay_total_list.append(ack_delay_total)
+                chlo_ack_delay_server_list.append(ack_delay_server)
+                chlo_colors.append('yellow')
+                chlo_tags.append('CHLO' + str(chlo_index))
+                chlo_infos.append(packet['info_str'])
+            elif packet['is_shlo']:
+                shlo_index += 1
+                shlo_packet_receive_time_sequence_list.append(int(packet['time']))
+                shlo_packet_receive_time_readable_sequence_list.append(packet['time_h'])
+                shlo_packet_numer_list.append(packet['number'])
+                shlo_ack_delay_total_list.append(ack_delay_total)
+                shlo_ack_delay_server_list.append(ack_delay_server)
+                shlo_colors.append('yellow')
+                shlo_tags.append('SHLO' + str(shlo_index))
+                shlo_infos.append(packet['info_str'])
 
     chlo_source = ColumnDataSource(data={
         'x': chlo_packet_sent_time_sequence_list,
