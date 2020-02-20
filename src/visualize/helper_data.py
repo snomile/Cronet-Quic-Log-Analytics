@@ -77,20 +77,24 @@ def calculate_packet_size_on_the_fly():
             ack_time_cfcw_dict[frame['frame_id']] = (frame['time_elaps'],total_ack_size)
     #calculate packet size on the fly per send event, if the ack time between previous event time and current event time, then the on_the_fly_size should minus the ack_length
     packet_sent_list = list(packet_sent_dict.values())
-    current_receiver_windows_offset = packet_sent_list[0]['length']
-    on_the_fly_packet_size_list = [current_receiver_windows_offset/1024]
-    packet_sent_time_sequence_list = [int(packet_sent_list[0]['time'])]
-    for i in range(1, len(packet_sent_list)):
-        previous_packet = packet_sent_list[i - 1]
-        packet = packet_sent_list[i]
-        packet_sent_time_sequence_list.append(int(packet['time']))
-        current_receiver_windows_offset += packet['length']
-        previous_sent_time = previous_packet['time']
-        current_sent_time = packet['time']
-        for frame_id, (ack_time, ack_length) in ack_time_cfcw_dict.items():
-            if previous_sent_time < ack_time and current_sent_time >= ack_time:
-                current_receiver_windows_offset -= ack_length
+    on_the_fly_packet_size_list = []
+    packet_sent_time_sequence_list = []
+
+    if len(packet_sent_list)>0:
+        current_receiver_windows_offset = packet_sent_list[0]['length']
         on_the_fly_packet_size_list.append(current_receiver_windows_offset/1024)
+        packet_sent_time_sequence_list.append(int(packet_sent_list[0]['time']))
+        for i in range(1, len(packet_sent_list)):
+            previous_packet = packet_sent_list[i - 1]
+            packet = packet_sent_list[i]
+            packet_sent_time_sequence_list.append(int(packet['time']))
+            current_receiver_windows_offset += packet['length']
+            previous_sent_time = previous_packet['time']
+            current_sent_time = packet['time']
+            for frame_id, (ack_time, ack_length) in ack_time_cfcw_dict.items():
+                if previous_sent_time < ack_time and current_sent_time >= ack_time:
+                    current_receiver_windows_offset -= ack_length
+            on_the_fly_packet_size_list.append(current_receiver_windows_offset/1024)
 
     return packet_sent_time_sequence_list,on_the_fly_packet_size_list
 
