@@ -453,6 +453,7 @@ def get_packet_size_inflight():
     })
     return source
 
+
 def get_connection_close_source():
     connection_close_time_list = []
     infos = []
@@ -463,11 +464,7 @@ def get_connection_close_source():
             time = frame['time_elaps']
             connection_close_time_list.append(time)
             infos.append('quic error: ' + frame['quic_error'])
-
-            if frame['direction'] == 'send':
-                actions.append('Client_SEND_CONNECTION_CLOSE')
-            else:
-                actions.append('Server_SEND_CONNECTION_CLOSE')
+            actions.append('%s_%s_CONNECTION_CLOSE'  % (general_info['session_type'], frame['direction']))
 
     source = ColumnDataSource(data={
         'x': connection_close_time_list,
