@@ -88,7 +88,7 @@ if __name__ == '__main__':
     project_root = abs_program_path[:abs_program_path.index('/src/cronet_log_analyze.py')]
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--log_path", help="absloute path of the log file", default ='client_netlog_高receive丢包率.json')  #some_file_name4
+    parser.add_argument("--log_path", help="absloute path of the log file", default ='netlog_2020-02-19_11:13:05aff5ba01c47bc6e4_下载时间算多了.json')  #some_file_name4
     parser.add_argument("--output_path", help="absloute path of the output files", default="%s/resource/data_converted/%s/" % (project_root, time.time()))
     parser.add_argument("--show_all_packet_info", help="show_all_packet_info", default=True)
     parser.add_argument("--show_receive_send", help="show_receive_send", default=True)

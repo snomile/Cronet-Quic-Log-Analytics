@@ -139,12 +139,15 @@ class QuicConnection:
 
 
     def extract_server_packet_loss_rate(self):
-        total_loss_receive_packet = 0
-        last_receive_packet_number = 0
-        for packet_number, packet in self.packet_received_dict.items():
-            total_loss_receive_packet = total_loss_receive_packet + packet_number - (last_receive_packet_number + 1)
-            last_receive_packet_number = packet_number
-        self.general_info['receive_packet_loss_rate'] = round(1.0*total_loss_receive_packet/len(self.packet_received_dict), 3)
+        if len(self.packet_received_dict) == 0:
+            self.general_info['receive_packet_loss_rate'] = 0
+        else:
+            total_loss_receive_packet = 0
+            last_receive_packet_number = 0
+            for packet_number, packet in self.packet_received_dict.items():
+                total_loss_receive_packet = total_loss_receive_packet + packet_number - (last_receive_packet_number + 1)
+                last_receive_packet_number = packet_number
+            self.general_info['receive_packet_loss_rate'] = round(1.0*total_loss_receive_packet/len(self.packet_received_dict), 3)
 
     def extract_download_time(self):
         last_quic_session_packet_received_time = 0
