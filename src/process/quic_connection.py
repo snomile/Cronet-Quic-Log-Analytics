@@ -93,8 +93,12 @@ class QuicConnection:
                     if sttl:
                         self.general_info['STTL'] = sttl
                     expy = constant_converter.find_key_value(event.other_data['params']['quic_crypto_handshake_message'],'EXPY')
-                    if sttl:
+                    if expy:
                         self.general_info['EXPY'] = expy
+                    rrej = constant_converter.find_key_value_str(event.other_data['params']['quic_crypto_handshake_message'],'RREJ')
+                    if rrej:
+                        self.general_info['RREJ'] = rrej
+
                     last_shlo = event.other_data['params']
             elif event.event_type == 'QUIC_SESSION_VERSION_NEGOTIATED':
                 self.general_info['version'] = event.other_data['params']['version']

@@ -53,18 +53,25 @@ def get_quic_error(error_id):
     return quic_error_type_dict[error_id]
 
 def get_int_big_endian(big_endian_hex):
-    big_endian_hex = big_endian_hex.replace('0x', '')
-    little_endian_hex = ''
-    for i in range(0, len(big_endian_hex), 2):
-        little_endian_hex = big_endian_hex[i: i + 2] + little_endian_hex
+    if big_endian_hex:
+        big_endian_hex = big_endian_hex.replace('0x', '')
+        little_endian_hex = ''
+        for i in range(0, len(big_endian_hex), 2):
+            little_endian_hex = big_endian_hex[i: i + 2] + little_endian_hex
 
-    return int(little_endian_hex, 16)
+        return int(little_endian_hex, 16)
+    else:
+        return None
 
 def find_key_value(shlo_str, key):
-    sttl_str = shlo_str[shlo_str.find(key): shlo_str.find('\n', shlo_str.find(key))]
-    if sttl_str:
-        sttl_value_str = sttl_str.split(': ')[1]
-        return get_int_big_endian(sttl_value_str)
+    value_str = find_key_value_str(shlo_str, key)
+    return get_int_big_endian(value_str)
+
+def find_key_value_str(shlo_str, key):
+    key_value_str = shlo_str[shlo_str.find(key): shlo_str.find('\n', shlo_str.find(key))]
+    if key_value_str:
+        value_str = key_value_str.split(': ')[1]
+        return value_str
     else:
         return None
 
