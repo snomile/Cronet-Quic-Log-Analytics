@@ -39,7 +39,7 @@ class QuicConnection:
         self.extract_retransmission_info()
         self.extract_general_info()
         self.extract_download_time()
-        self.extract_server_packet_loss_rate()
+        self.extract_receive_packet_loss_rate()
 
         #print general info
         for key,value in self.general_info.items():
@@ -142,7 +142,7 @@ class QuicConnection:
                     self.general_info['server_sfcw'] = int(info.split(': ')[1])
 
 
-    def extract_server_packet_loss_rate(self):
+    def extract_receive_packet_loss_rate(self):
         if len(self.packet_received_dict) == 0:
             self.general_info['receive_packet_loss_rate'] = 0
         else:
