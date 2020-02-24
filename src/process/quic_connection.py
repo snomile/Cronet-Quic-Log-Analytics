@@ -82,6 +82,8 @@ class QuicConnection:
                     if chlo_event_index == 0:
                         handshake_start_time = event.time_int
                         self.general_info['handshake_start_time'] = handshake_start_time
+                        self.general_info['CHLO1_NONP'] = constant_converter.find_key_value_str(event.other_data['params']['quic_crypto_handshake_message'], 'NONP')
+                        self.general_info['CHLO1_NONC'] = constant_converter.find_key_value_str(event.other_data['params']['quic_crypto_handshake_message'], 'NONC')
                     chlo_event_index += 1
                     self.general_info['CHLO%s' % chlo_event_index] = event.other_data['params']
                     last_chlo = event.other_data['params']
