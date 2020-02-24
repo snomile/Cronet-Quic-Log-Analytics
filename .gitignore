@@ -111,6 +111,8 @@ venv.bak/
 /src_clipper/.idea/
 /src_clipper/out/production/src_clipper/
 /src_clipper/src_clipper.iml
+!resource/data_original/server*.json
+!resource/data_original/client*.json
 
 # except for .gitkeep
 !.gitkeep
