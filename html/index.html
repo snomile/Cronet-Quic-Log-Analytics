@@ -96,6 +96,8 @@
       <div v-if="netlog" style="padding-left: 20px;">
         <el-link type="primary" :href="'netlog-viewer/index.html?json=../' + htmlPath + netlog" target="_blank">chrom netLog dump viewer for {{fileName}}
         </el-link>
+        <el-link type="info" style="margin-left: 10px;" :href="htmlPath + netlog" target="_blank"><i
+            class="el-icon-download"></i></el-link>
       </div>
       <div class="list">
         <el-card v-for="(value, name) in htmlList" :key="name" class="box-card">

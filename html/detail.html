@@ -46,10 +46,11 @@
 <body>
   <div id="app">
     <el-card class="box-card">
-      <div v-if="netlog" style="padding-left: 20px;">
+      <div v-if="netlog" style="padding-left: 20px; display: inline;align-items: center;">
         <el-link type="primary" :href="'netlog-viewer/index.html?json=../' + htmlPath + netlog" target="_blank">chrome netLog
           dump viewer
         </el-link>
+        <el-link type="info" style="margin-left: 10px;" :href="htmlPath + netlog" target="_blank"><i class="el-icon-download"></i></el-link>
       </div>
       <div class="list">
         <el-card v-for="(value, name) in htmlList" :key="name" class="box-card">
