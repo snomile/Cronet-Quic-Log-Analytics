@@ -47,8 +47,8 @@
   <div id="app">
     <el-card class="box-card">
       <div v-if="netlog" style="padding-left: 20px; display: inline;align-items: center;">
-        <el-link type="primary" :href="'netlog-viewer/index.html?json=../' + htmlPath + netlog" target="_blank">chrome netLog
-          dump viewer
+        <el-link type="primary" :href="'netlog-viewer/index.html?json=../' + htmlPath + netlog" target="_blank">
+          chrome netLog dump viewer
         </el-link>
         <el-link type="info" style="margin-left: 10px;" :href="htmlPath + netlog" target="_blank"><i class="el-icon-download"></i></el-link>
       </div>
@@ -59,14 +59,35 @@
           </div>
           <div v-for="(url, index) in value" :key="url">
             <el-link v-if="url.indexOf('quic_connection.json') >= 0" type="primary" :href="'echarts.html?json=' + htmlPath + url"
-              target="_blank">custom log
-              analysis by echarts</el-link>
-            <el-link v-else type="primary" :href="htmlPath + url" target="_blank">{{url}}
-            </el-link>
+              target="_blank">custom log analysis by echarts</el-link>
+            <el-link v-else type="primary" :href="htmlPath + url" target="_blank">{{url}}</el-link>
           </div>
         </el-card>
       </div>
     </el-card>
+    <div>
+      <el-card class="box-card" v-if="serverList.length > 0">
+        <div slot="header" class="clearfix">
+          <span>Server Log</span>
+        </div>
+        <div v-for="(value, name) in serverList" style="display: inline-block;">
+          <el-card v-for="(child, name) in value.connections" :key="name" class="box-card">
+            <div slot="header" class="clearfix">
+              <el-link type="primary" :href="'netlog-viewer/index.html?json=../' + value.htmlPath + value.netlog" target="_blank">
+                {{name}} -- chrome netLog dump viewer
+              </el-link>
+              <el-link type="info" style="margin-left: 10px;" :href="value.htmlPath + value.netlog" target="_blank"><i
+                  class="el-icon-download"></i></el-link>
+            </div>
+            <div v-for="(url, index) in child" :key="url">
+              <el-link v-if="url.indexOf('quic_connection.json') >= 0" type="primary"
+                :href="'echarts.html?json=' + value.htmlPath + url" target="_blank">custom log analysis by echarts</el-link>
+              <el-link v-else type="primary" :href="value.htmlPath + url" target="_blank">{{url}}</el-link>
+            </div>
+          </el-card>
+        </div>
+      </el-card>
+    </div>
   </div>
 </body>
 <!-- import Vue before Element -->

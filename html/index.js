@@ -23,6 +23,7 @@ var mainVue = new Vue({
         ignore_domain_name_list: ['googleapis.com', 'doubleclick.net', 'google-analytics.com']
       },
       loading: null,
+      serverList: [],
     }
   },
   methods: {
@@ -90,6 +91,14 @@ var mainVue = new Vue({
         _this.htmlPath = url.replace('event_session_info.json', '');
         _this.netlog = data.netlog;
         _this.htmlList = data.connections;
+        $.getJSON(_this.htmlPath + 'server_session_info.json', function (data) {
+          data.forEach(function(item) {
+            $.getJSON(item, function(server_data) {
+              server_data.htmlPath = item.replace('event_session_info.json', '');
+              _this.serverList.push(server_data);
+            })
+          })
+        });
       });
     }
   }

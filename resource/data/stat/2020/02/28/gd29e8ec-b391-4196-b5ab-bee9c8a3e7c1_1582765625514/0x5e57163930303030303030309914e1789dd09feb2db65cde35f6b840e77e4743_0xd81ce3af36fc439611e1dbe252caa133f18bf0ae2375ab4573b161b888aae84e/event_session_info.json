@@ -1,0 +1,13 @@
+{
+  "netlog": "netlog.json",
+  "connections": {
+    "test3": [
+      "quic.snomile.ink.mk1020.com_69548851_general_info.json",
+      "quic.snomile.ink.mk1020.com_69548851_quic_connection.json",
+      "quic.snomile.ink.mk1020.com_69548851_packetsizetraffic.html",
+      "quic.snomile.ink.mk1020.com_69548851_packetnumbertraffic.html",
+      "quic.snomile.ink.mk1020.com_69548851_packetackdelay.html",
+      "quic.snomile.ink.mk1020.com_69548851_packetsizeinflight.html"
+    ]
+  }
+}
