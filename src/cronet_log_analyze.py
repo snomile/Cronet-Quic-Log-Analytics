@@ -1,5 +1,6 @@
 import json
 import os
+import platform
 import sys
 import argparse
 import time
@@ -83,10 +84,16 @@ def generate_event_session_result(output_path):
 
 
 if __name__ == '__main__':
-    #extract args
+    #find project root path
     abs_program_path = os.path.abspath(sys.argv[0])
-    project_root = abs_program_path[:abs_program_path.index('/src/cronet_log_analyze.py')]
+    sys_type = platform.system()
+    if(sys_type =="Windows"):
+        abs_program_path_index = abs_program_path.index('\src\cronet_log_analyze.py')
+    else:
+        abs_program_path_index = abs_program_path.index('/src/cronet_log_analyze.py')
+    project_root = abs_program_path[:abs_program_path_index]
 
+    #extract args
     parser = argparse.ArgumentParser()
     parser.add_argument("--log_path", help="absloute path of the log file", default ='client_netlog_high_receive_packet_loss_rate.json')  #some_file_name4
     parser.add_argument("--output_path", help="absloute path of the output files", default="%s/resource/data_converted/%s/" % (project_root, time.time()))
