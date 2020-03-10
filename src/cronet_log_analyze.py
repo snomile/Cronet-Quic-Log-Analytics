@@ -95,7 +95,7 @@ if __name__ == '__main__':
 
     #extract args
     parser = argparse.ArgumentParser()
-    parser.add_argument("--log_path", help="absloute path of the log file", default ='client_netlog_high_receive_packet_loss_rate.json')  #some_file_name4
+    parser.add_argument("--log_path", help="absloute path of the log file", default ='client_h2_mobile.json')  #some_file_name4
     parser.add_argument("--output_path", help="absloute path of the output files", default="%s/resource/data_converted/%s/" % (project_root, time.time()))
     parser.add_argument("--show_all_packet_info", help="show_all_packet_info", default=True)
     parser.add_argument("--show_receive_send", help="show_receive_send", default=True)
