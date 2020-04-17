@@ -399,8 +399,8 @@ class QuicConnection:
             json_obj['packet_received_dict'][packet.packet_number] = packet_json_obj
 
 
-        with open(self.fullpath_general_info_json_file, "w") as f:
-            json.dump(self.general_info, f)
+        # with open(self.fullpath_general_info_json_file, "w") as f:
+        #     json.dump(self.general_info, f)
 
         with open(self.fullpath_json_file, "w") as f:
             json.dump(json_obj, f)
