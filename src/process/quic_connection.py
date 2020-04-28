@@ -1,4 +1,3 @@
-import csv
 import json
 
 from process import constant_converter
@@ -405,4 +404,6 @@ class QuicConnection:
         with open(self.fullpath_json_file, "w") as f:
             json.dump(json_obj, f)
 
-        return self.fullpath_json_file
+        json_obj['fullpath_json_file'] = self.fullpath_json_file
+
+        return json_obj
