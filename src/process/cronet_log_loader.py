@@ -1,10 +1,12 @@
 import json
-
-from process import constant_converter
-from process.quic_session import QuicSession, ClientQuicSession, ServerQuicSession
-from process.netlog_event import NetlogEvent
+import os
 
 from collections import OrderedDict
+
+from process import constant_converter, probe_common, probe_quic, probe_http2
+from process.netlog_event import NetlogEvent
+# from process.quic_session import QuicSession, ClientQuicSession, ServerQuicSession
+# from process.quic_connection import QuicConnection
 
 
 def get_formed_log_events(log_events):
@@ -21,7 +23,8 @@ def get_formed_log_events(log_events):
     http_stream_jobs = {}
     quic_sessions = {}
     http2_sessions = {}
-    http_session = {}
+    http_sessions = {}
+    sockets = {}
     for event_key, value in net_log_events.items():
         if "URL_REQUEST" in event_key:
             url_requests[event_key] = value
@@ -34,8 +37,10 @@ def get_formed_log_events(log_events):
         elif "HTTP2_SESSION" in event_key:
             http2_sessions[event_key] = value
         elif "HTTP_SESSION" in event_key:
-            http_session[event_key] = value
-    return url_requests, http_stream_job_controllers, http_stream_jobs, quic_sessions, http2_sessions, http_session
+            http_sessions[event_key] = value
+        elif "|SOCKET" in event_key:
+            sockets[event_key] = value
+    return url_requests, http_stream_job_controllers, http_stream_jobs, quic_sessions, http2_sessions, http_sessions, sockets, net_log_events.values()
 
 
 def process_url_request(formed_elem):
@@ -158,30 +163,45 @@ def process_http_stream_job(formed_elem):
     return http_stream_jobs
 
 
-def gen_general_infos(url_requests, http_stream_job_controllers, http_stream_jobs, quic_sessions):
-    gen_general_infos = {}
-    for stream_job_controller_elem in http_stream_job_controllers:
-        gen_general_info = {}
-        url_request_id = stream_job_controller_elem.get('url_request_id', -1)
-        filtered_url_requests = [x for x in url_requests if x.get('url_request_id', -1) == url_request_id]
-        gen_general_info['url_request'] = filtered_url_requests[0]
-        gen_general_info['http_stream_job_controller'] = stream_job_controller_elem
-        gen_general_info['url_request']['http_stream_job_controller_counts'] = 1
-        gen_general_infos[stream_job_controller_elem.get('http_stream_job_controller_id')] = gen_general_info
-    for stream_job_elem in http_stream_jobs:
-        gen_general_infos[stream_job_elem.get('http_stream_job_controller_id', -1)]['http_stream_job'] = stream_job_elem
-    gen_general_info_keys = sorted(gen_general_infos.keys())
-    for quic_session in quic_sessions:
-        last_key = 0
-        for gg_key in gen_general_info_keys:
-            if gg_key > quic_session['quic_session_id']:
-                gen_general_infos[last_key]['http_stream_job']["quic_job_counts"] = gen_general_infos[last_key]['http_stream_job'].get("quic_job_counts", 0) + 1
+def gen_general_infos(url_requests, http_stream_job_controllers, http_stream_jobs, quic_sessions, http2_sessions):
+    # http2_session_durations = []
+    if len(url_requests) == 0 and len(quic_sessions) > 0:
+        return [{
+            'http_stream_job': {'probe_url': quic_session['original_datas']['host']},
+            'http_stream_job_controller': {'stream_start_time_int': quic_session['quic_session_starttime']},
+            'quic_probe': quic_session
+        } for quic_session in quic_sessions]
+    else:
+        gen_general_infos = {}
+        for stream_job_controller_elem in http_stream_job_controllers:
+            gen_general_info = {}
+            url_request_id = stream_job_controller_elem.get('url_request_id', -1)
+            filtered_url_requests = [x for x in url_requests if x.get('url_request_id', -1) == url_request_id]
+            gen_general_info['url_request'] = filtered_url_requests[0]
+            gen_general_info['http_stream_job_controller'] = stream_job_controller_elem
+            gen_general_info['url_request']['http_stream_job_controller_counts'] = 1
+            gen_general_infos[stream_job_controller_elem.get('http_stream_job_controller_id')] = gen_general_info
+        for stream_job_elem in http_stream_jobs:
+            for http2_session in http2_sessions:
+                if http2_session.get('http_job_stream_id', -2) in stream_job_elem.get('original_data', {'stream_jobs': [-1]}).get('stream_jobs'):
+                    stream_job_elem['http2_session'] = http2_session
+                    # http2_session_durations.append(http2_session['http2_session_duration'])
+            gen_general_infos[stream_job_elem.get('http_stream_job_controller_id', -1)]['http_stream_job'] = stream_job_elem
+        gen_general_info_keys = sorted(gen_general_infos.keys())
+        for quic_session in quic_sessions:
+            last_key = 0
+            for gg_key in gen_general_info_keys:
+                if gg_key > quic_session['quic_session_id']:
+                    gen_general_infos[last_key]['http_stream_job']["quic_job_counts"] = gen_general_infos[last_key]['http_stream_job'].get("quic_job_counts", 0) + 1
+                    gen_general_infos[last_key]['quic_probe'] = quic_session
+                    last_key = gg_key
+                    break
                 last_key = gg_key
-                break
-            last_key = gg_key
-        if quic_session['quic_session_id'] > last_key:
-            gen_general_infos[last_key]['http_stream_job']["quic_job_counts"] = gen_general_infos[last_key]['http_stream_job'].get("quic_job_counts", 0) + 1
-    return gen_general_infos.values()
+            if quic_session['quic_session_id'] > last_key:
+                gen_general_infos[last_key]['http_stream_job']["quic_job_counts"] = gen_general_infos[last_key]['http_stream_job'].get("quic_job_counts", 0) + 1
+                gen_general_infos[last_key]['quic_probe'] = quic_session
+            # return gen_general_infos.values(), http2_session_durations
+        return gen_general_infos.values()
 
 
 def generate_general_info_files(general_infos, data_converted_path):
@@ -197,25 +217,70 @@ def generate_general_info_files(general_infos, data_converted_path):
     return general_infos
 
 
-def process_quic_session(quic_formed_elem):
-    quics = []
-    for key, values in quic_formed_elem.items():
-        key_elem = key.split("|")
-        quics.append({
-            "quic_session_id": int(key_elem[0])
-        })
-    return quics
+# def process_quic_session(quic_formed_elem, data_converted_path):
+#     quics = []
+#     for key, values in quic_formed_elem.items():
+#         key_elem = key.split("|")
+#         quic = {
+#             "quic_session_id": int(key_elem[0])
+#         }
+#         host = "host"
+#         dns_begin_time = 0
+#         dns_end_time = 0
+#         for event in values:
+#             if 'QUIC_SESSION' == event.event_type and 'PHASE_BEGIN' in event.phase:
+#                 host = event.other_data.get('params').get('host')
+#         quic_connection = QuicConnection(host, dns_begin_time, dns_end_time, values, data_converted_path, "")
+#         json_obj = quic_connection.save()
+#         quic['original_datas'] = json_obj.get('general_info')
+#         quic['full_path_json_file'] = json_obj.get('fullpath_json_file')
+#         quic['quic_session_starttime'] = values[0].time_int
+#         quics.append(quic)
+#     return quics
+
+
+# def process_http2_session(http2_sessions, sockets):
+#     http2s = []
+#     for key, values in http2_sessions.items():
+#         key_elem = key.split("|")
+#         http2 = {
+#             "http2_session_id": int(key_elem[0])
+#         }
+#         original_data = {}
+#         for event in values:
+#             if 'HTTP2_SESSION_INITIALIZED' == event.event_type and 'PHASE_NONE' in event.phase:
+#                 dependency_socket_events = sockets.get("%s|%s" % (event.source_dependency_id, event.source_dependency_type), [])
+#                 for s_event in dependency_socket_events:
+#                     if 'TCP_CONNECT' == s_event.event_type and 'PHASE_BEGIN' in s_event.phase and original_data.get('http2_conn_establish_begin') is None:
+#                         original_data['http2_conn_establish_begin'] = s_event.time_int
+#                     if 'SSL_CONNECT' == s_event.event_type and 'PHASE_END' in s_event.phase and original_data.get('http2_conn_establish_end') is None:
+#                         original_data['http2_conn_establish_end'] = s_event.time_int
+#                 original_data['http2_conn_download_begin'] = event.time_int
+#             if 'HTTP2_SESSION_SEND_HEADERS' == event.event_type and 'PHASE_NONE' == event.phase:
+#                 original_data['http_job_stream_id'] = event.source_dependency_id
+#             original_data['http2_conn_download_end'] = event.time_int
+#         http2['http2_session_duration'] = original_data.get('http2_conn_establish_end', 0) - original_data.get('http2_conn_establish_begin', 0) + \
+#                                                   original_data.get('http2_conn_download_end', 0) - original_data.get('http2_conn_download_begin', 0)
+#         http2['http_job_stream_id'] = original_data['http_job_stream_id']
+#         http2['original_data'] = original_data
+#         http2s.append(http2)
+#     return http2s
 
 
 def process_netlog(fullpath, project_root, data_converted_path, filename_without_ext):
     print('begin to process log file')
     log_events = parse_netlog(fullpath, project_root)
     formed_log_events = get_formed_log_events(log_events)
-    url_requests = process_url_request(formed_log_events[0])
-    http_stream_job_controllers = process_http_stream_job_controller(formed_log_events[1])
+    # url_requests = process_url_request(formed_log_events[0])
+    # http_stream_job_controllers = process_http_stream_job_controller(formed_log_events[1])
+    url_requests = probe_common.process_events(formed_log_events[0],probe_common.process_url_request)
+    http_stream_job_controllers = probe_common.process_events(formed_log_events[1],probe_common.process_http_stream_job_controller)
     http_stream_jobs = process_http_stream_job(formed_log_events[2])
-    quic_sessions = process_quic_session(formed_log_events[3])
-    general_infos = gen_general_infos(url_requests, http_stream_job_controllers, http_stream_jobs, quic_sessions)
+    # quic_sessions = process_quic_session(formed_log_events[3], data_converted_path)
+    quic_sessions = probe_quic.process_quic_session(formed_log_events[3], data_converted_path)
+    http2_sessions = probe_http2.process_http2_session(formed_log_events[4], formed_log_events[6])
+    # general_infos, http2_session_durations = gen_general_infos(url_requests, http_stream_job_controllers, http_stream_jobs, quic_sessions, http2_sessions)
+    general_infos = gen_general_infos(url_requests, http_stream_job_controllers, http_stream_jobs, quic_sessions, http2_sessions)
     # for formed_elem in formed_log_events:
     #     url_request_matrix = process_url_request(formed_elem)
     #     for req_content_elem in formed_elem['REQUEST_CONTENT']:
@@ -227,7 +292,10 @@ def process_netlog(fullpath, project_root, data_converted_path, filename_without
     #         general_infos.append(general_info)
     # json_files = [x['json_file'] for x in general_infos]
     general_info_files = generate_general_info_files(general_infos, data_converted_path)
-    json_files = process_probe_data(data_converted_path, filename_without_ext, log_events)
+    # json_files = process_probe_data(data_converted_path, filename_without_ext, log_events, general_infos)
+    json_files = process_probe_data(data_converted_path, filename_without_ext, formed_log_events[-1], general_infos)
+    # json_files = []
+    # print("====", http2_session_durations)
     print('log file process finished')
     return json_files
 
@@ -277,33 +345,42 @@ def fix_truncated_file(file_path):
 
 
 #use first handshake message type to judge the log type
-def get_netlog_type(events):
-    for event in events:
-        if event['type'] == 268:  # "QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_RECEIVED":268,
-            return 'server'
-        if event['type'] == 269:  # "QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_SENT":269,
-            return 'client'
+# def get_netlog_type(events):
+#     for event in events:
+#         if event['type'] == 268:  # "QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_RECEIVED":268,
+#             return 'server'
+#         if event['type'] == 269:  # "QUIC_SESSION_CRYPTO_HANDSHAKE_MESSAGE_SENT":269,
+#             return 'client'
 
 
-def process_probe_data(data_converted_path, filename_without_ext, log_events):
-    log_type = get_netlog_type(log_events)
-    print('netlog type is', log_type)
-    start_time = int(log_events[0]['time'])
-    if log_type == 'client':
-        quic_session = ClientQuicSession(start_time, data_converted_path, filename_without_ext)
-    else:
-        quic_session = ServerQuicSession(start_time, data_converted_path, filename_without_ext)
-    for log_event in log_events:
-        c_event = NetlogEvent(log_event)
-        quic_session.add_event(c_event)
-    quic_session.save()
-    json_files = quic_session.create_quic_connection()
+def process_probe_data(data_converted_path, filename_without_ext, log_events, general_infos):
+    # log_type = get_netlog_type(log_events)
+    # print('netlog type is', log_type)
+    # start_time = int(log_events[0]['time'])
+    # if log_type == 'client':
+    #     quic_session = ClientQuicSession(start_time, data_converted_path, filename_without_ext)
+    # else:
+    #     quic_session = ServerQuicSession(start_time, data_converted_path, filename_without_ext)
+    # for log_event in log_events:
+    #     c_event = NetlogEvent(log_event)
+    #     quic_session.add_event(c_event)
+    # quic_session.save()
+    # json_files = quic_session.create_quic_connection()
+    probe_quic.persist_event_list_to_csv(data_converted_path, filename_without_ext, log_events)
+    json_files = []
+    for info in general_infos:
+        if info.get('quic_probe'):
+            json_files.append(info.get('quic_probe').get('full_path_json_file'))
     return json_files
 
 
 if __name__ == '__main__':
-    file_path = "E:/repository/git/Cronet-Quic-Log-Analytics/resource/data_original/netlog-http-1-02.json"
     project_root = "E:/repository/git/Cronet-Quic-Log-Analytics"
     data_converted_path = "E:/repository/git/Cronet-Quic-Log-Analytics/resource/data_converted/"
     filename_without_ext = "test"
-    process_netlog(file_path, project_root, data_converted_path, filename_without_ext)
+    # file_paths = ["E:/repository/git/Cronet-Quic-Log-Analytics/resource/data_original/netlog-http-1-02.json"]
+    root_dir = "E:/repository/git/Cronet-Quic-Log-Analytics/resource/data_original/test"
+    file_paths = os.listdir(root_dir)
+    for file_path_elem in file_paths:
+        file_path = os.path.join(root_dir, file_path_elem)
+        print(process_netlog(file_path, project_root, data_converted_path, filename_without_ext))
