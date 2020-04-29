@@ -140,7 +140,12 @@ def generate_general_info_files(general_infos, data_converted_path):
     general_info_files = []
     for general_info in general_infos:
         host = general_info['http_stream_job']['probe_url']
-        probe_session_starttime = general_info['quic_probe']['quic_session_starttime']
+        if general_info.get('quic_probe'):
+            probe_session_starttime = general_info['quic_probe']['quic_session_starttime']
+        elif general_info['http_stream_job'].get('http2_session'):
+            probe_session_starttime = general_info['http_stream_job']['http2_session']['original_data']['http2_conn_download_begin']
+        else:
+            probe_session_starttime = 0
         general_info_file_path = '%s%s_%s_general_info.json' % (data_converted_path, host, probe_session_starttime)
         with open(general_info_file_path, "w") as gen_f:
             json.dump(general_info, gen_f)
