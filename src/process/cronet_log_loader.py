@@ -23,6 +23,8 @@ def get_formed_log_events(log_events):
     http2_sessions = {}
     http_sessions = {}
     sockets = {}
+    transport_connect_jobs = {}
+    host_resolver_impl_jobs = {}
     for event_key, value in net_log_events.items():
         if "URL_REQUEST" in event_key:
             url_requests[event_key] = value
@@ -38,7 +40,24 @@ def get_formed_log_events(log_events):
             http_sessions[event_key] = value
         elif "|SOCKET" in event_key:
             sockets[event_key] = value
-    return url_requests, http_stream_job_controllers, http_stream_jobs, quic_sessions, http2_sessions, http_sessions, sockets, net_log_events.values()
+        elif "TRANSPORT_CONNECT_JOB" in event_key:
+            transport_connect_jobs[event_key] = value
+        elif "HOST_RESOLVER_IMPL_JOB" in event_key:
+            host_resolver_impl_jobs[event_key] = value
+    return url_requests, http_stream_job_controllers, http_stream_jobs, quic_sessions, http2_sessions, http_sessions, \
+           sockets, transport_connect_jobs, host_resolver_impl_jobs, net_log_events.values()
+
+
+def process_logs_before_download(socket_values, trans_conn_values, host_resolver_values):
+    sockets = probe_common.process_socket(socket_values)
+    trans_conns = probe_common.process_transport_connect_job(trans_conn_values)
+    host_resolver_impl_jobs = probe_common.process_host_resolver_impl_job(host_resolver_values)
+
+    return {
+        "sockets": list(filter(lambda x: int(x['http_stream_job_id']) > 0, sockets)),
+        "trans_conns": list(filter(lambda x: int(x['host_resolver_impl_job_id']) > 0, trans_conns)),
+        "host_resolver_impl_jobs": host_resolver_impl_jobs
+    }
 
 
 def process_http_stream_job(formed_elem):
@@ -95,7 +114,7 @@ def process_http_stream_job(formed_elem):
     return http_stream_jobs
 
 
-def gen_general_infos(url_requests, http_stream_job_controllers, http_stream_jobs, quic_sessions, http2_sessions):
+def gen_general_infos(url_requests, http_stream_job_controllers, http_stream_jobs, quic_sessions, http2_sessions, logs_before_downloads):
     # http2_session_durations = []
     if len(url_requests) == 0 and len(quic_sessions) > 0:
         return [{
@@ -110,6 +129,7 @@ def gen_general_infos(url_requests, http_stream_job_controllers, http_stream_job
             url_request_id = stream_job_controller_elem.get('url_request_id', -1)
             filtered_url_requests = [x for x in url_requests if x.get('url_request_id', -1) == url_request_id]
             gen_general_info['url_request'] = filtered_url_requests[0]
+            gen_general_info.update(logs_before_downloads)
             gen_general_info['http_stream_job_controller'] = stream_job_controller_elem
             gen_general_info['url_request']['http_stream_job_controller_counts'] = 1
             gen_general_infos[stream_job_controller_elem.get('http_stream_job_controller_id')] = gen_general_info
@@ -161,9 +181,10 @@ def process_netlog(fullpath, project_root, data_converted_path, filename_without
     url_requests = probe_common.process_events(formed_log_events[0],probe_common.process_url_request)
     http_stream_job_controllers = probe_common.process_events(formed_log_events[1],probe_common.process_http_stream_job_controller)
     http_stream_jobs = process_http_stream_job(formed_log_events[2])
+    logs_before_downloads = process_logs_before_download(formed_log_events[6], formed_log_events[7], formed_log_events[8])
     quic_sessions = probe_quic.process_quic_session(formed_log_events[3], data_converted_path)
     http2_sessions = probe_http2.process_http2_session(formed_log_events[4], formed_log_events[6])
-    general_infos = gen_general_infos(url_requests, http_stream_job_controllers, http_stream_jobs, quic_sessions, http2_sessions)
+    general_infos = gen_general_infos(url_requests, http_stream_job_controllers, http_stream_jobs, quic_sessions, http2_sessions, logs_before_downloads)
     general_info_files = generate_general_info_files(general_infos, data_converted_path)
     json_files = process_probe_data(data_converted_path, filename_without_ext, formed_log_events[-1], general_infos)
     print('log file process finished')
